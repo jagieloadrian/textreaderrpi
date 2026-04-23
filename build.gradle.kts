@@ -26,6 +26,8 @@ dependencies {
     implementation("io.ktor:ktor-server-host-common")
     implementation("io.ktor:ktor-server-netty")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+
     //SZWAGIER
     implementation("io.ktor:ktor-server-swagger")
     implementation("io.ktor:ktor-server-routing-openapi")
@@ -51,7 +53,6 @@ dependencies {
     //PI4J AND PI4K
     implementation("com.pi4j:pi4j-core:${pi4j_version}")
     implementation("com.pi4j:pi4j-ktx:${pi4j_version}")
-    implementation("com.pi4j:pi4j-plugin-raspberrypi:${pi4j_version}")
     implementation("com.pi4j:pi4j-plugin-pigpio:${pi4j_version}")
     implementation("com.pi4j:pi4j-plugin-mock:${pi4j_version}")
 
