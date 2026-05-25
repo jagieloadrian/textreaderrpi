@@ -81,9 +81,11 @@
 | Reliability | 99.5% uptime, no crashes | 🟡 Unknown | Needs 24h test |
 | Test coverage | >70% | 🟡 Partial | ~30% currently; Phase 1 goal |
 
-## Next Steps for Phase 1
+## Phase 1 Status
 
-### Planning
+✅ **Context Discussion Complete** — All implementation decisions locked in `.planning/phases/01-mvp/01-CONTEXT.md`
+
+### Next: Planning
 - [ ] Run `/gsd-plan-phase 1` to create PLAN.md with detailed tasks
 - [ ] Review plan and approve before execution
 - [ ] Break down into executable tasks (2-3 day sprints)
