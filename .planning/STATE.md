@@ -85,10 +85,15 @@
 
 ✅ **Context Discussion Complete** — All implementation decisions locked in `.planning/phases/01-mvp/01-CONTEXT.md`
 
-### Next: Planning
-- [ ] Run `/gsd-plan-phase 1` to create PLAN.md with detailed tasks
-- [ ] Review plan and approve before execution
-- [ ] Break down into executable tasks (2-3 day sprints)
+✅ **Planning Complete** — Detailed execution plan created in `.planning/phases/01-mvp/01-PLAN.md`
+- 10 tasks organized in 5 execution waves
+- 8–12 working hour estimate
+- All locked decisions addressed
+- Risk mitigation and verification checklist included
+
+### Next: Execution
+- Ready to execute: `/gsd-execute-phase 01-mvp`
+- Or review plan first: open `.planning/phases/01-mvp/01-PLAN.md` and read summary
 
 ### Execution (after plan approval)
 - [ ] Add input validation to Routing.kt
