@@ -1,0 +1,27 @@
+{
+  "projectName": "TextReaderRpi",
+  "language": "Kotlin",
+  "framework": "Ktor",
+  "platform": "Raspberry Pi",
+  "workflow": {
+    "useResearch": true,
+    "useAI": true,
+    "parallelPhases": false,
+    "autoCommit": true
+  },
+  "team": {
+    "size": "solo",
+    "reviewProcess": "self-review"
+  },
+  "deployment": {
+    "target": "Raspberry Pi 4",
+    "environment": "embedded",
+    "containerization": false
+  },
+  "qualityGates": {
+    "testCoverage": 70,
+    "documentation": true,
+    "codeReview": "self"
+  }
+}
+
