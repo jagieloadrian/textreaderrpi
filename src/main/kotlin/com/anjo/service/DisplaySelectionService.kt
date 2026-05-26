@@ -4,6 +4,7 @@ import com.anjo.config.model.DisplayConfig
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.Max7219Matrix
 import com.anjo.driver.LcdDisplay
+import com.anjo.driver.OledDisplay
 import com.pi4j.context.Context
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -97,10 +98,7 @@ class DisplaySelectionService(
             return when (displayType) {
                 "MAX7219" -> Max7219Matrix(ctx, config.max7219.numDevices)
                 "LCD" -> LcdDisplay(ctx, config.lcd.i2cAddress, config.lcd.busNumber)
-                "OLED" -> {
-                    System.err.println("OLED support coming in Phase 2 Wave 3")
-                    null
-                }
+                "OLED" -> OledDisplay(ctx, config.oled.i2cAddress, config.oled.busNumber, config.oled.width, config.oled.height)
 
                 else -> {
                     System.err.println("Unknown display type: $displayType")
