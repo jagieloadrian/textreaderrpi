@@ -1,7 +1,7 @@
 # Project State & Memory
 
 **Last Updated:** 2026-05-26  
-**Status:** Phase 1 verified - ready for next phase scope
+**Status:** Phase 2 planning complete - ready for Wave 1 execution
 
 ## Current State
 
@@ -81,6 +81,39 @@
 | Reliability | 99.5% uptime, no crashes | 🟡 Unknown | Needs 24h test |
 | Test coverage | >70% | 🟢 Verified | JaCoCo gate enabled and passing (`jacocoTestCoverageVerification`) |
 
+## Phase 2 Status
+
+✅ **Full Planning Complete** — 7 executable phase plans with locked decisions:
+- `.planning/phases/02-enhanced-display-support/02-CONTEXT.md` — 16 locked decisions (D-01..D-16)
+- `.planning/phases/02-enhanced-display-support/02-DISCUSSION-LOG.md` — Audit trail of requirements discussion
+- `.planning/phases/02-enhanced-display-support/02-UI-SPEC.md` — Design contract (verified, all 6 dimensions passing)
+- `.planning/phases/02-enhanced-display-support/02-01-PLAN.md` → 02-07-PLAN.md — 7 executable plans
+
+**Wave Structure:**
+- **Wave 1 (Backend Foundation):** 02-01 (DisplayDriver refactor + MAX7219), 02-02 (LCD driver), 02-03 (config selection)
+- **Wave 2 (Frontend UI):** 02-04 (BaseLayout + main pages), 02-05 (settings + error pages + JS), 02-06 (API endpoints)
+- **Wave 3 (Polish):** 02-07 (OLED driver + comprehensive tests)
+
+**Key Decisions Locked:**
+- D-01: DisplayDriver hybrid interface (clear/write/status + scrollText for backwards compat)
+- D-02: Scroll-only on MAX7219, write-based on LCD/OLED
+- D-03: I2C LCD (16x2), I2C OLED (SSD1306)
+- D-04: Ktor HTML DSL templates with BaseLayout pattern + Pico CSS v2
+- D-05: GET /, /status, /settings/display HTML pages
+- D-06: Error pages (400/500) + async form submit + character counter
+- ... (16 decisions total, all documented in CONTEXT.md)
+
+**Scope Expansion (from discussion):**
+- Original: Display driver + configuration
+- Expanded: Full responsive HTML UI using Ktor HTML DSL templates + Pico CSS v2
+
+### Next
+- Execute Wave 1: `/gsd-execute-phase 02 --wave 1` (backend foundation)
+- Monitor coverage: `./gradlew jacocoTestReport` after Wave 1
+- Execute Wave 2: `/gsd-execute-phase 02 --wave 2` (frontend UI)
+- Execute Wave 3: `/gsd-execute-phase 02 --wave 3` (OLED + testing)
+- Target: >75% coverage, responsive HTML verified on mobile + desktop
+
 ## Phase 1 Status
 
 ✅ Context, planning, execution, and verification artifacts exist in `.planning/phases/01-mvp/`.
@@ -91,9 +124,6 @@
 - endpoint contract aligned to `POST /api/text`
 - verification complete with coverage gate command pass
 
-### Next
-- Freeze Phase 1 scope and prepare handoff to Phase 2 planning.
-- Optionally raise coverage further above the 70% minimum with service-level tests.
 
 ## Technical Decisions Pending
 
@@ -154,6 +184,6 @@ When resuming this project:
 
 ---
 
-**Status:** Phase 1 complete and verified.  
-**Next Action:** Start Phase 2 planning (or extend Phase 1 with additional test depth).
+**Status:** Phase 2 planning complete (7 plans, all locked decisions in place, UI-SPEC approved).  
+**Next Action:** Execute Phase 2 via `/gsd-execute-phase 02 --wave 1` to begin backend foundation (drivers + config).
 
