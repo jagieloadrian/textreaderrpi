@@ -140,45 +140,34 @@ logging:
 - Upgrade at Phase 1 start
 - Run full test suite after update
 
----
+### 7. DI and Routing Architecture Standards
 
-## Canonical References
+**Ktor DI standard (locked):**
+- DI wiring remains centralized in `src/main/kotlin/di/DependencyInjection.kt`
+- Routing files must not build infrastructure objects directly
+- Business routes receive service dependencies from application composition
 
-- `.planning/PROJECT.md` — Project vision
-- `.planning/REQUIREMENTS.md` — Feature scope
-- `.planning/ROADMAP.md` — Phase breakdown
-- `.planning/codebase/ARCHITECTURE.md` — System design
-- `.planning/codebase/CONCERNS.md` — Quality gaps
-- `.planning/codebase/TESTING.md` — Test patterns
-- `.planning/codebase/CONVENTIONS.md` — Code style
+**Routing separation (locked):**
+- `routing/Routing.kt` is composition-only (mount routes + infrastructure endpoints like `/`/Swagger)
+- Business endpoints live in dedicated files (e.g. `routing/TextRoutes.kt`)
+- Error handling must not live in business route files
 
----
+**Error handling separation (locked):**
+- StatusPages lives in dedicated config module (`config/ErrorHandling.kt`)
+- Request validation lives in dedicated config module (`config/RequestValidationConfig.kt`)
 
-## Code Context
+### 8. Project Structure Unification
 
-**Key Files to Modify:**
-- `src/main/kotlin/routing/Routing.kt` — add RequestValidation plugin, install StatusPages error handler
-- `src/main/kotlin/Application.kt` — initialize ConfigLoader and load configuration early
-- `src/main/kotlin/service/ReaderInput.kt` — use validated config objects
-- `src/main/kotlin/service/ScreenDriver.kt` — use hardware config for timeouts
-- `src/main/kotlin/driver/Max7219Matrix.kt` — add timeout/retry guards
-- `src/main/resources/application.yaml` — define configuration schema
+**Locked layout:**
+- `src/main/kotlin/config/` -> plugin/configuration setup + typed config models
+- `src/main/kotlin/di/` -> dependency graph composition
+- `src/main/kotlin/routing/` -> route composition + business endpoint files
+- `src/main/kotlin/service/` -> business/service logic
+- `src/main/kotlin/driver/` -> hardware adapters + driver abstractions
+- `src/main/kotlin/model/` -> API DTOs
+- `src/main/kotlin/validation/` -> validation logic only
 
-**New Files to Create:**
-- `src/main/kotlin/config/ConfigLoader.kt` — load YAML and create ConfigObjects
-- `src/main/kotlin/config/DisplayConfig.kt` — data class for display settings
-- `src/main/kotlin/config/HardwareConfig.kt` — data class for hardware timeouts
-- `src/main/kotlin/config/ApiConfig.kt` — data class for API limits (text length, queue, rate limit)
-- `src/main/kotlin/config/TimingConfig.kt` — data class for rendering/scroll timings
-- `src/main/kotlin/config/LoggingConfig.kt` — data class for logging configuration
-- `src/main/kotlin/config/ApplicationConfig.kt` — root config holder combining all above
-- `src/main/kotlin/model/TextRequest.kt` — request DTO for POST /api/text
-- `src/main/kotlin/model/TextResponse.kt` — success response DTO
-- `src/main/kotlin/model/ErrorResponse.kt` — error response DTO
-- `src/main/kotlin/validation/RequestValidators.kt` — validators for RequestValidation plugin
-- `src/test/kotlin/routing/TextApiRouteTest.kt` — API endpoint tests
-- `src/test/kotlin/service/ScreenDriverTest.kt` — service tests
-- `src/test/kotlin/service/ReaderInputServiceTest.kt` — service tests
+Legacy mixed pathing under `src/main/kotlin/com/anjo/...` is out-of-standard and should remain removed.
 
 ---
 

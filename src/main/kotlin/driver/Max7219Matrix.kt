@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 class Max7219Matrix(
     private val ctx: Context,
     private val numDevices: Int = 2,
-) {
+) : DisplayDriver {
 
     private val spi: Spi
     private var job: Job? = null
@@ -54,7 +54,7 @@ class Max7219Matrix(
         spi.write(packet)
     }
 
-    fun scrollText(scope: CoroutineScope, text: String, speedMs: Long = 16) {
+    override fun scrollText(scope: CoroutineScope, text: String, speedMs: Long) {
         stop()
 
         val bitmap = buildBitmap(text)
@@ -158,7 +158,7 @@ class Max7219Matrix(
         return if (x < width) this[(x * 8) + row].toInt() else 0
     }
 
-    fun stop() {
+    override fun stop() {
         job?.cancel()
     }
 }
