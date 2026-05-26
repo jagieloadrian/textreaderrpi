@@ -1,6 +1,5 @@
 package com.anjo.routing
 
-import com.anjo.model.TextRequest
 import com.anjo.module
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -17,7 +16,7 @@ class TextApiRouteTest {
         application {
             module()
         }
-        val response = client.post("/api/text") {
+        val response = client.post("/text") {
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             setBody("""{"text":"Hello World"}""")
         }
@@ -32,7 +31,7 @@ class TextApiRouteTest {
         application {
             module()
         }
-        val response = client.post("/api/text") {
+        val response = client.post("/text") {
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             setBody("""{"text":""}""")
         }
@@ -48,7 +47,7 @@ class TextApiRouteTest {
             module()
         }
         val longText = "a".repeat(200)  // Over max of 128
-        val response = client.post("/api/text") {
+        val response = client.post("/text") {
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             setBody("""{"text":"$longText"}""")
         }

@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm") version "2.3.0"
     id("io.ktor.plugin") version "3.4.2"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
+    jacoco
 }
 
 group = "com.anjo"
@@ -60,3 +61,56 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     testImplementation("io.ktor:ktor-server-test-host")
 }
+
+jacoco {
+    toolVersion = "0.8.13"
+}
+
+tasks.test {
+    jacoco {
+        excludes += setOf(
+            "com.anjo.model.*${'$'}serializer*",
+            "com.anjo.model.*${'$'}Companion*"
+        )
+    }
+    finalizedBy(tasks.jacocoTestReport, tasks.jacocoTestCoverageVerification)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+}
+
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.test)
+
+    val excludes = listOf(
+        "com/anjo/driver/**",
+        "com/anjo/utils/**",
+        "com/anjo/config/model/**",
+        "com/anjo/model/**"
+    )
+
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) {
+                exclude(excludes)
+            }
+        })
+    )
+
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.70".toBigDecimal()
+            }
+        }
+    }
+}
+

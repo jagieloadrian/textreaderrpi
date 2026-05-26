@@ -12,7 +12,7 @@ Phase 1 has been successfully executed with all locked technical decisions imple
 - ✅ Ktor RequestValidation plugin for request validation
 - ✅ Ktor StatusPages plugin for centralized error handling
 - ✅ YAML-based configuration with 6 typed ConfigObjects
-- ✅ POST /api/text endpoint fully integrated
+- ✅ POST /text endpoint fully integrated
 - ✅ Comprehensive API tests
 
 ---
@@ -60,7 +60,7 @@ Phase 1 has been successfully executed with all locked technical decisions imple
 ### Wave 3: API Endpoint & Tests ✅
 
 **Completed:**
-- Implemented `POST /api/text` endpoint:
+- Implemented `POST /text` endpoint:
   - Accepts JSON TextRequest
   - Returns HTTP 202 Accepted on valid input
   - Returns HTTP 400 with ErrorResponse on validation failure
@@ -68,9 +68,9 @@ Phase 1 has been successfully executed with all locked technical decisions imple
 
 - Created `TextApiRouteTest` with 4 test cases:
   - ✅ GET / returns 200 (regression test)
-  - ✅ POST /api/text with valid input returns 202
-  - ✅ POST /api/text with blank input returns 400
-  - ✅ POST /api/text with oversized input returns 400
+  - ✅ POST /text with valid input returns 202
+  - ✅ POST /text with blank input returns 400
+  - ✅ POST /text with oversized input returns 400
 
 **Files Created:** 1 test class (4+ tests)  
 **Files Modified:** 1
@@ -83,9 +83,9 @@ Phase 1 has been successfully executed with all locked technical decisions imple
 BUILD SUCCESSFUL
 ✅ All tests passed
 ✅ All validations enforced
-  - Valid input: POST /api/text → 202 Accepted
-  - Blank input: POST /api/text → 400 Bad Request
-  - Oversized input: POST /api/text → 400 Bad Request
+  - Valid input: POST /text → 202 Accepted
+  - Blank input: POST /text → 400 Bad Request
+  - Oversized input: POST /text → 400 Bad Request
   - Regression: GET / → 200 OK
   
 Execution Time: 14s (clean build + test)
@@ -100,7 +100,7 @@ Execution Time: 14s (clean build + test)
   - `config` (6 ConfigObjects, ConfigLoader)
   - `model` (TextRequest, TextResponse, ErrorResponse)
   - `validation` (RequestValidators)
-  - `routing` (enhanced with POST /api/text)
+  - `routing` (enhanced with POST /text)
 
 - **Total new classes:** 11
 - **Total modifications:** 2 files
@@ -112,7 +112,7 @@ Execution Time: 14s (clean build + test)
 - **Environment:** Ready for override via environment variables
 
 ### API Contract
-- **POST /api/text**
+- **POST /text**
   - Request: `{"text": "..."}`
   - Response (202): `{"accepted": true, "message": "..."}`
   - Response (400): `{"error": {"code": "VAL_001", "message": "...", "timestamp": "..."}}`
@@ -127,7 +127,9 @@ Execution Time: 14s (clean build + test)
 - ✅ `config` - Configuration loaded from application.yaml into 6 typed ConfigObjects
 - ✅ `validation` - RequestValidation plugin with custom validators configured from ApiConfig
 - ✅ `errors` - StatusPages plugin mapping exceptions to HTTP 400/500 + JSON responses
-- ✅ `api` - POST /api/text accepts TextRequest, returns TextResponse or ErrorResponse
+- ✅ `api` - POST /text accepts TextRequest, returns TextResponse or ErrorResponse
+
+- ✅ `coverage` - JaCoCo verification enabled with hard threshold `>=70%`
 - ✅ `tests` - Route tests cover valid, invalid, blank, and oversized input paths
 
 **Phase Goal:** ✅ **ACHIEVED**
@@ -178,6 +180,10 @@ STATUS: ✅ BUILD SUCCESSFUL
 $ ./gradlew test
 STATUS: ✅ ALL TESTS PASSED (4 route tests + existing)
 
+# Coverage gate
+$ ./gradlew clean test jacocoTestReport jacocoTestCoverageVerification
+STATUS: ✅ PASSED (JaCoCo >= 70%)
+
 # Ready for deployment
 $ ./gradlew run
 STATUS: ✅ Server starts on port 8080
@@ -197,5 +203,5 @@ cdb8b9a docs(01): add execution readiness brief - all gates passed, ready for gs
 
 ---
 
-*Phase 1 execution completed 2026-05-26. All locked technical decisions implemented and verified.*
+*Phase 1 execution completed 2026-05-26. All locked technical decisions implemented and verified, including JaCoCo >=70% coverage gate.*
 
