@@ -93,10 +93,10 @@ Phase 3: Production Ready (8-10 weeks)
 
 ---
 
-## Phase 2: Enhanced Display Support
+## Phase 2: Enhanced Display Support + Responsive HTML UI
 
 **Duration:** 4-6 weeks  
-**Goal:** Support multiple display types (LCD, OLED) via abstraction layer
+**Goal:** Support multiple display types (LCD, OLED) via abstraction layer and deliver responsive HTML pages as the primary interaction surface
 
 ### Phase 2 Requirements
 
@@ -138,10 +138,23 @@ Phase 3: Production Ready (8-10 weeks)
    - `/api/display/type/{type}` - switch display type (optional)
    - All existing endpoints work with any display type
 
-6. **Test Coverage**
+6. **Responsive HTML Pages (Ktor HTML DSL)**
+   - Use Ktor HTML DSL templates (`Template<HTML>`) with a hybrid structure: shared base layout + route-specific page blocks
+   - `GET /` - responsive main page with text submission form and operation feedback
+   - `GET /status` - responsive status page showing active display type, health/status info, and latest operation outcome
+   - `GET /settings/display` - responsive settings page for runtime display switching
+   - Browser-oriented HTML error pages for 400/500
+
+7. **UX/Rendering Rules for HTML Flow**
+   - HTML pages become the primary business interaction flow
+   - Responsive behavior validated for mobile-first layouts
+   - Keep display-side readability and latency constraints aligned with phase rules
+
+8. **Test Coverage**
    - Driver tests for each display type
    - Configuration loading tests
    - Integration tests with multiple displays
+   - Route/template tests for HTML pages and error page rendering
    - Target: >75% coverage
 
 ### Phase 2 Success Criteria
@@ -152,6 +165,9 @@ Phase 3: Production Ready (8-10 weeks)
 - [ ] All endpoints work with all display types
 - [ ] Switching displays doesn't require server restart
 - [ ] New driver implementations follow same patterns
+- [ ] Responsive HTML pages (`/`, `/status`, `/settings/display`) are functional and mobile-friendly
+- [ ] HTML templates follow base-layout + route-specific hybrid pattern
+- [ ] Browser requests receive HTML error pages for 400/500
 - [ ] Test coverage >75%
 
 ---
