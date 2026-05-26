@@ -112,7 +112,7 @@ Execution Time: 14s (clean build + test)
 - **Environment:** Ready for override via environment variables
 
 ### API Contract
-- **POST /text**
+- **POST /api/text**
   - Request: `{"text": "..."}`
   - Response (202): `{"accepted": true, "message": "..."}`
   - Response (400): `{"error": {"code": "VAL_001", "message": "...", "timestamp": "..."}}`
@@ -127,7 +127,7 @@ Execution Time: 14s (clean build + test)
 - ✅ `config` - Configuration loaded from application.yaml into 6 typed ConfigObjects
 - ✅ `validation` - RequestValidation plugin with custom validators configured from ApiConfig
 - ✅ `errors` - StatusPages plugin mapping exceptions to HTTP 400/500 + JSON responses
-- ✅ `api` - POST /text accepts TextRequest, returns TextResponse or ErrorResponse
+- ✅ `api` - POST /api/text accepts TextRequest, returns TextResponse or ErrorResponse
 
 - ✅ `coverage` - JaCoCo verification enabled with hard threshold `>=70%`
 - ✅ `tests` - Route tests cover valid, invalid, blank, and oversized input paths

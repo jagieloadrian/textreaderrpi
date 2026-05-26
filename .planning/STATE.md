@@ -1,7 +1,7 @@
 # Project State & Memory
 
 **Last Updated:** 2026-05-26  
-**Status:** Phase 1 in-progress - manual architecture refactor applied
+**Status:** Phase 1 verified - ready for next phase scope
 
 ## Current State
 
@@ -20,7 +20,7 @@
   - ✅ Typed YAML config (`ConfigLoader` + `config.model.*`)
   - ✅ Request validation via Ktor `RequestValidation`
   - ✅ Centralized error mapping via Ktor `StatusPages`
-  - ✅ Business text endpoint in dedicated route module (`POST /text`)
+  - ✅ Business text endpoint in dedicated route module (`POST /api/text`)
   - ✅ MAX7219 rendering pipeline (`ReaderInputService` -> `ScreenDriverService` -> `DisplayDriver`)
 
 ### Documentation Completed
@@ -76,23 +76,24 @@
 
 | Metric | Target | Status | Notes |
 |--------|--------|--------|-------|
-| Functionality | Text → LED works | 🟡 Partial | Needs validation testing |
+| Functionality | Text → LED works | 🟢 Verified | Endpoint + validation flow verified |
 | Flexibility | Support multiple displays | ⚪ Not started | Phase 2 work |
 | Reliability | 99.5% uptime, no crashes | 🟡 Unknown | Needs 24h test |
-| Test coverage | >70% | 🟡 Partial | ~30% currently; Phase 1 goal |
+| Test coverage | >70% | 🟢 Verified | JaCoCo gate enabled and passing (`jacocoTestCoverageVerification`) |
 
 ## Phase 1 Status
 
-✅ Context and planning artifacts exist in `.planning/phases/01-mvp/`.
+✅ Context, planning, execution, and verification artifacts exist in `.planning/phases/01-mvp/`.
 
-⚠ Manual codebase refactor was applied after earlier execution/planning artifacts:
-- package/layout reshuffle under `com.anjo`
-- DI/plugin relocation (`di` + `routing` modules)
-- endpoint shape changed to `POST /text`
+✅ Manual refactor reconciliation is complete:
+- package/layout under `com.anjo`
+- DI/plugin ownership aligned (`di` + `routing` modules)
+- endpoint contract aligned to `POST /api/text`
+- verification complete with coverage gate command pass
 
 ### Next
-- Re-sync plan docs with current code before further execution waves.
-- Stabilize tests against current route contract (`/text` vs previous expectations).
+- Freeze Phase 1 scope and prepare handoff to Phase 2 planning.
+- Optionally raise coverage further above the 70% minimum with service-level tests.
 
 ## Technical Decisions Pending
 
@@ -129,11 +130,10 @@ When resuming this project:
 5. Review `.planning/research/` for domain context
 6. Check this STATE.md for latest status and decisions
 
-### For Phase 1 Execution
-- Start with `/gsd-plan-phase 1` to create detailed task breakdown
-- Use `.planning/codebase/` docs as reference for patterns/conventions
-- Refer to `.planning/research/KTOR_PATTERNS.md` for async best practices
-- Follow `.planning/codebase/TESTING.md` for test patterns
+### For Phase 1 Verification/Closeout
+- Validation command used: `./gradlew clean test jacocoTestReport jacocoTestCoverageVerification`
+- Verification artifact: `.planning/phases/01-mvp/01-VERIFICATION.md`
+- Execution summary: `.planning/phases/01-mvp/EXECUTION-SUMMARY.md`
 
 ## Blockers & Risks
 
@@ -154,6 +154,6 @@ When resuming this project:
 
 ---
 
-**Status:** Project initialized and ready for Phase 1 planning.  
-**Next Action:** Run `/gsd-plan-phase 1` to create executable task plan.
+**Status:** Phase 1 complete and verified.  
+**Next Action:** Start Phase 2 planning (or extend Phase 1 with additional test depth).
 
