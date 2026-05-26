@@ -3,6 +3,9 @@ package com.anjo.config.loader
 import com.anjo.config.model.ApiConfig
 import com.anjo.config.model.ApplicationConfig
 import com.anjo.config.model.DisplayConfig
+import com.anjo.config.model.Max7219Config
+import com.anjo.config.model.LcdConfig
+import com.anjo.config.model.OledConfig
 import com.anjo.config.model.HardwareConfig
 import com.anjo.config.model.LoggingConfig
 import com.anjo.config.model.TimingConfig
@@ -11,19 +14,34 @@ import io.ktor.server.application.*
 
 object ConfigLoader {
     fun loadConfig(application: Application): ApplicationConfig {
-        // Load from application.conf (which comes from application.yaml via Ktor's config system)
+        // Load from application.yaml via Ktor's config system
         val config = application.environment.config
         
         // Parse each section and create typed objects
         val displayConfig = DisplayConfig(
-            gpioPins = mapOf(
-                "spi_ce" to (config.propertyOrNull("display.gpioPins.spi_ce")?.getString()?.toIntOrNull() ?: 8),
-                "spi_mosi" to (config.propertyOrNull("display.gpioPins.spi_mosi")?.getString()?.toIntOrNull() ?: 10),
-                "spi_miso" to (config.propertyOrNull("display.gpioPins.spi_miso")?.getString()?.toIntOrNull() ?: 9),
-                "spi_sck" to (config.propertyOrNull("display.gpioPins.spi_sck")?.getString()?.toIntOrNull() ?: 11)
+            type = config.propertyOrNull("display.type")?.getString() ?: "MAX7219",
+            max7219 = Max7219Config(
+                numDevices = config.propertyOrNull("display.max7219.numDevices")?.getString()?.toIntOrNull() ?: 2,
+                brightness = config.propertyOrNull("display.max7219.brightness")?.getString()?.toBoolean() ?: true,
+                gpioPins = mapOf(
+                    "spi_ce" to (config.propertyOrNull("display.max7219.gpioPins.spi_ce")?.getString()?.toIntOrNull() ?: 8),
+                    "spi_mosi" to (config.propertyOrNull("display.max7219.gpioPins.spi_mosi")?.getString()?.toIntOrNull() ?: 10),
+                    "spi_miso" to (config.propertyOrNull("display.max7219.gpioPins.spi_miso")?.getString()?.toIntOrNull() ?: 9),
+                    "spi_sck" to (config.propertyOrNull("display.max7219.gpioPins.spi_sck")?.getString()?.toIntOrNull() ?: 11)
+                )
             ),
-            numDevices = config.propertyOrNull("display.numDevices")?.getString()?.toIntOrNull() ?: 2,
-            brightness = config.propertyOrNull("display.brightness")?.getString()?.toBoolean() ?: true
+            lcd = LcdConfig(
+                i2cAddress = config.propertyOrNull("display.lcd.i2cAddress")?.getString()?.toInt(16) ?: 0x27,
+                busNumber = config.propertyOrNull("display.lcd.busNumber")?.getString()?.toIntOrNull() ?: 1,
+                rows = config.propertyOrNull("display.lcd.rows")?.getString()?.toIntOrNull() ?: 2,
+                columns = config.propertyOrNull("display.lcd.columns")?.getString()?.toIntOrNull() ?: 16
+            ),
+            oled = OledConfig(
+                i2cAddress = config.propertyOrNull("display.oled.i2cAddress")?.getString()?.toInt(16) ?: 0x3C,
+                busNumber = config.propertyOrNull("display.oled.busNumber")?.getString()?.toIntOrNull() ?: 1,
+                width = config.propertyOrNull("display.oled.width")?.getString()?.toIntOrNull() ?: 128,
+                height = config.propertyOrNull("display.oled.height")?.getString()?.toIntOrNull() ?: 64
+            )
         )
         
         val hardwareConfig = HardwareConfig(
