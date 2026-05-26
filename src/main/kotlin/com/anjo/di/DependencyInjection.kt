@@ -1,7 +1,6 @@
 package com.anjo.di
 
-import com.anjo.config.keys.ApplicationConfigKey
-import com.anjo.config.keys.ReaderInputServiceKey
+import com.anjo.config.loader.ConfigLoader
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.Max7219Matrix
 import com.anjo.service.ReaderInputService
@@ -12,7 +11,7 @@ import io.ktor.server.plugins.di.dependencies
 import kotlinx.coroutines.Dispatchers
 
 fun Application.configureDI() {
-    val appConfig = attributes[ApplicationConfigKey]
+    val appConfig = ConfigLoader.loadConfig(this)
     val driver: DisplayDriver = Max7219Matrix(
         ctx = Pi4J.newAutoContext(),
         numDevices = appConfig.display.numDevices
@@ -28,6 +27,4 @@ fun Application.configureDI() {
         provide { screenDriverService }
         provide { readerInputService }
     }
-
-    attributes.put(ReaderInputServiceKey, readerInputService)
 }

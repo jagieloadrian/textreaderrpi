@@ -1,14 +1,12 @@
-package com.anjo.config.plugins.error
+package com.anjo.routing
 
 import com.anjo.model.ErrorDetails
 import com.anjo.model.ErrorResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.plugins.statuspages.exception
 import io.ktor.server.response.respond
 
 fun Application.configureErrorHandling() {

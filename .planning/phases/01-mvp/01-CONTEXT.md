@@ -26,6 +26,7 @@ These implementation choices were explicitly selected and are MANDATORY for Phas
 | Request Validation | Ktor RequestValidation plugin | Native Ktor support, declarative validation rules |
 | Error Handling | Ktor StatusPages plugin | Centralized error mapping, clean JSON responses |
 | Configuration | YAML files with typed DataClasses | Type-safe config access, environment overrides supported |
+| Test Coverage Gate | JaCoCo with build fail threshold | Enforce measurable quality bar before phase close |
 
 ---
 
@@ -153,25 +154,46 @@ logging:
 - Error handling must not live in business route files
 
 **Error handling separation (locked):**
-- StatusPages lives in dedicated config module (`config/ErrorHandling.kt`)
-- Request validation lives in dedicated config module (`config/RequestValidationConfig.kt`)
+- StatusPages lives in dedicated routing-side module (`routing/ErrorHandling.kt`)
+- Request validation lives in dedicated routing-side module (`routing/RequestValidationConfig.kt`)
 
 ### 8. Project Structure Unification
 
 **Locked layout:**
 - Everything must live under `src/main/kotlin/com/anjo/...`
-- `src/main/kotlin/com/anjo/config/keys/` -> app keys and attribute keys
 - `src/main/kotlin/com/anjo/config/loader/` -> configuration loading only
 - `src/main/kotlin/com/anjo/config/model/` -> typed configuration models only
-- `src/main/kotlin/com/anjo/config/plugins/http|monitoring|serialization|validation|error/` -> plugin modules split by concern
-- `src/main/kotlin/com/anjo/di/` -> dependency graph composition
-- `src/main/kotlin/com/anjo/routing/` -> route composition + business endpoint files
+- `src/main/kotlin/com/anjo/di/` -> dependency graph composition + framework plugin setup (HTTP/Monitoring/Serialization)
+- `src/main/kotlin/com/anjo/routing/` -> route composition + business endpoint files + request validation + error handling
 - `src/main/kotlin/com/anjo/service/` -> business/service logic
-- `src/main/kotlin/com/anjo/driver/` -> hardware adapters + abstractions (no NoOp fallback drivers)
+- `src/main/kotlin/com/anjo/driver/` -> hardware adapters + abstractions
 - `src/main/kotlin/com/anjo/model/` -> API DTOs
 - `src/main/kotlin/com/anjo/validation/` -> validation logic only
 
 `NoOpDisplayDriver` pattern is explicitly disallowed for this phase; test/runtime compatibility must come from proper provider selection and explicit wiring.
+
+### 9. Coverage Gate (JaCoCo) - Locked
+
+**Coverage tooling:** JaCoCo must be configured in Gradle for this phase.
+
+**Threshold (hard gate):**
+- Minimum overall test coverage: **70%**
+- If coverage is below 70%, verification fails and phase cannot be marked complete.
+
+**Execution policy:**
+- Coverage verification must run in standard CI/local verification flow.
+- `test` + `jacocoTestReport` + `jacocoTestCoverageVerification` are required for closeout evidence.
+
+**Verification commands (required evidence):**
+```bash
+./gradlew clean test jacocoTestReport jacocoTestCoverageVerification
+```
+
+**Optional report inspection:**
+```bash
+./gradlew jacocoTestReport
+```
+- HTML report path: `build/reports/jacoco/test/html/index.html`
 
 ---
 

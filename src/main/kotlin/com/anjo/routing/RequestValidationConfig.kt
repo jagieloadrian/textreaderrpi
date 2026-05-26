@@ -1,19 +1,19 @@
-package com.anjo.config.plugins.validation
+package com.anjo.routing
 
-import com.anjo.config.keys.ApplicationConfigKey
+import com.anjo.config.model.ApiConfig
 import com.anjo.model.TextRequest
 import com.anjo.validation.RequestValidators
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.plugins.requestvalidation.RequestValidation
-import io.ktor.server.plugins.requestvalidation.ValidationResult
 
 fun Application.configureRequestValidation() {
-    val appConfig = attributes[ApplicationConfigKey]
+    val apiConfig: ApiConfig by dependencies
 
     install(RequestValidation) {
         validate<TextRequest> { textRequest ->
-            RequestValidators.validateTextRequest(textRequest, appConfig.api)
+            RequestValidators.validateTextRequest(textRequest, apiConfig)
         }
     }
 }

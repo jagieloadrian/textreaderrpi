@@ -1,148 +1,71 @@
 # Architecture
 
-**Analysis Date:** 2024-12-19
+**Analysis Date:** 2026-05-26
 
 ## System Overview
 
 ```text
-┌──────────────────────────────────────────────────────────────┐
-│                        HTTP Routing                           │
-│           `routing/Routing.kt`                               │
-│  POST /api/text | GET /status | Swagger at /openapi          │
-└──────────────────────────┬───────────────────────────────────┘
-                           │
-                           ▼
-┌──────────────────────────────────────────────────────────────┐
-│                   Service Layer (async)                       │
-│  ┌──────────────────────┬──────────────────────────────────┐ │
-│  │ ReaderInputService   │   ScreenDriverService            │ │
-│  │ (queue management)   │   (display rendering)            │ │
-│  └──────────────┬───────┴──────────────┬───────────────────┘ │
-│                 │                      │                      │
-│  `service/`                            │                      │
-└─────────────────┼──────────────────────┼──────────────────────┘
-                  │                      │
-                  ▼                      ▼
-┌──────────────────────────────────────────────────────────────┐
-│                    Driver Layer (Hardware)                    │
-│           `driver/Max7219Matrix.kt`                          │
-│      (LED matrix control via SPI/GPIO on Raspberry Pi)       │
-└──────────────────────────────────────────────────────────────┘
+HTTP Request
+   │
+   ▼
+com.anjo.routing.TextRoutes (business endpoints)
+   │
+   ▼
+com.anjo.service.ReaderInputService
+   │
+   ▼
+com.anjo.service.ScreenDriverService
+   │
+   ▼
+com.anjo.driver.DisplayDriver (implemented by Max7219Matrix)
+   │
+   ▼
+Pi4J SPI / MAX7219 hardware
 ```
 
-## Component Responsibilities
+## Composition and Plugin Setup
 
-| Component | Responsibility | File |
-|-----------|----------------|------|
-| **Routing** | HTTP endpoint handling, request parsing, response serialization | `routing/Routing.kt` |
-| **ReaderInputService** | Text input queue management, character buffering, display queue control | `service/ReaderInput.kt` |
-| **ScreenDriverService** | Asynchronous display rendering, character-to-bitmap conversion, screen updates | `service/ScreenDriver.kt` |
-| **Max7219Matrix** | Low-level hardware control, SPI communication, LED matrix addressing | `driver/Max7219Matrix.kt` |
-| **Font Utilities** | Character-to-bitmap mapping, font rendering logic | `utils/Font.kt` |
+- `com.anjo.Application.module()` orchestrates startup in this order:
+  1. `ConfigLoader.loadConfig()`
+  2. `configureHTTP()`
+  3. `configureMonitoring()`
+  4. `configureSerialization()`
+  5. `configureDI()`
+  6. `configureRequestValidation()`
+  7. `configureErrorHandling()`
+  8. `configureRouting()`
 
-## Layers
+## Package Responsibilities
 
-**HTTP Routing Layer:**
-- Purpose: Accept HTTP POST/GET requests, validate input, delegate to services
-- Location: `routing/Routing.kt`
-- Contains: Route handlers, request/response mapping, CORS configuration
-- Depends on: `ReaderInputService`, `ScreenDriverService`
+- `com.anjo.di`
+  - framework-level plugins: CORS/default headers, monitoring, serialization
+  - dependency graph wiring in `DependencyInjection.kt`
+- `com.anjo.routing`
+  - route composition in `Routing.kt`
+  - business endpoint handlers in `TextRoutes.kt`
+  - request validation plugin setup in `RequestValidationConfig.kt`
+  - status page error mapping in `ErrorHandling.kt`
+- `com.anjo.config.loader` + `com.anjo.config.model`
+  - typed runtime config from `application.yaml`
+- `com.anjo.service`
+  - use-case orchestration and dispatcher-bound execution
+- `com.anjo.driver`
+  - display abstraction + MAX7219 implementation
 
-**Service Layer (Async):**
-- Purpose: Orchestrate business logic, manage state, coordinate services
-- Location: `service/`
-- Contains: 
-  - `ReaderInputService`: input queue, character sequencing
-  - `ScreenDriverService`: display rendering, screen composition
-- Depends on: `Max7219Matrix`, application configuration
+## API Surface (current)
 
-**Driver Layer:**
-- Purpose: Encapsulate hardware interaction, abstract LED matrix control
-- Location: `driver/Max7219Matrix.kt`
-- Contains: SPI communication, GPIO control, matrix state management
-- Depends on: Pi4J library
+- `POST /text` (implemented in `TextRoutes.kt`)
+- Swagger UI: `/openapi`
 
-**Configuration Layer:**
-- Purpose: HTTP server setup, Ktor plugins, DI wiring
-- Location: `config/` and `Application.kt`
-- Contains: HTTP module installation, request validation, serialization setup
+## Validation and Error Pipeline
 
-## Data Flow
+- Request payload validation is handled by Ktor `RequestValidation`.
+- Invalid payloads are mapped by `StatusPages` to `400` with `ErrorResponse`.
+- Unexpected exceptions are mapped by `StatusPages` to `500` with `ErrorResponse`.
 
-### Primary Request Path: Send Text to Display
+## Constraints / Notes
 
-1. **HTTP POST** → `Routing.kt` receives `/api/text` with text payload
-2. **Validation** → Custom request validation in `Routing.kt` (bodies must start with "Hello")
-3. **Service Call** → `ReaderInputService.displayText(text)` queues text
-4. **Background Rendering** → `ScreenDriverService` periodically renders and scrolls
-5. **Hardware Write** → `Max7219Matrix` writes column data via SPI
-6. **Response** → HTTP 200 OK with status
-
-### Background Flow: Continuous Display Updates
-
-1. **ScreenDriverService launch** → Coroutine in `Dispatchers.IO` on application startup
-2. **Character iteration** → Gets characters from input queue
-3. **Render** → Converts character to bitmap using `Font.asciiFont`
-4. **Write Hardware** → Calls driver, SPI write operation
-5. **Scroll** → Shifts display columns for animation effect
-
-## Key Abstractions
-
-**Font Rendering:**
-- Purpose: Map ASCII characters to 5-byte bitmap arrays
-- Location: `utils/Font.kt` with `Font.asciiFont` constant
-- Pattern: Character lookup table (character → 8x5 pixel grid)
-
-**SPI Communication:**
-- Purpose: Abstract hardware protocol details
-- Location: `driver/Max7219Matrix.kt`
-- Pattern: Packet-based commands to MAX7219 IC
-
-## Entry Points
-
-**Application Startup:**
-- Location: `Application.kt` main function
-- Triggers: JVM `main()` or Gradle `./gradlew run`
-- Responsibilities: 
-  - Initialize Pi4J context
-  - Instantiate services and drivers
-  - Start Ktor embedded HTTP server on port 8080
-  - Launch background rendering coroutines
-
-**HTTP Server:**
-- Location: Ktor embedded server in `Application.kt`
-- Triggers: HTTP requests on configured port
-- Responsibilities: Route requests, validate input, serialize responses
-
-## Architectural Constraints
-
-- **Threading:** Coroutines with `Dispatchers.IO` for non-blocking async I/O
-- **Global state:** Services are singletons; matrix driver state is local
-- **Circular imports:** None - clear dependency direction: routing → services → driver
-- **Hardware concurrency:** SPI writes serialized to maintain consistency
-- **Blocking operations:** SPI writes block IO dispatcher (acceptable for Raspberry Pi speeds)
-
-## Error Handling
-
-**Strategy:** Exceptions bubble up from driver → service → routing. HTTP layer catches and returns appropriate status codes.
-
-**Patterns:**
-- **Hardware errors:** May throw exceptions, caught in service layer, logged
-- **Invalid input:** Validated in routing layer, returns HTTP 400
-- **Service errors:** Logged, propagated to HTTP layer as 500
-
-## Cross-Cutting Concerns
-
-**Validation:** 
-- HTTP request validation in `Routing.kt` (custom body validation)
-- Service-level validation via extension functions
-- Maximum text length checks
-
-**Logging:** Configured in `logback.xml`; follows Ktor conventions
-
-**Authentication:** Not implemented (suitable for local network)
-
----
-
-*Architecture analysis: 2024-12-19*
+- DI uses Ktor DI plugin (`io.ktor.server.plugins.di`).
+- Hardware path depends on Pi4J mock/real provider availability at runtime.
+- Existing tests still include root-route expectations; current routing composition does not define `GET /` in some manual refactor states.
 

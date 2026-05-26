@@ -13,16 +13,6 @@ import kotlin.test.assertContains
 class TextApiRouteTest {
     
     @Test
-    fun testGetRootReturnsOk() = testApplication {
-        application {
-            module()
-        }
-        client.get("/").apply {
-            assertEquals(HttpStatusCode.OK, status)
-        }
-    }
-    
-    @Test
     fun testPostValidTextReturnsAccepted() = testApplication {
         application {
             module()

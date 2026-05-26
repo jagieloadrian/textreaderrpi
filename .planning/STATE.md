@@ -1,7 +1,7 @@
 # Project State & Memory
 
-**Last Updated:** 2025-01-25  
-**Status:** Initialization Complete - Ready for Phase 1 Planning
+**Last Updated:** 2026-05-26  
+**Status:** Phase 1 in-progress - manual architecture refactor applied
 
 ## Current State
 
@@ -12,16 +12,16 @@
 - **Timeline:** No hard deadline; iterative development
 
 ### Codebase Status
-- **Language:** Kotlin 2.1.0, JDK 21
-- **Framework:** Ktor 2.3.12
-- **Hardware:** Pi4J 2.6.0
-- **Current Hardware:** MAX7219 LED matrix via SPI/GPIO
+- **Language:** Kotlin 2.x, JDK 21+ toolchain
+- **Framework:** Ktor (DI plugin + RequestValidation + StatusPages)
+- **Hardware:** Pi4J + MAX7219 via SPI
+- **Current package root:** `src/main/kotlin/com/anjo/...`
 - **Existing Features:**
-  - ✅ HTTP server on port 8080
-  - ✅ POST /api/text endpoint (basic)
-  - ✅ MAX7219 LED matrix rendering
-  - ✅ Text scrolling animation
-  - ✅ Basic HTTP routing
+  - ✅ Typed YAML config (`ConfigLoader` + `config.model.*`)
+  - ✅ Request validation via Ktor `RequestValidation`
+  - ✅ Centralized error mapping via Ktor `StatusPages`
+  - ✅ Business text endpoint in dedicated route module (`POST /text`)
+  - ✅ MAX7219 rendering pipeline (`ReaderInputService` -> `ScreenDriverService` -> `DisplayDriver`)
 
 ### Documentation Completed
 - ✅ `.planning/codebase/` (7 docs: STACK, INTEGRATIONS, ARCHITECTURE, STRUCTURE, CONVENTIONS, TESTING, CONCERNS)
@@ -52,14 +52,14 @@
 ## Architecture Summary
 
 **Layers:**
-1. HTTP Routing (`routing/Routing.kt`) → POST /api/text
-2. Services (`service/ReaderInput.kt`, `service/ScreenDriver.kt`) → async text queue & rendering
-3. Driver (`driver/Max7219Matrix.kt`) → SPI communication
-4. Config (`config/HTTP.kt`, `config/Serialization.kt`) → Ktor setup
+1. Routing composition + endpoint modules (`com/anjo/routing/*`)
+2. Service layer (`com/anjo/service/*`)
+3. Driver abstraction + MAX7219 implementation (`com/anjo/driver/*`)
+4. DI/plugin setup (`com/anjo/di/*`) + typed config (`com/anjo/config/*`)
 
-**Data Flow:** HTTP Request → ReaderInputService (queue) → ScreenDriverService (render) → Max7219Matrix (SPI) → LEDs
+**Data Flow:** HTTP Request -> `TextRoutes` -> `ReaderInputService` -> `ScreenDriverService` -> `DisplayDriver` -> MAX7219 SPI
 
-**Async Pattern:** Dispatchers.IO for I/O-bound operations (SPI writes, GPIO)
+**Async Pattern:** `Dispatchers.IO` for rendering/hardware operations
 
 ## Key Decisions
 
@@ -83,32 +83,16 @@
 
 ## Phase 1 Status
 
-✅ **Context Discussion Complete** — All implementation decisions locked in `.planning/phases/01-mvp/01-CONTEXT.md`
+✅ Context and planning artifacts exist in `.planning/phases/01-mvp/`.
 
-✅ **Planning Complete** — Detailed execution plan created in `.planning/phases/01-mvp/01-PLAN.md`
-- 10 tasks organized in 5 execution waves
-- 8–12 working hour estimate
-- All locked decisions addressed
-- Risk mitigation and verification checklist included
+⚠ Manual codebase refactor was applied after earlier execution/planning artifacts:
+- package/layout reshuffle under `com.anjo`
+- DI/plugin relocation (`di` + `routing` modules)
+- endpoint shape changed to `POST /text`
 
-### Next: Execution
-- Ready to execute: `/gsd-execute-phase 01-mvp`
-- Or review plan first: open `.planning/phases/01-mvp/01-PLAN.md` and read summary
-
-### Execution (after plan approval)
-- [ ] Add input validation to Routing.kt
-- [ ] Write service-level unit tests (ReaderInputService, ScreenDriverService)
-- [ ] Add timeout protection to Max7219Matrix SPI operations
-- [ ] Enhance error handling and logging
-- [ ] Create API documentation
-- [ ] Run extended test (24h uptime, memory profiling)
-- [ ] Update README with API docs and setup guide
-
-### Validation
-- [ ] All acceptance criteria met
-- [ ] Coverage >70%
-- [ ] 24h stability test passed
-- [ ] Manual hardware validation (text → LED)
+### Next
+- Re-sync plan docs with current code before further execution waves.
+- Stabilize tests against current route contract (`/text` vs previous expectations).
 
 ## Technical Decisions Pending
 
