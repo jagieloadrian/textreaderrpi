@@ -1,10 +1,12 @@
 # TextReaderRpi
 
+[![CI](https://github.com/jagieloadrian/textreaderrpi/actions/workflows/ci.yml/badge.svg)](https://github.com/jagieloadrian/textreaderrpi/actions/workflows/ci.yml)
+
 Ktor service for sending text to a Raspberry Pi MAX7219 display via Pi4J.
 
 ## Current API
 
-- `POST /text`
+- `POST /api/text`
   - request JSON: `{"text":"Hello"}`
   - success: `202 Accepted`
   - validation errors: `400 Bad Request` (`StatusPages` + structured `ErrorResponse`)
@@ -43,7 +45,7 @@ com/anjo/
 2. `DependencyInjection.kt` builds and provides app dependencies (including driver/services).
 3. `RequestValidationConfig.kt` installs Ktor `RequestValidation`.
 4. `ErrorHandling.kt` installs `StatusPages` and maps exceptions to API errors.
-5. `TextRoutes.kt` handles business route(s), currently `POST /text`.
+5. `TextRoutes.kt` handles business route(s), currently `POST /api/text`.
 
 ## Configuration
 
