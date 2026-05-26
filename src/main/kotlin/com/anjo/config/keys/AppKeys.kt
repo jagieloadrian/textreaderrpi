@@ -1,5 +1,6 @@
-package com.anjo.config
+package com.anjo.config.keys
 
+import com.anjo.config.model.ApplicationConfig
 import com.anjo.service.ReaderInputService
 import io.ktor.util.AttributeKey
 

@@ -159,15 +159,19 @@ logging:
 ### 8. Project Structure Unification
 
 **Locked layout:**
-- `src/main/kotlin/config/` -> plugin/configuration setup + typed config models
-- `src/main/kotlin/di/` -> dependency graph composition
-- `src/main/kotlin/routing/` -> route composition + business endpoint files
-- `src/main/kotlin/service/` -> business/service logic
-- `src/main/kotlin/driver/` -> hardware adapters + driver abstractions
-- `src/main/kotlin/model/` -> API DTOs
-- `src/main/kotlin/validation/` -> validation logic only
+- Everything must live under `src/main/kotlin/com/anjo/...`
+- `src/main/kotlin/com/anjo/config/keys/` -> app keys and attribute keys
+- `src/main/kotlin/com/anjo/config/loader/` -> configuration loading only
+- `src/main/kotlin/com/anjo/config/model/` -> typed configuration models only
+- `src/main/kotlin/com/anjo/config/plugins/http|monitoring|serialization|validation|error/` -> plugin modules split by concern
+- `src/main/kotlin/com/anjo/di/` -> dependency graph composition
+- `src/main/kotlin/com/anjo/routing/` -> route composition + business endpoint files
+- `src/main/kotlin/com/anjo/service/` -> business/service logic
+- `src/main/kotlin/com/anjo/driver/` -> hardware adapters + abstractions (no NoOp fallback drivers)
+- `src/main/kotlin/com/anjo/model/` -> API DTOs
+- `src/main/kotlin/com/anjo/validation/` -> validation logic only
 
-Legacy mixed pathing under `src/main/kotlin/com/anjo/...` is out-of-standard and should remain removed.
+`NoOpDisplayDriver` pattern is explicitly disallowed for this phase; test/runtime compatibility must come from proper provider selection and explicit wiring.
 
 ---
 

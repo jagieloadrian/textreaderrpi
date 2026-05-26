@@ -1,4 +1,4 @@
-package com.anjo.config
+package com.anjo.config.model
 
 data class ApiConfig(
     val maxTextLength: Int,

@@ -1,6 +1,6 @@
 package com.anjo.routing
 
-import com.anjo.config.ReaderInputServiceKey
+import com.anjo.config.keys.ReaderInputServiceKey
 import com.anjo.service.ReaderInputService
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application

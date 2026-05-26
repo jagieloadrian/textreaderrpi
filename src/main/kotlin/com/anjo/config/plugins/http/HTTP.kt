@@ -1,4 +1,4 @@
-package com.anjo.config
+package com.anjo.config.plugins.http
 
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod

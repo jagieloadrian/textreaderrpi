@@ -1,5 +1,6 @@
-package com.anjo.config
+package com.anjo.config.plugins.validation
 
+import com.anjo.config.keys.ApplicationConfigKey
 import com.anjo.model.TextRequest
 import com.anjo.validation.RequestValidators
 import io.ktor.server.application.Application

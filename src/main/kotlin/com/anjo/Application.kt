@@ -1,12 +1,12 @@
 package com.anjo
 
-import com.anjo.config.ConfigLoader
-import com.anjo.config.ApplicationConfigKey
-import com.anjo.config.configureErrorHandling
-import com.anjo.config.configureHTTP
-import com.anjo.config.configureMonitoring
-import com.anjo.config.configureRequestValidation
-import com.anjo.config.configureSerialization
+import com.anjo.config.keys.ApplicationConfigKey
+import com.anjo.config.loader.ConfigLoader
+import com.anjo.config.plugins.error.configureErrorHandling
+import com.anjo.config.plugins.http.configureHTTP
+import com.anjo.config.plugins.monitoring.configureMonitoring
+import com.anjo.config.plugins.serialization.configureSerialization
+import com.anjo.config.plugins.validation.configureRequestValidation
 import com.anjo.di.configureDI
 import com.anjo.routing.configureRouting
 import io.ktor.server.application.*

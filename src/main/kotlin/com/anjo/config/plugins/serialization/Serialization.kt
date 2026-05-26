@@ -1,4 +1,4 @@
-package com.anjo.config
+package com.anjo.config.plugins.serialization
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*

@@ -3,7 +3,6 @@ package com.anjo.driver
 import com.anjo.utils.Font
 import com.pi4j.context.Context
 import com.pi4j.io.spi.Spi
-import com.pi4j.plugin.pigpio.PiGpioPlugin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -25,7 +24,6 @@ class Max7219Matrix(
             .name("MAX7219 SPI")
             .bcm(0)
             .baud(1_000_000)
-            .provider(PiGpioPlugin.SPI_PROVIDER_ID)
             .build()
 
         spi = ctx.create(config)

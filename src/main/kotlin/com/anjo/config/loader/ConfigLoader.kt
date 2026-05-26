@@ -1,4 +1,11 @@
-package com.anjo.config
+package com.anjo.config.loader
+
+import com.anjo.config.model.ApiConfig
+import com.anjo.config.model.ApplicationConfig
+import com.anjo.config.model.DisplayConfig
+import com.anjo.config.model.HardwareConfig
+import com.anjo.config.model.LoggingConfig
+import com.anjo.config.model.TimingConfig
 
 import io.ktor.server.application.*
 

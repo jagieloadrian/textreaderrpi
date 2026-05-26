@@ -1,6 +1,6 @@
 package com.anjo.validation
 
-import com.anjo.config.ApiConfig
+import com.anjo.config.model.ApiConfig
 import com.anjo.model.TextRequest
 import io.ktor.server.plugins.requestvalidation.*
 

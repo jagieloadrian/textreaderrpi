@@ -1,4 +1,4 @@
-package com.anjo.config
+package com.anjo.config.plugins.monitoring
 
 import dev.hayden.KHealth
 import io.ktor.http.*

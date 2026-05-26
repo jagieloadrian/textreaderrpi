@@ -1,4 +1,4 @@
-package com.anjo.config
+package com.anjo.config.plugins.error
 
 import com.anjo.model.ErrorDetails
 import com.anjo.model.ErrorResponse
