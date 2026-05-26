@@ -56,6 +56,7 @@ class DisplaySelectionService(
         displayLock.writeLock().lock()
         try {
             val normalizedType = normalizeDisplayType(displayType)
+            if (normalizedType == currentType) return true
             val newDriver = createDriver(normalizedType)
 
             return if (newDriver != null) {
