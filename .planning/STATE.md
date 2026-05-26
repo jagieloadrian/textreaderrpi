@@ -1,7 +1,7 @@
 # Project State & Memory
 
 **Last Updated:** 2026-05-26  
-**Status:** Phase 2 Wave 1 complete - ready for Wave 2 execution
+**Status:** Phase 2 Wave 2 complete - ready for Wave 3 execution
 
 ## Current State
 
@@ -83,30 +83,28 @@
 
 ## Phase 2 Status
 
-✅ **Wave 1 Complete** — 3 plans executed with atomic commits:
-- ✅ 02-01: DisplayDriver hybrid interface (clear/write/status) + MAX7219 impl
-- ✅ 02-02: I2C LCD driver (16x2 HD44780) implementation
-- ✅ 02-03: Config selection + DisplaySelectionService + DI wiring
+✅ **Wave 1 Complete**
+- 02-01: DisplayDriver hybrid interface (clear/write/status) + MAX7219 impl
+- 02-02: I2C LCD driver (16x2 HD44780) implementation
+- 02-03: Config selection + DisplaySelectionService + DI wiring
 
-**Execution Summary:** `.planning/phases/02-enhanced-display-support/EXECUTION-SUMMARY-WAVE1.md`
-- 3 atomic git commits (a79a01f, 6bc0eb1, 6e69aca)
-- ~800 lines source code, ~350 lines tests
-- All tests passing, build successful
-- All locked decisions (D-01..D-09) honored
+✅ **Wave 2 Complete**
+- 02-04: Base layout + HTML pages (`/`, `/status`) + static JS integration
+- 02-05: Settings page (`/settings/display`) + HTML error page rendering + toast notifications
+- 02-06: Display APIs (`GET /api/display/status`, `POST /api/display/select`) + switch queue in `ScreenDriverService`
 
-**Backend Foundation Delivered:**
-- DisplayDriver abstraction layer supporting MAX7219, LCD, OLED
-- Configuration-driven display selection per application.yaml
-- DisplaySelectionService for startup + runtime switching
-- Graceful degradation: null drivers if hardware unavailable
-- Thread-safe driver management via ReentrantReadWriteLock
+**Execution Summaries:**
+- `.planning/phases/02-enhanced-display-support/EXECUTION-SUMMARY-WAVE1.md`
+- `.planning/phases/02-enhanced-display-support/EXECUTION-SUMMARY-WAVE2.md`
 
-**Next: Wave 2 Frontend UI** (ready to start)
-- 02-04: BaseLayout + IndexPage + StatusPage
-- 02-05: SettingsPage + ErrorPages + JS enhancements + [CHECKPOINT: HTML verification]
-- 02-06: API endpoints + runtime display switching
+**Wave 2 Delivered:**
+- Responsive HTML pages rendered with Kotlinx HTML DSL and shared base layout
+- Pico CSS v2 via CDN and browser-side app.js interactions
+- Runtime display management endpoints for status and driver switching
+- HTML error pages for browser routes while keeping JSON errors for `/api/*`
+- Full test run passing (`./gradlew test`)
 
-Can also start **Wave 3 in parallel** (after Wave 1):
+**Next: Wave 3**
 - 02-07: OLED driver + integration tests + coverage verification
 
 ## Phase 1 Status
@@ -179,6 +177,6 @@ When resuming this project:
 
 ---
 
-**Status:** Phase 2 planning complete (7 plans, all locked decisions in place, UI-SPEC approved).  
-**Next Action:** Execute Phase 2 via `/gsd-execute-phase 02 --wave 1` to begin backend foundation (drivers + config).
+**Status:** Phase 2 Wave 2 complete (web UI + display API in place).  
+**Next Action:** Execute `/gsd-execute-phase 02 --wave 3` for OLED driver + integration coverage.
 
