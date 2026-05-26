@@ -24,9 +24,9 @@ fun Application.configureDI() {
     val driver: DisplayDriver? = displaySelectionService.currentDriver()
 
     val screenDriverService = if (driver == null) {
-        ScreenDriverService(OfflineDisplayDriver, Dispatchers.IO)
+        ScreenDriverService(OfflineDisplayDriver, Dispatchers.IO, displaySelectionService)
     } else {
-        ScreenDriverService(driver, Dispatchers.IO)
+        ScreenDriverService(driver, Dispatchers.IO, displaySelectionService)
     }
 
     val readerInputService = ReaderInputService(screenDriverService)

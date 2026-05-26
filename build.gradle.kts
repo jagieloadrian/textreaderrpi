@@ -28,6 +28,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.12.0")
 
     //SZWAGIER
     implementation("io.ktor:ktor-server-swagger")
@@ -40,6 +41,7 @@ dependencies {
     implementation("io.ktor:ktor-server-request-validation")
     implementation("io.ktor:ktor-server-status-pages")
     implementation("io.ktor:ktor-server-content-negotiation")
+    implementation("io.ktor:ktor-server-html-builder")
     implementation("io.ktor:ktor-serialization-kotlinx-json")
 
     //LOGGING
