@@ -1,281 +1,341 @@
-# Phase 1 MVP: Reliable Text Submission and LED Display Rendering
-
-**Phase:** 01-mvp  
-**Plan:** 01  
-**Status:** Ready for Execution  
-**Type:** Feature Implementation  
-**Wave:** 1
+# Phase 1 Plan - MVP Core Text Display with RequestValidation & YAML Config
 
 ---
-
-## Executive Summary
-
-Build a production-ready text-to-LED system on Raspberry Pi with validated input, queued rendering, structured logging, and ≥70% test coverage.
-
-**Objective:** Establish reliable foundation with timeout protection, graceful error recovery, and comprehensive telemetry.
-
-**Output:** Working HTTP API + LED display system, externalized configuration, MockMax7219 test infrastructure, documentation.
-
-**Effort Estimate:** 8–12 working hours (solo developer)
-
+phase: "01"
+phase_slug: "01-mvp"
+plan_id: "01"
+title: "Reliable text submission and LED rendering with Ktor RequestValidation, StatusPages, YAML config"
+status: "planned"
+wave: 1
+depends_on: []
+autonomous: true
+files_modified:
+  - src/main/kotlin/routing/Routing.kt
+  - src/main/kotlin/Application.kt
+  - src/main/kotlin/service/ReaderInput.kt
+  - src/main/kotlin/service/ScreenDriver.kt
+  - src/main/kotlin/di/DependencyInjection.kt
+  - src/main/kotlin/config/Serialization.kt
+  - src/main/resources/application.yaml
+  - src/test/kotlin/ApplicationTest.kt
+files_created:
+  - src/main/kotlin/config/ConfigLoader.kt
+  - src/main/kotlin/config/DisplayConfig.kt
+  - src/main/kotlin/config/HardwareConfig.kt
+  - src/main/kotlin/config/ApiConfig.kt
+  - src/main/kotlin/config/TimingConfig.kt
+  - src/main/kotlin/config/LoggingConfig.kt
+  - src/main/kotlin/config/ApplicationConfig.kt
+  - src/main/kotlin/model/TextRequest.kt
+  - src/main/kotlin/model/TextResponse.kt
+  - src/main/kotlin/model/ErrorResponse.kt
+  - src/main/kotlin/validation/RequestValidators.kt
+  - src/test/kotlin/routing/TextApiRouteTest.kt
+  - src/test/kotlin/service/ScreenDriverTest.kt
+  - src/test/kotlin/service/ReaderInputServiceTest.kt
+requirements:
+  - P1-API-TEXT
+  - P1-VALIDATION
+  - P1-ERROR-HANDLING
+  - P1-CONFIG-YAML
+  - P1-SERVICE-TESTS
 ---
 
-## Locked Constraints from CONTEXT.md
+## Goal Backward Contract
 
-All following decisions are FIXED and must be implemented exactly:
+**Phase goal:** reliable text submission and LED display rendering with type-safe configuration and declarative validation.
 
-| ID | Decision | Requirement |
-|----|----------|-------------|
-| **D-01** | Input Validation | 128 chars max, UTF-8, HTTP 400 on violation, queue limit + rate limiting |
-| **D-02** | Error Handling | Structured logs (JSON), /health endpoint, SPI auto-retry (3x exponential backoff) |
-| **D-03** | Configuration | YAML file + env var overrides for GPIO, SPI path, display size, timings, API limits |
-| **D-04** | Testing | 70% coverage, MockMax7219 for unit tests, integration tests for API/queue/display |
-| **D-05** | Timeout & Resources | All ops timeout (no hang), queue size limit, per-frame timeout, graceful degradation |
-| **D-06** | Dependencies | Ktor 3.5.0, Kotlin 2.3.21, latest Jackson, junit5, mockito-kotlin |
+**must_haves**
+- `config`: Configuration loaded from application.yaml into typed ConfigObjects (DisplayConfig, HardwareConfig, ApiConfig, TimingConfig, LoggingConfig).
+- `validation`: Request validation using Ktor RequestValidation plugin with custom validators.
+- `errors`: Error handling using Ktor StatusPages plugin mapping exceptions to HTTP status + JSON error payload.
+- `api`: `POST /api/text` accepts TextRequest and responds with TextResponse (or ErrorResponse on failure).
+- `tests`: route + service tests cover valid, invalid, and failure branches.
 
----
+## Wave Plan
 
-## Task Breakdown (10 Tasks, 5 Waves)
+### Wave 1 - Configuration Infrastructure with Typed Objects
 
-### **Wave 1 (Parallel): Foundation Setup**
+<task id="01-01" wave="1" type="execute">
+<objective>Create YAML configuration structure and typed ConfigObjects as specified in CONTEXT.md.</objective>
+<read_first>
+- .planning/phases/01-mvp/01-CONTEXT.md (Configuration section)
+- src/main/resources/application.yaml
+- src/main/kotlin/config/Serialization.kt
+</read_first>
+<action>
+1. Create `src/main/kotlin/config/DisplayConfig.kt` with `data class DisplayConfig(
+   val gpioPins: Map<String, Int>,
+   val numDevices: Int,
+   val brightness: Boolean
+)`.
+2. Create `src/main/kotlin/config/HardwareConfig.kt` with `data class HardwareConfig(
+   val spiTimeoutMs: Long,
+   val gpioTimeoutMs: Long
+)`.
+3. Create `src/main/kotlin/config/ApiConfig.kt` with `data class ApiConfig(
+   val maxTextLength: Int,
+   val queueSize: Int,
+   val rateLimitPerMinute: Int
+)`.
+4. Create `src/main/kotlin/config/TimingConfig.kt` with `data class TimingConfig(
+   val scrollSpeed: Long,
+   val refreshRate: Int
+)`.
+5. Create `src/main/kotlin/config/LoggingConfig.kt` with `data class LoggingConfig(
+   val level: String,
+   val format: String
+)`.
+6. Create `src/main/kotlin/config/ApplicationConfig.kt` as root container holding all above.
+7. Update `src/main/resources/application.yaml` with full schema as defined in CONTEXT.md.
+</action>
+<acceptance_criteria>
+- All 6 ConfigObjects exist and compile.
+- application.yaml contains complete structure matching ConfigObjects (display, hardware, api, timing, logging).
+- ConfigObjects use Kotlin `data class` for proper equals/hashCode/toString.
+</acceptance_criteria>
+</task>
 
-#### Task 1: Upgrade Dependencies and Project Scaffolding
-**Files:** `build.gradle.kts`, `src/main/kotlin/Main.kt`, `src/main/resources/logback.xml`
+<task id="01-02" wave="1" type="execute" depends_on="01-01">
+<objective>Create ConfigLoader to deserialize YAML into typed objects and inject into Application.</objective>
+<read_first>
+- src/main/kotlin/config/ApplicationConfig.kt (all new config objects)
+- src/main/kotlin/Application.kt
+- build.gradle.kts (dependencies available)
+</read_first>
+<action>
+1. Create `src/main/kotlin/config/ConfigLoader.kt` with:
+   - `fun loadConfig(): ApplicationConfig` method
+   - Uses Ktor's built-in YAML deserializer or Jackson/SnakeYAML
+   - Loads from `application.yaml` in classpath
+   - Returns fully hydrated ApplicationConfig ready for DI
+2. Update `src/main/kotlin/Application.kt`:
+   - Call `ConfigLoader.loadConfig()` in `module()` early
+   - Store ApplicationConfig in application attributes or provide via DI
+3. Ensure `./gradlew build` compiles without YAML deserialization errors.
+</action>
+<acceptance_criteria>
+- ConfigLoader produces ApplicationConfig with all nested objects populated from yaml.
+- Application.module() loads config without exceptions.
+- `./gradlew build` succeeds.
+</acceptance_criteria>
+</task>
 
-**What:** Update build system and logging configuration
-- Kotlin 2.3.21, Ktor 3.5.0, Jackson 2.16+, junit5, mockito-kotlin
-- Logback with JSON appender for structured logging (D-02)
+### Wave 2 - RequestValidation Plugin and Error Models
 
-**Success:** `./gradlew clean build` passes, versions correct
+<task id="01-03" wave="2" type="execute" depends_on="01-02">
+<objective>Create DTOs and RequestValidation validators as per Ktor documentation.</objective>
+<read_first>
+- https://ktor.io/docs/server-request-validation.html
+- src/main/kotlin/config/ApiConfig.kt (to get maxTextLength constraint)
+- .planning/phases/01-mvp/01-CONTEXT.md (validation rules)
+</read_first>
+<action>
+1. Create `src/main/kotlin/model/TextRequest.kt` with:
+   - `data class TextRequest(val text: String)`
+   - Can be enhanced with validation annotations if desired
+2. Create `src/main/kotlin/model/TextResponse.kt` with:
+   - `data class TextResponse(val accepted: Boolean, val message: String)`
+3. Create `src/main/kotlin/model/ErrorResponse.kt` with:
+   - `data class ErrorResponse(val error: ErrorDetails)`
+   - `data class ErrorDetails(val code: String, val message: String, val timestamp: String, val details: Map<String, String>? = null)`
+4. Create `src/main/kotlin/validation/RequestValidators.kt` with validation logic:
+   - `fun validateTextRequest(req: TextRequest, apiConfig: ApiConfig): ValidationResult`
+   - Check length <= apiConfig.maxTextLength (128)
+   - Check not blank
+   - Return appropriate ValidationResult.Invalid or ValidationResult.Valid
+</action>
+<acceptance_criteria>
+- TextRequest, TextResponse, ErrorResponse compile.
+- RequestValidators.validateTextRequest works with configurable max length from ApiConfig.
+- No hardcoded values in validator; all from config objects.
+</acceptance_criteria>
+</task>
 
----
+<task id="01-04" wave="2" type="execute" depends_on="01-03,01-02">
+<objective>Install Ktor RequestValidation and StatusPages plugins in routing with error mapping.</objective>
+<read_first>
+- src/main/kotlin/routing/Routing.kt (existing validation plugin)
+- https://ktor.io/docs/server-request-validation.html
+- .planning/phases/01-mvp/01-CONTEXT.md (error handling architecture)
+- src/main/kotlin/config/ApplicationConfig.kt
+</read_first>
+<action>
+1. Update `src/main/kotlin/routing/Routing.kt`:
+   - Replace existing RequestValidation plugin with new one
+   - Install custom validator for `TextRequest`:
+     - get ApplicationConfig from application attributes
+     - call RequestValidators.validateTextRequest
+     - return ValidationResult
+   - Install StatusPages plugin if not present
+   - Add exception handler for RequestValidationException -> HTTP 400 with ErrorResponse JSON
+   - Add generic exception handler for Throwable -> HTTP 500 with safe ErrorResponse JSON
+2. Keep `GET /` and OpenAPI routes intact.
+3. Do NOT yet add `POST /api/text` — that comes next task.
+</action>
+<acceptance_criteria>
+- RequestValidation plugin validates TextRequest against rules.
+- StatusPages catches validation exceptions and returns HTTP 400 + ErrorResponse JSON.
+- StatusPages catches unhandled exceptions and returns HTTP 500 + safe ErrorResponse JSON.
+- `./gradlew build` succeeds.
+</acceptance_criteria>
+</task>
 
-#### Task 2: Configuration Infrastructure (YAML Loader + Config Classes)
-**Files:** `src/main/kotlin/config/Config.kt`, `ConfigLoader.kt`, `src/main/resources/config/application.yaml`, `*ConfigLoaderTest.kt`
+### Wave 3 - API Endpoint and Service Integration
 
-**What:** Externalize all hardcoded values (D-03)
-- Config data classes: DisplayConfig, TimingConfig, QueueConfig, ApiLimitConfig, LoggingConfig
-- ConfigLoader: load YAML + override from env vars
-- application.yaml with GPIO pins, SPI path, display size, timeouts, API limits
-- Unit tests: valid YAML load, missing fields, env override
+<task id="01-05" wave="3" type="execute" depends_on="01-04">
+<objective>Implement POST /api/text route with DI-injected services.</objective>
+<read_first>
+- src/main/kotlin/routing/Routing.kt
+- src/main/kotlin/di/DependencyInjection.kt
+- src/main/kotlin/service/ReaderInput.kt
+- src/main/kotlin/service/ScreenDriver.kt
+</read_first>
+<action>
+1. Update `src/main/kotlin/routing/Routing.kt`:
+   - Add new route: `post("/api/text") { ... }`
+   - Extract TextRequest from request body (automatically validated by RequestValidation plugin)
+   - Inject ReaderInputService via get(DependencyKey<...>)
+   - Call `readerInputService.readInput(textRequest.text)`
+   - Return HTTP `202 Accepted` with TextResponse(accepted=true, message="Text queued")
+   - Validation errors and service errors are already handled by StatusPages
+2. Update `src/main/kotlin/service/ReaderInput.kt`:
+   - Remove `TODO()` from validate method or inline validation
+   - Ensure readInput returns properly or throws exception caught by StatusPages
+3. Update `src/main/kotlin/service/ScreenDriver.kt`:
+   - Remove `TODO()` from validate method
+   - Update readInput to use ApiConfig for text length, HardwareConfig for timeouts
+</action>
+<acceptance_criteria>
+- `POST /api/text` route exists and accepts TextRequest
+- Valid input returns HTTP 202 with JSON body
+- No TODO() remains in service classes
+- `./gradlew build` succeeds
+</acceptance_criteria>
+</task></thinking>
 
-**Success:** `./gradlew test --tests "*ConfigLoaderTest*"` passes, coverage ≥85%
+<task id="01-06" wave="3" type="test" depends_on="01-05">
+<objective>Add API endpoint tests for POST /api/text covering success and error paths.</objective>
+<read_first>
+- src/test/kotlin/ApplicationTest.kt (existing test pattern)
+- src/main/kotlin/routing/Routing.kt
+- src/main/kotlin/model/TextRequest.kt
+</read_first>
+<action>
+1. Create `src/test/kotlin/routing/TextApiRouteTest.kt` using testApplication:
+   - Test POST /api/text with valid input -> expects HTTP 202
+   - Test POST /api/text with blank input -> expects HTTP 400 + ErrorResponse with code "VAL_001"
+   - Test POST /api/text with text > 128 chars -> expects HTTP 400 + ErrorResponse
+   - Test GET / still returns HTTP 200 (regression)
+2. Keep existing ApplicationTest.testRoot intact.
+</action>
+<acceptance_criteria>
+- `TextApiRouteTest` class exists with 4+ test methods
+- Valid request returns 202
+- Invalid requests return 400 with ErrorResponse JSON
+- All tests pass: `./gradlew test --tests "*TextApiRouteTest*"` exits 0
+</acceptance_criteria>
+</task>
 
----
+### Wave 4 - Service-Level Tests
 
-### **Wave 2 (Parallel): Core Components**
+<task id="01-07" wave="4" type="test" depends_on="01-05">
+<objective>Add service unit tests that work without real Pi4J hardware.</objective>
+<read_first>
+- src/main/kotlin/service/ReaderInput.kt
+- src/main/kotlin/service/ScreenDriver.kt
+- src/main/kotlin/driver/Max7219Matrix.kt
+- src/main/kotlin/config/HardwareConfig.kt
+</read_first>
+<action>
+1. Create `src/test/kotlin/service/ReaderInputServiceTest.kt`:
+   - Mock/fake ScreenDriverService dependency
+   - Test readInput with valid text
+   - Test readInput with blank/invalid text (validation should catch before service)
+2. Create `src/test/kotlin/service/ScreenDriverTest.kt`:
+   - Mock/fake Max7219Matrix driver
+   - Test readInput calls driver correctly
+   - Test with HardwareConfig timeouts (mock delays)
+   - Test retry/timeout behavior with configurable timeouts
+3. Both test files should NOT instantiate Pi4J context or real hardware
+</action>
+<acceptance_criteria>
+- Both test files exist and compile
+- Tests run on development machine without Raspberry Pi hardware
+- `./gradlew test --tests "*ScreenDriverTest*"` and `./gradlew test --tests "*ReaderInputServiceTest*"` pass
+</acceptance_criteria>
+</task>
 
-#### Task 3: Input Validation and Structured Logging
-**Files:** `validation/InputValidator.kt`, `error/StructuredLogger.kt`, `error/ErrorHandler.kt`, `*InputValidatorTest.kt`
+### Wave 5 - Documentation
 
-**What:** Validate incoming text and establish logging foundation (D-01, D-02)
-- InputValidator: 128-char limit, UTF-8 check, non-empty validation
-- StructuredLogger: JSON logging for submissions, queue events, errors, display events
-- ErrorHandler: structured error responses for HTTP, queue, display
-- Unit tests: valid/invalid input, UTF-8 boundaries, special characters
+<task id="01-08" wave="5" type="execute" depends_on="01-07">
+<objective>Update README with API documentation and configuration guide.</objective>
+<read_first>
+- README.md
+- src/main/resources/application.yaml
+- src/main/kotlin/model/TextRequest.kt
+- src/main/kotlin/model/ErrorResponse.kt
+</read_first>
+<action>
+1. Update `README.md`:
+   - Add API section documenting POST /api/text
+   - Include example curl request: `curl -X POST http://localhost:8080/api/text -H "Content-Type: application/json" -d '{"text":"Hello"}'`
+   - Include example success response (HTTP 202 + TextResponse JSON)
+   - Include example error response (HTTP 400 + ErrorResponse JSON with code)
+   - Document configuration section:
+     - How to set application.yaml values
+     - How to override via environment variables
+     - What each config section does (display, hardware, api, timing, logging)
+2. Add note about hardware rendering validation done separately.
+</action>
+<acceptance_criteria>
+- README.md contains POST /api/text endpoint documentation
+- Includes curl example, request/response examples
+- Configuration section explains yaml structure and env overrides
+</acceptance_criteria>
+</task>
 
-**Success:** `./gradlew test --tests "*InputValidatorTest*"` passes, coverage ≥90%
+## Verification Commands
 
----
+Run these as part of completion evidence:
 
-#### Task 4: Message Queue with Rate Limiting and Size Limits
-**Files:** `queue/MessageQueue.kt`, `*MessageQueueTest.kt`
-
-**What:** Thread-safe queue with backpressure (D-01, D-05)
-- FIFO queue with enqueue/dequeue
-- Rate limiting: token bucket or sliding window (60 req/min per D-01)
-- Size limit: reject if queue full or memory exceeded
-- Concurrent safety: synchronized or Mutex
-- Unit tests: FIFO order, full queue rejection, rate limit trigger, concurrent stress (≥10 threads)
-
-**Success:** `./gradlew test --tests "*MessageQueueTest*"` passes, coverage ≥85%, concurrent stress test passes
-
----
-
-#### Task 6: Mock Max7219 and SPI Driver with Retry Logic
-**Files:** `test/MockMax7219.kt`, `driver/Max7219Driver.kt`, `*Max7219DriverTest.kt`
-
-**What:** Low-level hardware abstraction with test double (D-02, D-05)
-- MockMax7219: test fixture recording all sent frames, failure injection
-- Max7219Driver: write to SPI, auto-retry with exponential backoff (3x), timeout logging
-- Integration tests: successful write, failure retry, all retries fail, exponential backoff timing
-
-**Success:** `./gradlew test --tests "*Max7219DriverTest*"` passes, coverage ≥80%
-
----
-
-### **Wave 3 (Parallel): API Layer**
-
-#### Task 5: HTTP API Handlers (Text Submission + Health)
-**Files:** `api/TextSubmissionHandler.kt`, `api/HealthEndpoint.kt`, `*TextSubmissionHandlerTest.kt`
-
-**What:** User-facing REST endpoints (D-01, D-02, D-05)
-- POST /api/submit: validate, enqueue, return 202 or error (400/429)
-- GET /health: return status with queue depth, uptime, memory usage
-- Integration tests: valid submission, validation errors, queue full (429), rate limit (429), concurrent stress
-
-**Success:** `./gradlew test --tests "*TextSubmissionHandlerTest*"` passes, coverage ≥85%
-
----
-
-#### Task 7: Display Renderer with Timeout and Graceful Degradation
-**Files:** `display/DisplayRenderer.kt`, `*DisplayRendererTest.kt`
-
-**What:** Async rendering loop with timeout protection (D-05)
-- render(): convert text to bitmap, send frames via driver, timeout on exceed
-- renderLoop(): dequeue messages, render in sequence, skip on timeout/failure
-- Unit tests: valid render, timeout abort, loop dequeue order, graceful failure
-
-**Success:** `./gradlew test --tests "*DisplayRendererTest*"` passes, coverage ≥80%
-
----
-
-### **Wave 4: Application Bootstrap**
-
-#### Task 8: Main Application Entry Point and Server Startup
-**Files:** `Main.kt`, `application.conf`
-
-**What:** Tie all components together (D-03, D-04, D-05)
-- Load config via ConfigLoader
-- Initialize: queue, Max7219Driver, DisplayRenderer, Ktor HTTP server
-- Start renderLoop in background coroutine
-- Graceful shutdown: SIGTERM → close display → exit
-- Startup/shutdown logs
-
-**Success:** `./gradlew run` starts, logs startup message, routes available, shutdown graceful
-
----
-
-### **Wave 5 (Final): Validation and Documentation**
-
-#### Task 9: End-to-End Integration Test and Coverage Verification
-**Files:** `E2ETest.kt`, `CoverageReportTest.kt`
-
-**What:** Full system test + coverage gate (D-04)
-- E2E test: submit text → queue → render → health check
-- Coverage report via JaCoCo
-- Gate: fail if coverage < 70%
-
-**Success:** `./gradlew test jacocoTestReport` → all E2E tests pass, coverage ≥70%
-
----
-
-#### Task 10: Documentation and Deployment Checklist
-**Files:** `README.md`, `docs/API.md`, `docs/CONFIG.md`, `docs/DEPLOYMENT.md`, `docs/TESTING.md`
-
-**What:** User-facing documentation (D-01, D-03, D-05)
-- README: overview, quick start, features
-- API.md: endpoints, request/response examples, error codes, curl examples
-- CONFIG.md: YAML structure, env vars, defaults, ranges
-- DEPLOYMENT.md: hardware setup, GPIO wiring, SPI permissions, systemd service
-- TESTING.md: test commands, coverage check, mock configuration
-
-**Success:** All docs exist and are complete
-
----
-
-## Execution Sequence and Dependencies
-
+```bash
+./gradlew clean build
+./gradlew test --tests "*TextApiRouteTest*"
+./gradlew test --tests "*ScreenDriverTest*"
+./gradlew test --tests "*ReaderInputServiceTest*"
+./gradlew test
 ```
-Wave 1 (Parallel):
-  Task 1: Upgrade dependencies
-    └─ Task 2: Config loader
 
-Wave 2 (Parallel, depends on Wave 1):
-  Task 3: Validation + logging
-  Task 4: Message queue
-  Task 6: Mock driver + SPI
+## Dependencies and Config
 
-Wave 3 (Parallel, depends on Wave 2):
-  Task 5: API handlers
-  Task 7: Display renderer
+**New dependency requirements:**
+- Ktor RequestValidation and StatusPages already in build.gradle.kts
+- YAML deserialization (use Ktor's built-in or add Jackson SnakeYAML if needed)
+- No new test libraries required beyond existing JUnit/testApplication
 
-Wave 4 (Sequential):
-  Task 8: Main application (depends on all above)
+**Config injection pattern:**
+- Load ApplicationConfig in Application.module()
+- Store in application attributes for access within route handlers
+- Pass specific config objects to services via DI or method parameters
 
-Wave 5 (Final):
-  Task 9: E2E + coverage
-  Task 10: Documentation
-```
+## Risks and Controls
 
-**Critical Path:** Task 1 → 2 → {3, 4, 6} → {5, 7} → 8 → {9, 10}
+- **Risk:** RequestValidation plugin doesn't support custom ApplicationConfig injection  
+  **Control:** Pass ApplicationConfig via application attributes, access in validator lambda
 
-**Parallelization:** Tasks 3, 4, 6 can run simultaneously. Tasks 5, 7 can run simultaneously. Tasks 9, 10 can run simultaneously.
+- **Risk:** YAML deserialization fails or produces null values  
+  **Control:** Add null-safety defaults in ConfigObjects, log missing config values
 
----
+- **Risk:** StatusPages exception mapping doesn't catch validation exceptions properly  
+  **Control:** Test explicitly with invalid payloads, inspect exception types in handler
 
-## Risk Management
-
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| SPI device unavailable | Task 6 fails | Use MockMax7219; mock SPI write to /tmp file |
-| Timeout edge cases | Render hangs | Write timeout tests with mock clock; assertion-based timing |
-| Race conditions (queue) | Lost messages | Synchronize queue; stress test with ≥10 concurrent clients |
-| Coverage < 70% | Test gate fails | Identify gaps during Task 9; add missing tests iteratively |
-| Ktor 3.5.0 breaking changes | Build fails | Task 1 validates syntax early; consult migration guide |
-| UTF-8 validation bug | Invalid chars bypass | Use standard library validator; Task 3 tests all edge cases |
+- **Risk:** Service tests still depend on real Pi4J context  
+  **Control:** Mock Max7219Matrix driver completely, avoid Pi4J.newAutoContext() in tests
 
 ---
 
-## Verification Checklist
+## PLANNING COMPLETE
 
-**Phase Goal Verification:**
-- [ ] HTTP POST /api/submit validates 128-char, UTF-8, rejects invalid with HTTP 400
-- [ ] Valid text queued, rendered on display within 500ms
-- [ ] Rate limiting: excess requests return HTTP 429
-- [ ] Display timeout: render aborts gracefully, next message proceeds
-- [ ] Health endpoint: GET /health returns queue depth, uptime, system status
-- [ ] Structured logging: all events logged in JSON (submission, queue, error, display)
-- [ ] SPI retry: auto-retry up to 3x with exponential backoff, logs each attempt
-- [ ] Configuration externalized: YAML + env vars for GPIO, SPI, display size, timeouts, API limits
-- [ ] Test coverage ≥70%: verified via JaCoCo
-- [ ] No hanging operations: all have timeout, graceful degradation
-- [ ] Queue memory limits: rejects enqueue on memory exceeded, logs warning
-- [ ] Documentation complete: README, API, CONFIG, DEPLOYMENT, TESTING guides
-
----
-
-## Success Criteria for Phase 1 Completion
-
-Phase 1 is **COMPLETE** when:
-
-1. **All tests pass:**
-   - `./gradlew clean test` → all suites pass
-   - `./gradlew jacocoTestReport` → coverage ≥70%
-   - `./gradlew build` → no errors
-
-2. **All locked decisions implemented (D-01 through D-06):**
-   - Input validation: 128 chars, UTF-8, queue/rate limits ✓
-   - Error handling: structured logs, health endpoint, retry ✓
-   - Configuration: YAML + env vars ✓
-   - Testing: 70% coverage, MockMax7219 ✓
-   - Timeout & resources: all ops timeout, queue limits, graceful degrade ✓
-   - Dependencies: Ktor 3.5.0, Kotlin 2.3.21 ✓
-
-3. **API operational:**
-   - `curl -X POST http://localhost:8080/api/submit -d '{"text":"Hello"}' -H 'Content-Type: application/json'` → HTTP 202
-   - `curl http://localhost:8080/health` → HTTP 200 with queue depth, uptime
-
-4. **Display renders text:**
-   - Message queued and rendered on Max7219 within timeout
-   - Timeout aborts gracefully; next message processes
-   - SPI failure retries up to 3x; final failure logged with context
-
-5. **Code committed:**
-   - All changes committed with messages: `feat: ...`, `test: ...`, `docs: ...`
-   - SUMMARY.md generated
-
----
-
-## Next Steps After Phase 1
-
-Upon completion, proceed to:
-- **Phase 2:** Enhanced display support (LCD, OLED) via abstraction layer
-- **Phase 3:** Health monitoring, metrics, graceful shutdown optimization
-- **Phase 4+:** Advanced features (scheduling, multi-zone, integrations)
-
----
-
-*Plan created: 2025-01-25*  
-*Ready for execution via `/gsd-execute-phase 01-mvp`*
+`C:\Development\textreaderrpi\.planning\phases\01-mvp\01-PLAN.md`
 
