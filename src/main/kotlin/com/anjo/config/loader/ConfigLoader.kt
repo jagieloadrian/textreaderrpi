@@ -14,10 +14,8 @@ import io.ktor.server.application.*
 
 object ConfigLoader {
     fun loadConfig(application: Application): ApplicationConfig {
-        // Load from application.yaml via Ktor's config system
         val config = application.environment.config
-        
-        // Parse each section and create typed objects
+
         val displayConfig = DisplayConfig(
             type = config.propertyOrNull("display.type")?.getString() ?: "MAX7219",
             max7219 = Max7219Config(
@@ -31,35 +29,35 @@ object ConfigLoader {
                 )
             ),
             lcd = LcdConfig(
-                i2cAddress = config.propertyOrNull("display.lcd.i2cAddress")?.getString()?.toInt(16) ?: 0x27,
+                i2cAddress = config.propertyOrNull("display.lcd.i2cAddress")?.getString()?.toIntAuto() ?: 0x27,
                 busNumber = config.propertyOrNull("display.lcd.busNumber")?.getString()?.toIntOrNull() ?: 1,
                 rows = config.propertyOrNull("display.lcd.rows")?.getString()?.toIntOrNull() ?: 2,
                 columns = config.propertyOrNull("display.lcd.columns")?.getString()?.toIntOrNull() ?: 16
             ),
             oled = OledConfig(
-                i2cAddress = config.propertyOrNull("display.oled.i2cAddress")?.getString()?.toInt(16) ?: 0x3C,
+                i2cAddress = config.propertyOrNull("display.oled.i2cAddress")?.getString()?.toIntAuto() ?: 0x3C,
                 busNumber = config.propertyOrNull("display.oled.busNumber")?.getString()?.toIntOrNull() ?: 1,
                 width = config.propertyOrNull("display.oled.width")?.getString()?.toIntOrNull() ?: 128,
                 height = config.propertyOrNull("display.oled.height")?.getString()?.toIntOrNull() ?: 64
             )
         )
-        
+
         val hardwareConfig = HardwareConfig(
             spiTimeoutMs = config.propertyOrNull("hardware.spiTimeoutMs")?.getString()?.toLongOrNull() ?: 1000L,
             gpioTimeoutMs = config.propertyOrNull("hardware.gpioTimeoutMs")?.getString()?.toLongOrNull() ?: 500L
         )
-        
+
         val apiConfig = ApiConfig(
             maxTextLength = config.propertyOrNull("api.maxTextLength")?.getString()?.toIntOrNull() ?: 128,
             queueSize = config.propertyOrNull("api.queueSize")?.getString()?.toIntOrNull() ?: 10,
             rateLimitPerMinute = config.propertyOrNull("api.rateLimitPerMinute")?.getString()?.toIntOrNull() ?: 60
         )
-        
+
         val timingConfig = TimingConfig(
             scrollSpeed = config.propertyOrNull("timing.scrollSpeed")?.getString()?.toLongOrNull() ?: 16L,
             refreshRate = config.propertyOrNull("timing.refreshRate")?.getString()?.toIntOrNull() ?: 60
         )
-        
+
         val loggingConfig = LoggingConfig(
             level = config.propertyOrNull("logging.level")?.getString() ?: "INFO",
             format = config.propertyOrNull("logging.format")?.getString() ?: "json"
@@ -72,6 +70,15 @@ object ConfigLoader {
             timing = timingConfig,
             logging = loggingConfig
         )
+    }
+
+    private fun String.toIntAuto(): Int? {
+        val normalized = trim()
+        return if (normalized.startsWith("0x", ignoreCase = true)) {
+            normalized.removePrefix("0x").removePrefix("0X").toIntOrNull(16)
+        } else {
+            normalized.toIntOrNull()
+        }
     }
 }
 

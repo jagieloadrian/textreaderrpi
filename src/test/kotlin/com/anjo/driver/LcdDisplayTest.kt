@@ -1,107 +1,55 @@
 package com.anjo.driver
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 
-/**
- * Tests for LcdDisplay I2C LCD driver.
- *
- * Focuses on DisplayDriver interface compliance.
- * Full hardware tests require I2C bus and LCD device.
- */
-class LcdDisplayTest {
-
-    @Test
-    fun testLcdDisplayInterfaceCompliance() {
-        // LcdDisplay must implement DisplayDriver interface
-        // This is a compile-time check
-        assertTrue(true)
-    }
-
-    @Test
-    fun testLcdDisplayStatusInitial() {
-        // Unlike Max7219, LcdDisplay may fail to initialize without hardware
-        // But it should still return a valid DisplayStatus
-        // This test documents the contract
+class LcdDisplayTest : FunSpec({
+    test("display status can represent i2c initialization failure") {
         val status = DisplayStatus(
             isActive = false,
             hardwareAvailable = false,
             currentMessage = null,
-            error = "I2C initialization failed: Device not found"
+            error = "I2C initialization failed"
         )
 
-        assertFalse(status.hardwareAvailable)
-        assertNotNull(status.error)
+        status.hardwareAvailable shouldBe false
+        status.error shouldContain "I2C"
     }
 
-    @Test
-    fun testDisplayStatusStructureWithI2CError() {
-        val status = DisplayStatus(
-            isActive = false,
-            hardwareAvailable = false,
-            currentMessage = null,
-            error = "I2C bus error"
-        )
+    test("lcd display constants remain stable") {
+        val defaultAddress = 0x27
+        val defaultBus = 1
+        val columns = 16
 
-        assertEquals(false, status.isActive)
-        assertEquals(false, status.hardwareAvailable)
-        assertEquals("I2C bus error", status.error)
+        defaultAddress shouldBe 0x27
+        defaultBus shouldBe 1
+        columns shouldBe 16
     }
 
-    @Test
-    fun testLcdDisplayConstantsAreValid() {
-        // Document expected I2C LCD constants
-        val i2cAddressDefaultValue = 0x27
-        val i2cBusNumber = 1
-
-        assertEquals(0x27, i2cAddressDefaultValue)
-        assertEquals(1, i2cBusNumber)
-    }
-
-    @Test
-    fun testDisplayLineCapacity() {
-        // 16x2 LCD line capacity
-        val lineLength = 16
-        val text = "Hello World"
-
-        // Text should fit on first line
-        assertEquals(true, text.length <= lineLength)
-    }
-
-    @Test
-    fun testTextChunking() {
-        // Test text chunking for 2-line display
+    test("text chunking for lcd lines works as expected") {
         val text = "First Line Text Second Line Content"
         val lines = text.chunked(16)
 
-        assertEquals(3, lines.size)
-        assertEquals("First Line Text ", lines[0])
-        assertEquals("Second Line Cont", lines[1])
+        lines.size shouldBe 3
+        lines[0] shouldBe "First Line Text "
+        lines[1] shouldBe "Second Line Cont"
     }
 
-    private fun assertTrue(condition: Boolean) {
-        if (!condition) throw AssertionError("Expected true")
+    test("display driver contract supports lcd-like write flow") {
+        val driver = mockk<DisplayDriver>(relaxed = true)
+        every { driver.status() } returns DisplayStatus(false, true, "line1", null)
+
+        driver.clear()
+        driver.write("line1")
+        val status = driver.status()
+
+        status.currentMessage shouldBe "line1"
+        verify(exactly = 1) { driver.clear() }
+        verify(exactly = 1) { driver.write("line1") }
     }
-
-    @Test
-    fun testDisplayStatusEquality() {
-        val status1 = DisplayStatus(
-            isActive = false,
-            hardwareAvailable = false,
-            currentMessage = null,
-            error = "Device not found"
-        )
-
-        val status2 = DisplayStatus(
-            isActive = false,
-            hardwareAvailable = false,
-            currentMessage = null,
-            error = "Device not found"
-        )
-
-        assertEquals(status1, status2)
-    }
-}
+})
 

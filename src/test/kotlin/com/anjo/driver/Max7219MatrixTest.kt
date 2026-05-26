@@ -1,24 +1,16 @@
 package com.anjo.driver
 
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
-/**
- * Test DisplayStatus data class and DisplayDriver interface contract.
- *
- * Note: Max7219Matrix tests with actual Pi4J Context require hardware or Pi4J mock plugin.
- * These tests focus on the DisplayStatus structure and interface compliance.
- */
-class Max7219MatrixTest {
-
-    @Test
-    fun testDisplayStatusStructure() {
-        // Test DisplayStatus data class initialization
+class Max7219MatrixTest : FunSpec({
+    test("display status carries expected values") {
         val status = DisplayStatus(
             isActive = false,
             hardwareAvailable = true,
@@ -26,83 +18,43 @@ class Max7219MatrixTest {
             error = null
         )
 
-        assertEquals(false, status.isActive)
-        assertEquals(true, status.hardwareAvailable)
-        assertEquals("Test", status.currentMessage)
-        assertNull(status.error)
+        status.isActive shouldBe false
+        status.hardwareAvailable shouldBe true
+        status.currentMessage shouldBe "Test"
+        status.error shouldBe null
     }
 
-    @Test
-    fun testDisplayStatusWithError() {
-        val status = DisplayStatus(
-            isActive = false,
-            hardwareAvailable = false,
-            currentMessage = null,
-            error = "SPI communication failed"
-        )
+    test("display status supports equality") {
+        val first = DisplayStatus(true, true, "Hello", null)
+        val second = DisplayStatus(true, true, "Hello", null)
 
-        assertFalse(status.hardwareAvailable)
-        assertEquals("SPI communication failed", status.error)
+        first shouldBe second
     }
 
-    @Test
-    fun testDisplayStatusDefaultValues() {
-        // Test optional parameters default to null
-        val status = DisplayStatus(
-            isActive = true,
-            hardwareAvailable = true
-        )
+    test("display status toString contains key fields") {
+        val status = DisplayStatus(true, false, "Hello", "SPI error")
 
-        assertEquals(true, status.isActive)
-        assertEquals(true, status.hardwareAvailable)
-        assertNull(status.currentMessage)
-        assertNull(status.error)
+        status.toString() shouldContain "isActive"
+        status.toString() shouldContain "hardwareAvailable"
+        status.toString() shouldContain "Hello"
     }
 
-    @Test
-    fun testDisplayDriverInterfaceExists() {
-        // Compile-time check: DisplayDriver interface must exist with required methods
-        // If this test compiles, the interface is properly defined
-        val interfaceClass = DisplayDriver::class
+    test("display driver contract can be mocked and invoked") {
+        val driver = mockk<DisplayDriver>(relaxed = true)
+        val scope = CoroutineScope(Dispatchers.Unconfined)
+        every { driver.status() } returns DisplayStatus(false, true, "ok", null)
 
-        // Verify interface has the expected methods (by checking they're callable)
-        // In a real test, we'd instantiate an implementation
-        // This is a compile-time verification
-        assertTrue(true)
+        driver.clear()
+        driver.write("sample")
+        driver.scrollText(scope, "sample", 10)
+        val status = driver.status()
+        driver.stop()
+
+        status.currentMessage shouldBe "ok"
+        verify(exactly = 1) { driver.clear() }
+        verify(exactly = 1) { driver.write("sample") }
+        verify(exactly = 1) { driver.scrollText(scope, "sample", 10) }
+        verify(exactly = 1) { driver.stop() }
     }
-
-    @Test
-    fun testDisplayStatusEquality() {
-        val status1 = DisplayStatus(
-            isActive = true,
-            hardwareAvailable = true,
-            currentMessage = "Test"
-        )
-
-        val status2 = DisplayStatus(
-            isActive = true,
-            hardwareAvailable = true,
-            currentMessage = "Test"
-        )
-
-        // Data classes provide equals() by default
-        assertEquals(status1, status2)
-    }
-
-    @Test
-    fun testDisplayStatusToString() {
-        val status = DisplayStatus(
-            isActive = true,
-            hardwareAvailable = true,
-            currentMessage = "Hello",
-            error = null
-        )
-
-        // Data classes provide toString() by default
-        val str = status.toString()
-        assertTrue(str.contains("isActive"))
-        assertTrue(str.contains("hardwareAvailable"))
-        assertTrue(str.contains("Hello"))
-    }
-}
+})
 

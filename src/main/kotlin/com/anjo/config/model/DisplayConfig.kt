@@ -1,9 +1,5 @@
 package com.anjo.config.model
 
-/**
- * Configuration for all display types.
- * type: "MAX7219" | "LCD" | "OLED"
- */
 data class DisplayConfig(
     val type: String = "MAX7219",
     val max7219: Max7219Config = Max7219Config(),
@@ -11,9 +7,6 @@ data class DisplayConfig(
     val oled: OledConfig = OledConfig()
 )
 
-/**
- * MAX7219 LED matrix configuration
- */
 data class Max7219Config(
     val numDevices: Int = 2,
     val brightness: Boolean = true,
@@ -25,9 +18,6 @@ data class Max7219Config(
     )
 )
 
-/**
- * I2C LCD (16x2 HD44780) configuration
- */
 data class LcdConfig(
     val i2cAddress: Int = 0x27,
     val busNumber: Int = 1,
@@ -35,9 +25,6 @@ data class LcdConfig(
     val columns: Int = 16
 )
 
-/**
- * I2C OLED (SSD1306) configuration
- */
 data class OledConfig(
     val i2cAddress: Int = 0x3C,
     val busNumber: Int = 1,
