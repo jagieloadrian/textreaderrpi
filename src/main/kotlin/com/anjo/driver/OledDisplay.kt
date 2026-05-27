@@ -21,6 +21,8 @@ class OledDisplay(
     private var lastMessage: String? = null
     private var lastError: String? = null
 
+    private val charsPerLine = width / 8
+
     init {
         i2c = try {
             val config = I2C.newConfigBuilder(ctx)
@@ -60,17 +62,26 @@ class OledDisplay(
         i2c?.writeRegister(0x40, data.toByte())
     }
 
+    private fun clearHardware() {
+        repeat(height / 8) { page ->
+            sendCommand(0xB0 + page)
+            sendCommand(0x00)
+            sendCommand(0x10)
+            repeat(width) { sendData(0x00) }
+        }
+    }
+
+    private fun renderFrame(frame: String) {
+        sendCommand(0xB0)
+        sendCommand(0x00)
+        sendCommand(0x10)
+        frame.take(charsPerLine).forEach { sendData(it.code and 0xFF) }
+    }
+
     override fun clear() {
+        stop()
         try {
-            stop()
-            repeat(height / 8) { page ->
-                sendCommand(0xB0 + page)
-                sendCommand(0x00)
-                sendCommand(0x10)
-                repeat(width) {
-                    sendData(0x00)
-                }
-            }
+            clearHardware()
             lastMessage = null
             lastError = null
         } catch (e: Exception) {
@@ -80,17 +91,10 @@ class OledDisplay(
 
     override fun write(text: String) {
         stop()
-
         try {
-            clear()
+            clearHardware()
             lastMessage = text
-            sendCommand(0xB0)
-            sendCommand(0x00)
-            sendCommand(0x10)
-
-            text.take(width / 8).forEach { char ->
-                sendData(char.code and 0xFF)
-            }
+            renderFrame(text)
         } catch (e: Exception) {
             lastError = "Write failed: ${e.message}"
         }
@@ -102,15 +106,14 @@ class OledDisplay(
 
         job = scope.launch {
             try {
-                val padded = " ".repeat(16) + text + " ".repeat(16)
+                val padded = " ".repeat(charsPerLine) + text + " ".repeat(charsPerLine)
                 var index = 0
-                while (isActive && index <= padded.length - 16) {
-                    write(padded.substring(index, index + 16))
+                while (isActive && index <= padded.length - charsPerLine) {
+                    renderFrame(padded.substring(index, index + charsPerLine))
                     index++
                     delay(speedMs)
                 }
-                clear()
-                lastMessage = text
+                clearHardware()
             } catch (e: Exception) {
                 lastError = "Scroll failed: ${e.message}"
             }
@@ -122,7 +125,7 @@ class OledDisplay(
             isActive = job?.isActive ?: false,
             hardwareAvailable = i2c != null && lastError == null,
             currentMessage = lastMessage,
-            error = lastError
+            error = lastError,
         )
     }
 
@@ -130,4 +133,3 @@ class OledDisplay(
         job?.cancel()
     }
 }
-

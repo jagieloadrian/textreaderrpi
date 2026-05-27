@@ -18,9 +18,10 @@ class LcdDisplay(
     private var job: Job? = null
     private var lastMessage: String? = null
     private var lastError: String? = null
+
     private val maxLineLength = 16
-    private val cursorLine1 = 128
-    private val cursorLine2 = 192
+    private val cursorLine1   = 0x80
+    private val cursorLine2   = 0xC0
 
     init {
         i2c = try {
@@ -76,20 +77,15 @@ class LcdDisplay(
         }
     }
 
-    private fun setCursorAndWrite(position: Int, char: Char) {
-        try {
-            writeCommand(0x80 or position)
-            writeData(char.code)
-        } catch (e: Exception) {
-            lastError = "Cursor write failed: ${e.message}"
-        }
+    private fun clearHardware() {
+        writeCommand(0x01)
+        writeCommand(0x02)
     }
 
     override fun clear() {
+        stop()
         try {
-            stop()
-            writeCommand(0x01)
-            writeCommand(0x02)
+            clearHardware()
             lastMessage = null
             lastError = null
         } catch (e: Exception) {
@@ -99,27 +95,18 @@ class LcdDisplay(
 
     override fun write(text: String) {
         stop()
+        clearHardware()
         lastMessage = text
+        lastError = null
 
-        try {
-            clear()
-            val lines = text.chunked(maxLineLength)
-
-            if (lines.isNotEmpty()) {
-                writeCommand(cursorLine1)
-                lines[0].forEachIndexed { index, char ->
-                    if (index < maxLineLength) writeData(char.code)
-                }
-            }
-
-            if (lines.size > 1) {
-                writeCommand(cursorLine2)
-                lines[1].forEachIndexed { index, char ->
-                    if (index < maxLineLength) writeData(char.code)
-                }
-            }
-        } catch (e: Exception) {
-            lastError = "Write failed: ${e.message}"
+        val lines = text.chunked(maxLineLength)
+        if (lines.isNotEmpty()) {
+            writeCommand(cursorLine1)
+            lines[0].forEach { writeData(it.code) }
+        }
+        if (lines.size > 1) {
+            writeCommand(cursorLine2)
+            lines[1].forEach { writeData(it.code) }
         }
     }
 
@@ -130,21 +117,15 @@ class LcdDisplay(
         job = scope.launch {
             try {
                 val paddedText = " ".repeat(maxLineLength) + text + " ".repeat(maxLineLength)
-
                 var offset = 0
                 while (isActive && offset < paddedText.length - maxLineLength) {
                     val visible = paddedText.substring(offset, offset + maxLineLength)
-
                     writeCommand(cursorLine1)
-                    visible.forEachIndexed { index, char ->
-                        if (index < maxLineLength) writeData(char.code)
-                    }
-
+                    visible.forEach { writeData(it.code) }
                     offset++
                     delay(speedMs)
                 }
-
-                clear()
+                clearHardware()
             } catch (e: Exception) {
                 lastError = "Scroll failed: ${e.message}"
             }
@@ -152,12 +133,11 @@ class LcdDisplay(
     }
 
     override fun status(): DisplayStatus {
-        val isHardwareOk = i2c != null && lastError == null
         return DisplayStatus(
             isActive = job?.isActive ?: false,
-            hardwareAvailable = isHardwareOk,
+            hardwareAvailable = i2c != null && lastError == null,
             currentMessage = lastMessage,
-            error = lastError
+            error = lastError,
         )
     }
 
