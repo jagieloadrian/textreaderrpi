@@ -1,5 +1,7 @@
 package com.anjo.routing
 
+import com.anjo.di.RateLimitPlugin
+import com.anjo.di.RateLimiter
 import com.anjo.service.ReaderInputService
 import com.anjo.service.ScreenDriverService
 import com.anjo.service.HealthService
@@ -20,8 +22,15 @@ fun Application.configureRouting() {
     val readerInputService: ReaderInputService by dependencies
     val screenDriverService: ScreenDriverService by dependencies
     val healthService: HealthService by dependencies
+    val rateLimiter: RateLimiter by dependencies
 
     routing {
+        // Apply rate limiting to /api/* and /health* paths (D-21, D-22)
+        install(RateLimitPlugin) {
+            limiter = rateLimiter
+            pathPrefixes = setOf("/api", "/health")
+        }
+
         staticResources("/static", "static")
         webRoutes(screenDriverService)
         textRoutes(readerInputService)

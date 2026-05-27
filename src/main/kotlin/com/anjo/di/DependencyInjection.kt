@@ -7,6 +7,7 @@ import com.anjo.service.DisplaySelectionService
 import com.anjo.service.HealthService
 import com.anjo.service.RecoveryPolicy
 import com.anjo.service.ReaderInputService
+import com.anjo.service.ResourceTracker
 import com.anjo.service.ScreenDriverService
 import com.pi4j.Pi4J
 import io.ktor.server.application.Application
@@ -34,6 +35,7 @@ fun Application.configureDI() {
 
     val readerInputService = ReaderInputService(screenDriverService)
     val healthService = HealthService(screenDriverService)
+    val rateLimiter = RateLimiter(requestsPerMinute = appConfig.api.rateLimitPerMinute)
 
     dependencies {
         provide { appConfig }
@@ -44,6 +46,7 @@ fun Application.configureDI() {
         provide { screenDriverService }
         provide { readerInputService }
         provide { healthService }
+        provide { rateLimiter }
     }
 }
 
