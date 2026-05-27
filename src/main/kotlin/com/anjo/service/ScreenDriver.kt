@@ -13,6 +13,7 @@ class ScreenDriverService(
     private val ioDispatcher: CoroutineDispatcher,
     private val displaySelectionService: DisplaySelectionService? = null,
     private val recoveryPolicy: RecoveryPolicy = RecoveryPolicy(),
+    private val resourceTracker: ResourceTracker = ResourceTracker(maxSlots = 10, trackerName = "screenDriver"),
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
     private val busy = AtomicBoolean(false)
@@ -21,6 +22,11 @@ class ScreenDriverService(
 
     suspend fun readInput(input: String) {
         require(input.isNotBlank()) { "Text cannot be blank" }
+        val slotId = resourceTracker.acquire("readInput")
+        if (slotId == -1L) {
+            log.warn("readInput rejected: resource tracker at capacity or closed")
+            return
+        }
         lastSentMessage.set(input)
         busy.set(true)
         try {
@@ -33,6 +39,7 @@ class ScreenDriverService(
             log.error("Display operation failed permanently after retries: ${e.message}", e)
         } finally {
             busy.set(false)
+            resourceTracker.release(slotId)
             checkAndPerformPendingSwitch()
         }
     }

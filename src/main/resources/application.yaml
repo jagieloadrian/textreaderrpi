@@ -42,6 +42,9 @@ api:
   queueSize: 10
   rateLimitPerMinute: 60
 
+resources:
+  screenDriverMaxSlots: 10
+
 timing:
   scrollSpeed: 16
   refreshRate: 60
