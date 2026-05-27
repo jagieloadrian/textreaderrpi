@@ -219,17 +219,17 @@ When resuming this project:
 
 ---
 
-**Status:** Phase 5 PLANNED (2026-05-27) — 10 plans across 3 waves.  
-**Next Action:** Run `/gsd-execute-phase 5`.
+**Status:** Phase 5 Wave 1 COMPLETE (2026-05-28) — Wave 2 next.  
+**Next Action:** Run `/gsd-execute-phase 5 --wave 2` to execute scheduling engine plans.
 
 ## Phase 5 Status
 
-📋 **Plans created: 10 | Waves: 3 | Ready to execute**
+✅ **Wave 1 Complete (2026-05-28)**
 
-### Wave 1 — Refactoring Completion (3 plans)
-- 05-01: Health endpoint consolidation + retry replacement (D5-01, D5-02, D5-03)
-- 05-02: Concurrency guard Mutex + metrics config-driving + comment removal (D5-04, D5-05, D5-06)
-- 05-03: Route package unification + test package unification (D5-07, D5-08)
+### Wave 1 — Refactoring Completion ✅
+- 05-01: Health endpoint consolidation + retry replacement (D5-01, D5-02, D5-03) ✅
+- 05-02: Concurrency guard Mutex + metrics config-driving + comment removal (D5-04, D5-05, D5-06) ✅
+- 05-03: Route package unification + test package unification (D5-07, D5-08) ✅
 
 ### Wave 2 — Scheduling Engine (4 plans, depends on Wave 1)
 - 05-04: Schedule data model + Exposed/H2 database setup [REQ-SCHED-01]
