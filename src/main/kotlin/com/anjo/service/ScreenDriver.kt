@@ -14,9 +14,11 @@ class ScreenDriverService(
 ) {
     private val busy = AtomicBoolean(false)
     private val pendingDisplayType = AtomicReference<String?>(null)
+    private val lastSentMessage = AtomicReference<String?>(null)
 
     suspend fun readInput(input: String) {
         require(input.isNotBlank()) { "Text cannot be blank" }
+        lastSentMessage.set(input)
         busy.set(true)
         try {
             withContext(ioDispatcher) {
@@ -28,7 +30,12 @@ class ScreenDriverService(
         }
     }
 
-    fun status(): DisplayStatus = driver.status()
+    fun status(): DisplayStatus {
+        val driverStatus = driver.status()
+        return driverStatus.copy(
+            currentMessage = driverStatus.currentMessage ?: lastSentMessage.get()
+        )
+    }
 
     fun currentDisplayType(): String = displaySelectionService?.getCurrentDisplayType() ?: "MAX7219"
 
