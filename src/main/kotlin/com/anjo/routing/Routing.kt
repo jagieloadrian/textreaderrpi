@@ -5,7 +5,6 @@ import com.anjo.di.installApiRateLimiting
 import com.anjo.service.MetricsCollector
 import com.anjo.service.ReaderInputService
 import com.anjo.service.ScreenDriverService
-import com.anjo.web.routes.webRoutes
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

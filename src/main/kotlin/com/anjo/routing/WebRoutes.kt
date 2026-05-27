@@ -1,4 +1,4 @@
-package com.anjo.web.routes
+package com.anjo.routing
 
 import com.anjo.service.ScreenDriverService
 import com.anjo.web.templates.IndexPage
