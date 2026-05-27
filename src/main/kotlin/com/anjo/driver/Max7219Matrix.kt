@@ -68,6 +68,8 @@ class Max7219Matrix(
         stop()
         clear()
         lastMessage = text
+        val bitmap = buildBitmap(text)
+        if (bitmap.size / 8 >= numDevices * 8) render(bitmap, 0)
     }
 
     override fun scrollText(scope: CoroutineScope, text: String, speedMs: Long) {
