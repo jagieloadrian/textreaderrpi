@@ -7,6 +7,7 @@ import com.anjo.config.model.HardwareConfig
 import com.anjo.config.model.LcdConfig
 import com.anjo.config.model.LoggingConfig
 import com.anjo.config.model.Max7219Config
+import com.anjo.config.model.MetricsConfig
 import com.anjo.config.model.OledConfig
 import com.anjo.config.model.TimingConfig
 import io.ktor.server.application.Application
@@ -62,13 +63,19 @@ object ConfigLoader {
             level = config.propertyOrNull("logging.level")?.getString() ?: "INFO",
             format = config.propertyOrNull("logging.format")?.getString() ?: "json"
         )
+
+        val metricsConfig = MetricsConfig(
+            enabled = config.propertyOrNull("metrics.enabled")?.getString()?.toBoolean() ?: true,
+            prefix = config.propertyOrNull("metrics.prefix")?.getString() ?: "textreaderrpi",
+        )
         
         return ApplicationConfig(
             display = displayConfig,
             hardware = hardwareConfig,
             api = apiConfig,
             timing = timingConfig,
-            logging = loggingConfig
+            logging = loggingConfig,
+            metrics = metricsConfig,
         )
     }
 

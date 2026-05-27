@@ -43,6 +43,10 @@ retry:
   maxDelayMs: 30000
   factor: 2.0
 
+metrics:
+  enabled: true
+  prefix: "textreaderrpi"
+
 api:
   maxTextLength: 128
   queueSize: 10

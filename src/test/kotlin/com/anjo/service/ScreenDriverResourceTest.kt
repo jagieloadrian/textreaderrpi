@@ -18,8 +18,8 @@ class ScreenDriverResourceTest : FunSpec({
             metricRegistry = metrics,
         )
         repeat(5) { service.readInput("text $it") }
-        metrics.counter("screenDriver.readInput.inFlight").count shouldBe 0L
-        metrics.meter("screenDriver.readInput.accepted").count shouldBe 5L
+        metrics.counter("textreaderrpi.screenDriver.readInput.inFlight").count shouldBe 0L
+        metrics.meter("textreaderrpi.screenDriver.readInput.accepted").count shouldBe 5L
     }
 
     test("failed display operations are counted and in-flight counter is released") {
@@ -33,8 +33,8 @@ class ScreenDriverResourceTest : FunSpec({
             metricRegistry = metrics,
         )
         service.readInput("will fail")
-        metrics.counter("screenDriver.readInput.inFlight").count shouldBe 0L
-        metrics.meter("screenDriver.readInput.failed").count shouldBe 1L
+        metrics.counter("textreaderrpi.screenDriver.readInput.inFlight").count shouldBe 0L
+        metrics.meter("textreaderrpi.screenDriver.readInput.failed").count shouldBe 1L
     }
 
     test("readInput execution time is recorded") {
@@ -46,6 +46,6 @@ class ScreenDriverResourceTest : FunSpec({
             metricRegistry = metrics,
         )
         service.readInput("measure me")
-        metrics.timer("screenDriver.readInput.execution").count shouldBe 1L
+        metrics.timer("textreaderrpi.screenDriver.readInput.execution").count shouldBe 1L
     }
 })

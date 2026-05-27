@@ -9,11 +9,10 @@ import java.time.Instant
 
 class MetricsCollector(
     private val metricRegistry: MetricRegistry,
-    private val resourceTracker: ResourceTracker,
 ) {
     fun collect(): MetricsResponse = MetricsResponse(
         timestamp = Instant.now().toString(),
-        groups = listOf(runtimeGroup(), apiGroup(), hardwareGroup())
+        groups = listOf(runtimeGroup(), apiGroup())
     )
 
     private fun runtimeGroup(): MetricGroup {
@@ -41,14 +40,4 @@ class MetricsCollector(
         }
         return MetricGroup(name = "api", metrics = entries)
     }
-
-    private fun hardwareGroup(): MetricGroup = MetricGroup(
-        name = "hardware",
-        metrics = listOf(
-            MetricEntry(key = "resource.tracker.active", type = "gauge", value = resourceTracker.heldCount.toDouble()),
-            MetricEntry(key = "resource.tracker.capacity", type = "gauge", value = resourceTracker.maxSlots.toDouble()),
-            MetricEntry(key = "resource.tracker.available", type = "gauge", value = (resourceTracker.maxSlots - resourceTracker.heldCount).toDouble()),
-        )
-    )
 }
-

@@ -25,7 +25,7 @@ class MetricsRoutesTest : FunSpec({
         }
     }
 
-    test("GET /metrics response contains timestamp and 3 metric groups") {
+    test("GET /metrics response contains timestamp and 2 metric groups") {
         testApplication {
             application { module() }
 
@@ -34,11 +34,11 @@ class MetricsRoutesTest : FunSpec({
             val json = Json.parseToJsonElement(body).jsonObject
 
             json["timestamp"]!!.jsonPrimitive.content.shouldNotBeEmpty()
-            json["groups"]!!.jsonArray shouldHaveSize 3
+            json["groups"]!!.jsonArray shouldHaveSize 2
         }
     }
 
-    test("GET /metrics groups include runtime, api, and hardware") {
+    test("GET /metrics groups include runtime and api") {
         testApplication {
             application { module() }
 
@@ -49,7 +49,7 @@ class MetricsRoutesTest : FunSpec({
                 it.jsonObject["name"]!!.jsonPrimitive.content
             }
 
-            groupNames shouldBe listOf("runtime", "api", "hardware")
+            groupNames shouldBe listOf("runtime", "api")
         }
     }
 
@@ -71,4 +71,3 @@ class MetricsRoutesTest : FunSpec({
         }
     }
 })
-

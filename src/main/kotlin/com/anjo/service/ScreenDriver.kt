@@ -1,12 +1,15 @@
 package com.anjo.service
 
+import com.anjo.config.model.MetricsConfig
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.Timer
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 class ScreenDriverService(
@@ -15,33 +18,35 @@ class ScreenDriverService(
     private val displaySelectionService: DisplaySelectionService? = null,
     private val retryConfig: RetryConfig = RetryConfig(),
     private val metricRegistry: MetricRegistry = MetricRegistry(),
+    private val metricsConfig: MetricsConfig = MetricsConfig(),
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
 
-    private val busy = AtomicBoolean(false)
+    private val displayMutex = Mutex()
     private val pendingDisplayType = AtomicReference<String?>(null)
     private val lastSentMessage = AtomicReference<String?>(null)
-    private val acceptedMeter = metricRegistry.meter("screenDriver.readInput.accepted")
-    private val failedMeter = metricRegistry.meter("screenDriver.readInput.failed")
-    private val inFlightCounter = metricRegistry.counter("screenDriver.readInput.inFlight")
-    private val executionTimer = metricRegistry.timer("screenDriver.readInput.execution")
+    private val p = metricsConfig.prefix
+    private val acceptedMeter = if (metricsConfig.enabled) metricRegistry.meter("$p.screenDriver.readInput.accepted") else null
+    private val failedMeter = if (metricsConfig.enabled) metricRegistry.meter("$p.screenDriver.readInput.failed") else null
+    private val inFlightCounter = if (metricsConfig.enabled) metricRegistry.counter("$p.screenDriver.readInput.inFlight") else null
+    private val executionTimer = if (metricsConfig.enabled) metricRegistry.timer("$p.screenDriver.readInput.execution") else null
 
     suspend fun readInput(input: String) {
         require(input.isNotBlank()) { "Text cannot be blank" }
-        acceptedMeter.mark()
+        acceptedMeter?.mark()
         lastSentMessage.set(input)
-        val timerContext = executionTimer.time()
-        busy.set(true)
-        inFlightCounter.inc()
+        val timerContext: Timer.Context? = executionTimer?.time()
+        inFlightCounter?.inc()
         try {
-            executeWithRecovery(input)
+            displayMutex.withLock {
+                executeWithRecovery(input)
+            }
         } catch (e: Exception) {
-            failedMeter.mark()
+            failedMeter?.mark()
             log.error("Display operation failed after retries: ${e.message}", e)
         } finally {
-            busy.set(false)
-            inFlightCounter.dec()
-            timerContext.stop()
+            inFlightCounter?.dec()
+            timerContext?.stop()
             checkAndPerformPendingSwitch()
         }
     }
@@ -67,7 +72,7 @@ class ScreenDriverService(
         val normalizedType = displayType.uppercase()
         val selectionService = displaySelectionService ?: return false
 
-        if (busy.get()) {
+        if (displayMutex.isLocked) {
             pendingDisplayType.set(normalizedType)
             return true
         }
