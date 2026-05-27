@@ -1,8 +1,8 @@
 package com.anjo.web.routes
 
-import com.anjo.api.DisplaySelectRequest
-import com.anjo.api.DisplaySelectResponse
-import com.anjo.api.DisplayStatusResponse
+import com.anjo.model.DisplaySelectRequest
+import com.anjo.model.DisplaySelectResponse
+import com.anjo.model.DisplayStatusResponse
 import com.anjo.service.ScreenDriverService
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive

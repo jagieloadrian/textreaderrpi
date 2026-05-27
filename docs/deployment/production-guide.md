@@ -19,19 +19,19 @@ Output: `build/libs/TextReaderRpi-all.jar`
 Use the deployment script (it installs JAR + unit and restarts service):
 
 ```bash
-chmod +x deployment/scripts/install-systemd.sh
-sudo ./deployment/scripts/install-systemd.sh
+chmod +x .devops/host/install-systemd.sh
+sudo ./.devops/host/install-systemd.sh
 ```
 
 The script installs:
 - JAR to `/opt/textreaderrpi/TextReaderRpi-all.jar`
-- unit file from `deployment/systemd/textreaderrpi.service`
+- unit file from `.devops/host/textreaderrpi.service`
 - service user `textreaderrpi` (if missing)
 
 ## 3) Manual systemd steps (optional)
 
 ```bash
-sudo cp deployment/systemd/textreaderrpi.service /etc/systemd/system/
+sudo cp .devops/host/textreaderrpi.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable textreaderrpi
 sudo systemctl restart textreaderrpi
@@ -54,14 +54,14 @@ Expected behavior:
 Build via script:
 
 ```bash
-chmod +x deployment/scripts/build-docker-image.sh
-./deployment/scripts/build-docker-image.sh textreaderrpi:latest
+chmod +x .devops/host/build-docker-image.sh
+./.devops/host/build-docker-image.sh textreaderrpi:latest
 ```
 
 Or directly:
 
 ```bash
-docker build -t textreaderrpi:latest .
+docker build -f .devops/containers/Dockerfile -t textreaderrpi:latest .
 ```
 
 Run container:

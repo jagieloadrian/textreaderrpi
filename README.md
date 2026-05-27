@@ -77,15 +77,17 @@ Main sections in YAML:
 
 ## Deployment Artifacts
 
-- `deployment/systemd/textreaderrpi.service` - systemd unit
-- `deployment/scripts/install-systemd.sh` - host install/restart helper
-- `Dockerfile` - container image definition
-- `deployment/scripts/build-docker-image.sh` - docker build helper
+DevOps artifacts are organized under `.devops/` — `host/` for bare-metal deployment (systemd, scripts) and `containers/` for containerized deployment (Dockerfile).
+
+- `.devops/host/textreaderrpi.service` - systemd unit
+- `.devops/host/install-systemd.sh` - host install/restart helper
+- `.devops/containers/Dockerfile` - container image definition
+- `.devops/host/build-docker-image.sh` - docker build helper
 
 Quick Docker run:
 
 ```bash
-./deployment/scripts/build-docker-image.sh textreaderrpi:latest
+./.devops/host/build-docker-image.sh textreaderrpi:latest
 docker run --rm -p 8080:8080 textreaderrpi:latest
 ```
 
