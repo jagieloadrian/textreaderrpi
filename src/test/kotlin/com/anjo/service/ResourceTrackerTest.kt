@@ -1,7 +1,8 @@
 ﻿package com.anjo.service
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.comparables.shouldBeGreaterThan
+import io.kotest.matchers.shouldBe
+
 class ResourceTrackerTest : FunSpec({
     test("acquire returns valid slot id") {
         val tracker = ResourceTracker(maxSlots = 5)

@@ -3,13 +3,13 @@ package com.anjo.web.routes
 import com.anjo.api.DisplaySelectRequest
 import com.anjo.api.DisplaySelectResponse
 import com.anjo.api.DisplayStatusResponse
+import com.anjo.service.ScreenDriverService
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import com.anjo.service.ScreenDriverService
 
 fun Route.displayApiRoutes(screenDriverService: ScreenDriverService) {
     get("/display/status") {

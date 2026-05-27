@@ -19,6 +19,7 @@ This phase clarifies HOW to implement operational reliability for the existing m
 - **D-05:** Hardware probe state is established at startup and reused in health responses.
 - **D-06:** `/health/ready` must validate driver initialization and configuration validity.
 - **D-07:** Use granular status codes: 200 (healthy), 400 (invalid config/precondition), 503 (unavailable/degraded).
+- **D-41:** Health payload must expose more than readiness, including explicit driver and GPIO availability state.
 
 ### Error Recovery and Resilience
 - **D-08:** On hardware failures use exponential backoff retry (3 attempts).
@@ -36,14 +37,16 @@ This phase clarifies HOW to implement operational reliability for the existing m
 - **D-18:** Add JMH benchmark suite plus JVM runtime statistics.
 - **D-19:** Log memory stats at key lifecycle events.
 - **D-20:** Benchmark scenarios must include latency, throughput, memory, and recovery-time.
+- **D-42:** Monitoring must include JVM resource visibility (at minimum memory and CPU), not only health endpoint status.
 
 ### Rate Limiting and Traffic Protection
 - **D-21:** Apply rate limiting to all `/api/*` endpoints.
 - **D-22:** Health endpoints are also rate-limited (no bypass).
-- **D-23:** Use Flaxoos `ktor-server-rate-limiting` as the primary implementation; keep the local token-bucket fallback only for unsupported environments.
+- **D-23:** Use Flaxoos `ktor-server-rate-limiting` as the only runtime rate-limiting implementation (no legacy fallback path).
 - **D-24:** Exceeded limit response is HTTP 429 with `Retry-After`.
 - **D-25:** Reject immediately when limited (no queue-on-limit behavior).
 - **D-26:** No explicit hardware concurrency cap in this phase.
+- **D-43:** Rate-limit key strategy is client-id/token first; IP is fallback when token is unavailable.
 
 ### Deployment and Runtime Operations
 - **D-27:** Deliver two deployment paths: Docker + docker-compose, and systemd + install script.
@@ -53,6 +56,7 @@ This phase clarifies HOW to implement operational reliability for the existing m
 - **D-31:** Use app-level log rotation via Logback.
 - **D-32:** Keep single universal JAR artifact for both deployment modes.
 - **D-33:** systemd restart policy is `on-failure` with backoff.
+- **D-44:** `docker-compose.yml` is a required artifact for Phase 3 acceptance, not optional.
 
 ### Documentation Standards
 - **D-34:** Produce comprehensive docs split by topic (not a single README-only model).
@@ -60,6 +64,11 @@ This phase clarifies HOW to implement operational reliability for the existing m
 - **D-36:** Maintain Swagger/OpenAPI plus manual docs.
 - **D-37:** Maintain code-level docs through KDoc and extraction workflow.
 - **D-38:** Default documentation language is English.
+- **D-45:** Centralize Ktor dependency and plugin version management in `gradle/ktor-libs.versions.toml`.
+- **D-46:** UI must surface actionable error feedback (e.g., dialog/notification) for rate-limit and HTTP 400 scenarios.
+
+### Resilience Standardization
+- **D-47:** Research Ktor-native/idiomatic resilience patterns equivalent in intent to Spring `resilience4j`, then implement the selected approach for recovery policy hardening.
 
 ### Deferred Ideas
 - **D-39:** `/metrics` endpoint and advanced monitoring dashboarding are deferred to Phase 4+.
@@ -87,7 +96,13 @@ This phase clarifies HOW to implement operational reliability for the existing m
 - `src/main/kotlin/com/anjo/di/Monitoring.kt`
 - `src/main/kotlin/com/anjo/routing/Routing.kt`
 - `src/main/kotlin/com/anjo/service/ScreenDriverService.kt`
+- `src/main/kotlin/com/anjo/di/RateLimiting.kt`
 - `src/main/resources/application.yaml`
+- `gradle/ktor-libs.versions.toml`
+- `deployment/systemd/textreaderrpi.service`
+- `deployment/scripts/install-systemd.sh`
+- `deployment/scripts/build-docker-image.sh`
+- `Dockerfile`
 
 ---
 

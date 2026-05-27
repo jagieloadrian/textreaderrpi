@@ -16,7 +16,6 @@ import kotlinx.html.script
 import kotlinx.html.span
 import kotlinx.html.stream.createHTML
 import kotlinx.html.title
-import kotlinx.html.unsafe
 
 object BaseLayout {
     fun render(pageTitle: String, activePath: String, content: FlowContent.() -> Unit): String {

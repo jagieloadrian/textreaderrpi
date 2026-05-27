@@ -4,8 +4,8 @@ import com.anjo.config.loader.ConfigLoader
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.anjo.service.DisplaySelectionService
-import com.anjo.service.RecoveryPolicy
 import com.anjo.service.ReaderInputService
+import com.anjo.service.RecoveryPolicy
 import com.anjo.service.ScreenDriverService
 import com.codahale.metrics.MetricRegistry
 import com.pi4j.Pi4J

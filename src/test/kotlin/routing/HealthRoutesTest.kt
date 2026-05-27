@@ -2,8 +2,8 @@ package com.anjo.routing
 
 import com.anjo.module
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode

@@ -19,9 +19,9 @@ fun Route.installApiRateLimiting(requestsPerMinute: Int) {
             capacity = requestsPerMinute.coerceAtLeast(1)
         }
 
-        rateLimitExceededHandler = { call, _ ->
-            call.response.header(HttpHeaders.RetryAfter, RETRY_AFTER_SECONDS)
-            call.respond(
+        rateLimitExceededHandler = {
+            this.response.header(HttpHeaders.RetryAfter, RETRY_AFTER_SECONDS)
+            this.respond(
                 HttpStatusCode.TooManyRequests,
                 mapOf("error" to "Rate limit exceeded. Retry-After: ${RETRY_AFTER_SECONDS}s")
             )

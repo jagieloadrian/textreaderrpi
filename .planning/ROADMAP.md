@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Created:** 2025-01-25  
-**Phases:** 3 (MVP → Enhanced → Production Ready)
+**Phases:** 5 (MVP → Enhanced → Production Ready → Cleanup+Observability → Scheduling+Effects)
 
 ---
 
@@ -29,6 +29,19 @@ Phase 3: Production Ready (8-10 weeks)
 ├─ Deployment automation
 ├─ Documentation
 └─ Production deployment
+
+Phase 4: Cleanup + Observability (2-4 weeks)
+├─ DevOps artifact/layout cleanup
+├─ Health stack alignment (KHealth + extended payload)
+├─ Routing and rate-limit enforcement cleanup
+├─ Recovery/resource monitoring refactor
+└─ JSON metrics endpoint
+
+Phase 5: Scheduling + Effects (3-5 weeks)
+├─ Scheduled text updates
+├─ Effect pipeline (scroll/fade/blink)
+├─ Queue and conflict policy for scheduled jobs
+└─ Behavioral tests for timing and rendering
 ```
 
 ---
@@ -248,13 +261,79 @@ Phase 3: Production Ready (8-10 weeks)
 
 ---
 
+## Phase 4: Cleanup + Observability
+
+**Duration:** 2-4 weeks  
+**Goal:** Consolidate architecture/runtime hygiene and expose actionable runtime metrics.
+
+### Phase 4 Requirements
+
+| Requirement | Status | Priority |
+|-------------|--------|----------|
+| DevOps artifact reorganization (`.devops`) | Planned | MUST |
+| KHealth restoration with extended fields | Planned | MUST |
+| Routing consolidation + policy consistency | Planned | MUST |
+| Text endpoint under rate limiting | Planned | MUST |
+| RecoveryPolicy readability refactor | Planned | SHOULD |
+| ResourceTracker -> monitoring refactor | Planned | SHOULD |
+| `GET /metrics` JSON endpoint (runtime+api+hardware) | Planned | MUST |
+
+### Phase 4 Deliverables
+
+1. **Cleanup and Structure Alignment**
+   - Move deployment/Docker assets to `.devops/`
+   - Normalize routing module organization
+   - Move `displayApi` models to `model` package
+   - Relocate `OfflineDisplayDriver` to the proper driver module location
+
+2. **Health and Monitoring Alignment**
+   - Keep `KHealth` installed as health core
+   - Extend responses with: `uptime`, `memoryUsedMb`, `memoryMaxMb`, `displayType`, `isActive`, `lastError`
+   - Preserve `/health` + `/health/ready` semantics
+
+3. **Rate-Limit and Recovery Cleanup**
+   - Ensure text routes are covered by rate limiting policy
+   - Refactor `RecoveryPolicy` for readability and maintainability
+   - Convert `ResourceTracker` into monitoring-oriented component/module
+
+4. **Metrics Endpoint (Phase 4 contract)**
+   - Add public `GET /metrics` endpoint returning JSON
+   - Include all metric groups:
+     - runtime (uptime/JVM memory)
+     - API (request counters, 429 counters)
+     - hardware (resource slots, retries, display failures)
+   - Endpoint is rate-limited consistently with API policy
+
+### Phase 4 Success Criteria
+
+- [ ] Routes and module boundaries are consistent and discoverable
+- [ ] `KHealth` is active and exposes extended health payload fields
+- [ ] Text submission route is protected by rate limiting
+- [ ] `/metrics` returns runtime + API + hardware metric groups in JSON
+- [ ] Existing tests pass and targeted observability tests are added
+
+---
+
+## Phase 5: Scheduling + Effects
+
+**Duration:** 3-5 weeks  
+**Goal:** Add timed content behavior and richer display effects without destabilizing runtime reliability.
+
+### Phase 5 Requirements
+
+| Requirement | Status | Priority |
+|-------------|--------|----------|
+| Scheduled text updates | Planned | MUST |
+| Effect rendering options (fade/blink/reverse/scroll variants) | Planned | SHOULD |
+| Queueing/conflict policy for schedules | Planned | MUST |
+| Timing-accurate behavior tests | Planned | MUST |
+
+---
+
 ## Phase 4+: Future Enhancements (Out of Scope)
 
 Potential features for future phases (not part of initial roadmap):
 
-- **`/metrics` Endpoint (D-39):** Micrometer integration, `GET /metrics` (Prometheus format), Grafana dashboard templates, histogram metrics for request latency and recovery time — explicitly deferred from Phase 3
-- **Text Scheduling:** Display different text at specific times
-- **Text Effects:** Fade, reverse scroll, blinking
 - **Multi-zone:** Different text on different displays
 - **Remote Access:** Secure web access from outside home network
 - **Voice Control:** Integration with voice assistants

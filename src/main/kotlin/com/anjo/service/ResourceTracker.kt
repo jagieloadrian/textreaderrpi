@@ -13,6 +13,7 @@ class ResourceTracker(
     private val closed = AtomicBoolean(false)
     val heldCount: Int get() = slots.size
     val isClosed: Boolean get() = closed.get()
+
     fun acquire(resourceName: String): Long {
         if (closed.get()) {
             log.warn("[{}] acquire({}) rejected: tracker is closed", trackerName, resourceName)
@@ -27,6 +28,7 @@ class ResourceTracker(
         log.debug("[{}] acquired slot {} for '{}' ({}/{})", trackerName, id, resourceName, slots.size, maxSlots)
         return id
     }
+
     fun release(slotId: Long) {
         val name = slots.remove(slotId)
         if (name != null) {
@@ -35,6 +37,7 @@ class ResourceTracker(
             log.warn("[{}] release({}) called for unknown slot", trackerName, slotId)
         }
     }
+
     override fun close() {
         if (closed.compareAndSet(false, true)) {
             val remaining = slots.keys.toList()

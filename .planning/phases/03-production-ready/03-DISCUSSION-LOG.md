@@ -71,3 +71,25 @@
 - `src/main/resources/application.yaml`
 ## Ready for Next Step
 Proceed to phase planning with `/gsd-plan-phase 3`.
+
+## Addendum (2026-05-27 re-discuss)
+
+### Clarifications locked in this session
+- Keep health endpoints rate-limited (D-22 stays active).
+- API rate-limit key strategy: client token/id first, IP fallback.
+- Flaxoos limiter remains mandatory runtime path (no legacy fallback).
+- Deployment minimum is explicit: systemd unit + host install script + Dockerfile + docker-compose artifact.
+- JVM monitoring must cover memory and CPU visibility, not only endpoint health checks.
+- Recovery policy should be aligned with a Ktor-idiomatic resilience standard (research + implementation required).
+- UI should provide explicit user feedback for 429 and 400 responses.
+- Ktor dependency/plugin versions should be centralized in `gradle/ktor-libs.versions.toml`.
+
+### UAT gate expectations captured
+1. Health must expose driver/GPIO operational details, not only ready state.
+2. Rate limiting must be verified behaviorally (not only unit tests).
+3. Dependencies/plugins versions should be cataloged in `ktor-libs.versions.toml`.
+4. Monitoring should include JVM resource metrics (memory, CPU).
+5. Recovery implementation should follow researched Ktor resilience best practices.
+6. Documentation must be updated with final deployment/ops flow.
+7. UI error handling should surface clear messages for 429/400.
+

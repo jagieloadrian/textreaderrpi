@@ -1,7 +1,7 @@
 package com.anjo.service
 
-import com.anjo.driver.DisplayStatus
 import com.anjo.driver.DisplayDriver
+import com.anjo.driver.DisplayStatus
 import com.codahale.metrics.MetricRegistry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -17,6 +17,7 @@ class ScreenDriverService(
     private val metricRegistry: MetricRegistry = MetricRegistry(),
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
+
     private val busy = AtomicBoolean(false)
     private val pendingDisplayType = AtomicReference<String?>(null)
     private val lastSentMessage = AtomicReference<String?>(null)

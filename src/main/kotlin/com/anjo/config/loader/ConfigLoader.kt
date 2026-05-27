@@ -3,14 +3,13 @@ package com.anjo.config.loader
 import com.anjo.config.model.ApiConfig
 import com.anjo.config.model.ApplicationConfig
 import com.anjo.config.model.DisplayConfig
-import com.anjo.config.model.Max7219Config
-import com.anjo.config.model.LcdConfig
-import com.anjo.config.model.OledConfig
 import com.anjo.config.model.HardwareConfig
+import com.anjo.config.model.LcdConfig
 import com.anjo.config.model.LoggingConfig
+import com.anjo.config.model.Max7219Config
+import com.anjo.config.model.OledConfig
 import com.anjo.config.model.TimingConfig
-
-import io.ktor.server.application.*
+import io.ktor.server.application.Application
 
 object ConfigLoader {
     fun loadConfig(application: Application): ApplicationConfig {

@@ -3,11 +3,14 @@ package com.anjo.di
 import com.anjo.service.ScreenDriverService
 import com.codahale.metrics.MetricRegistry
 import dev.hayden.KHealth
-import io.ktor.http.*
-import io.ktor.server.application.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
 import io.ktor.server.metrics.dropwizard.DropwizardMetrics
-import io.ktor.server.plugins.callid.*
-import io.ktor.server.plugins.calllogging.*
+import io.ktor.server.plugins.callid.CallId
+import io.ktor.server.plugins.callid.callIdMdc
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.di.dependencies
 
 fun Application.configureMonitoring() {

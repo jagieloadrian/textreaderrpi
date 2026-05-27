@@ -4,12 +4,10 @@ import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.test.runTest
 
 class ScreenDriverRecoveryTest : FunSpec({
     val fastRecovery = RecoveryPolicy(
