@@ -12,12 +12,12 @@ import kotlinx.coroutines.launch
 /**
  * MAX7219Matrix: 8x8 LED matrix driver via SPI
  *
- * Implements DisplayDriver with scroll-based rendering (legacy) plus new methods:
+ * Implements DisplayDriver with MAX7219-focused scroll rendering and support methods:
  * - clear(): blanks all LEDs
  * - write(text): static text (currently shows first chars that fit)
  * - status(): reports hardware health
  *
- * Per D-02: MAX7219 emphasizes scroll-based operation; write() is secondary.
+ * MAX7219 emphasizes scroll-based operation; write() remains a compatibility method.
  */
 class Max7219Matrix(
     private val ctx: Context,

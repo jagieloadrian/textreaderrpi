@@ -11,9 +11,9 @@
 - Additional follow-up areas (metrics scope, health RL policy, error queue contract, JMH scope)
 ## Final Decisions Captured
 ### Health
+- KHealth is the health core; custom code only extends its output.
 - `/health` uses app + basic hardware state.
-- Two-tier health output (summary + detail).
-- KHealth standard endpoints retained.
+- Two-tier health output (summary + detail) is preserved on top of KHealth.
 - Include `displayType`, `isActive`, `lastError`.
 - Startup-based hardware probe state used in health responses.
 - `/health/ready` requires driver init + valid config.
@@ -36,7 +36,7 @@
 ### Rate Limiting
 - Scope: all `/api/*`.
 - Health endpoints remain rate-limited (no bypass).
-- Use Ktor RateLimitPlugin when available, token bucket fallback otherwise.
+- Use Flaxoos `ktor-server-rate-limiting` as the primary implementation, with the local token-bucket fallback kept as a compatibility path.
 - Rate-limit response: 429 + `Retry-After`.
 - No explicit hardware concurrency cap.
 - Reject immediately on limit hit.

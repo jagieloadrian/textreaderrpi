@@ -1,0 +1,8 @@
+[versions]
+ktor = "3.4.2"
+flaxoos-rate-limiting = "2.2.1"
+
+[libraries]
+server-metrics = { module = "io.ktor:ktor-server-metrics", version.ref = "ktor" }
+flaxoos-ktor-server-rateLimiting = { module = "io.github.flaxoos:ktor-server-rate-limiting", version.ref = "flaxoos-rate-limiting" }
+

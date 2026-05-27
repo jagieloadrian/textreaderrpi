@@ -1,6 +1,7 @@
 ﻿package com.anjo.service
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
+import com.codahale.metrics.MetricRegistry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -8,54 +9,43 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 class ScreenDriverResourceTest : FunSpec({
     val fastRecovery = RecoveryPolicy(maxAttempts = 1, initialDelayMs = 1L, jitterMs = 0L)
-    test("repeated readInput operations stay within resource bounds") {
+    test("repeated readInput operations keep in-flight gauge at zero after completion") {
         val driver = mockk<DisplayDriver>(relaxed = true)
-        val tracker = ResourceTracker(maxSlots = 10, trackerName = "test")
+        val metrics = MetricRegistry()
         val service = ScreenDriverService(
             driver, Dispatchers.Unconfined,
             recoveryPolicy = fastRecovery,
-            resourceTracker = tracker,
+            metricRegistry = metrics,
         )
         repeat(5) { service.readInput("text $it") }
-        // All slots should be released after each call completes
-        tracker.heldCount shouldBe 0
+        metrics.counter("screenDriver.readInput.inFlight").count shouldBe 0L
+        metrics.meter("screenDriver.readInput.accepted").count shouldBe 5L
     }
-    test("resource slot is always released even when driver throws") {
+
+    test("failed display operations are counted and in-flight counter is released") {
         val driver = mockk<DisplayDriver>(relaxed = true)
         every { driver.scrollText(any(), any(), any()) } throws RuntimeException("hardware error")
         every { driver.status() } returns DisplayStatus(isActive = false, hardwareAvailable = false)
-        val tracker = ResourceTracker(maxSlots = 10, trackerName = "test")
+        val metrics = MetricRegistry()
         val service = ScreenDriverService(
             driver, Dispatchers.Unconfined,
             recoveryPolicy = fastRecovery,
-            resourceTracker = tracker,
+            metricRegistry = metrics,
         )
         service.readInput("will fail")
-        // Slot must be released in finally block
-        tracker.heldCount shouldBe 0
+        metrics.counter("screenDriver.readInput.inFlight").count shouldBe 0L
+        metrics.meter("screenDriver.readInput.failed").count shouldBe 1L
     }
-    test("readInput is rejected when tracker is at capacity") {
+
+    test("readInput execution time is recorded") {
         val driver = mockk<DisplayDriver>(relaxed = true)
-        // Use a tracker with 0 capacity to simulate full state
-        val fullTracker = ResourceTracker(maxSlots = 0, trackerName = "full")
+        val metrics = MetricRegistry()
         val service = ScreenDriverService(
             driver, Dispatchers.Unconfined,
             recoveryPolicy = fastRecovery,
-            resourceTracker = fullTracker,
+            metricRegistry = metrics,
         )
-        // Should not throw — rejection is logged and method returns early
-        service.readInput("rejected input")
-        // Driver should never have been called
-        fullTracker.heldCount shouldBe 0
-    }
-    test("close releases all held resource slots") {
-        val tracker = ResourceTracker(maxSlots = 10, trackerName = "test")
-        // simulate externally acquired slots
-        tracker.acquire("orphaned-slot-1")
-        tracker.acquire("orphaned-slot-2")
-        tracker.heldCount shouldBe 2
-        tracker.close()
-        tracker.heldCount shouldBe 0
-        tracker.isClosed shouldBe true
+        service.readInput("measure me")
+        metrics.timer("screenDriver.readInput.execution").count shouldBe 1L
     }
 })

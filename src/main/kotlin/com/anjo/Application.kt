@@ -15,9 +15,9 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     configureHTTP()
-    configureMonitoring()
     configureSerialization()
     configureDI()
+    configureMonitoring()
     configureRequestValidation()
     configureErrorHandling()
     configureRouting()

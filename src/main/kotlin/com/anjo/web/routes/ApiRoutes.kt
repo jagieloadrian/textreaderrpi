@@ -12,7 +12,7 @@ import io.ktor.server.routing.post
 import com.anjo.service.ScreenDriverService
 
 fun Route.displayApiRoutes(screenDriverService: ScreenDriverService) {
-    get("/api/display/status") {
+    get("/display/status") {
         val status = screenDriverService.status()
         call.respond(
             DisplayStatusResponse(
@@ -25,7 +25,7 @@ fun Route.displayApiRoutes(screenDriverService: ScreenDriverService) {
         )
     }
 
-    post("/api/display/select") {
+    post("/display/select") {
         val request = call.receive<DisplaySelectRequest>()
         val normalized = request.type.lowercase()
         val allowed = setOf("max7219", "lcd", "oled")

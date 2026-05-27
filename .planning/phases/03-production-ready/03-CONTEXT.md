@@ -12,9 +12,9 @@ This phase clarifies HOW to implement operational reliability for the existing m
 ## Implementation Decisions
 
 ### Health and Readiness
-- **D-01:** Implement standard health endpoints via KHealth (`/health`, `/health/ready`).
-- **D-02:** `/health` performs app liveness plus a basic hardware state check.
-- **D-03:** Health model uses two tiers: summary and detail diagnostics.
+- **D-01:** Restore KHealth as the health core (`/health`, `/health/ready`) instead of a fully bespoke health stack.
+- **D-02:** Extend KHealth responses with application-specific state instead of replacing the plugin model.
+- **D-03:** Health model uses two tiers: KHealth-backed summary plus extended detail diagnostics.
 - **D-04:** Include `displayType`, `isActive`, and `lastError` in health metadata.
 - **D-05:** Hardware probe state is established at startup and reused in health responses.
 - **D-06:** `/health/ready` must validate driver initialization and configuration validity.
@@ -40,7 +40,7 @@ This phase clarifies HOW to implement operational reliability for the existing m
 ### Rate Limiting and Traffic Protection
 - **D-21:** Apply rate limiting to all `/api/*` endpoints.
 - **D-22:** Health endpoints are also rate-limited (no bypass).
-- **D-23:** Prefer Ktor RateLimitPlugin; fallback to token-bucket implementation if unavailable.
+- **D-23:** Use Flaxoos `ktor-server-rate-limiting` as the primary implementation; keep the local token-bucket fallback only for unsupported environments.
 - **D-24:** Exceeded limit response is HTTP 429 with `Retry-After`.
 - **D-25:** Reject immediately when limited (no queue-on-limit behavior).
 - **D-26:** No explicit hardware concurrency cap in this phase.
@@ -63,6 +63,9 @@ This phase clarifies HOW to implement operational reliability for the existing m
 
 ### Deferred Ideas
 - **D-39:** `/metrics` endpoint and advanced monitoring dashboarding are deferred to Phase 4+.
+
+### Dependency Notes
+- **D-40:** Add `ktorLibs.server.metrics` and the Flaxoos rate-limiting catalog entry so implementation can use the requested Ktor/Flaxoos dependency layout.
 
 ## Canonical References
 

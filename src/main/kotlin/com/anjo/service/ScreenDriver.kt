@@ -2,6 +2,7 @@ package com.anjo.service
 
 import com.anjo.driver.DisplayStatus
 import com.anjo.driver.DisplayDriver
+import com.codahale.metrics.MetricRegistry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
@@ -13,22 +14,24 @@ class ScreenDriverService(
     private val ioDispatcher: CoroutineDispatcher,
     private val displaySelectionService: DisplaySelectionService? = null,
     private val recoveryPolicy: RecoveryPolicy = RecoveryPolicy(),
-    private val resourceTracker: ResourceTracker = ResourceTracker(maxSlots = 10, trackerName = "screenDriver"),
+    private val metricRegistry: MetricRegistry = MetricRegistry(),
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
     private val busy = AtomicBoolean(false)
     private val pendingDisplayType = AtomicReference<String?>(null)
     private val lastSentMessage = AtomicReference<String?>(null)
+    private val acceptedMeter = metricRegistry.meter("screenDriver.readInput.accepted")
+    private val failedMeter = metricRegistry.meter("screenDriver.readInput.failed")
+    private val inFlightCounter = metricRegistry.counter("screenDriver.readInput.inFlight")
+    private val executionTimer = metricRegistry.timer("screenDriver.readInput.execution")
 
     suspend fun readInput(input: String) {
         require(input.isNotBlank()) { "Text cannot be blank" }
-        val slotId = resourceTracker.acquire("readInput")
-        if (slotId == -1L) {
-            log.warn("readInput rejected: resource tracker at capacity or closed")
-            return
-        }
+        acceptedMeter.mark()
         lastSentMessage.set(input)
+        val timerContext = executionTimer.time()
         busy.set(true)
+        inFlightCounter.inc()
         try {
             withContext(ioDispatcher) {
                 recoveryPolicy.execute("scrollText") {
@@ -36,10 +39,12 @@ class ScreenDriverService(
                 }
             }
         } catch (e: RecoveryPolicy.TerminalFailure) {
+            failedMeter.mark()
             log.error("Display operation failed permanently after retries: ${e.message}", e)
         } finally {
             busy.set(false)
-            resourceTracker.release(slotId)
+            inFlightCounter.dec()
+            timerContext.stop()
             checkAndPerformPendingSwitch()
         }
     }

@@ -4,11 +4,10 @@ import com.anjo.config.loader.ConfigLoader
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.anjo.service.DisplaySelectionService
-import com.anjo.service.HealthService
 import com.anjo.service.RecoveryPolicy
 import com.anjo.service.ReaderInputService
-import com.anjo.service.ResourceTracker
 import com.anjo.service.ScreenDriverService
+import com.codahale.metrics.MetricRegistry
 import com.pi4j.Pi4J
 import io.ktor.server.application.Application
 import io.ktor.server.plugins.di.dependencies
@@ -26,27 +25,25 @@ fun Application.configureDI() {
 
     val driver: DisplayDriver? = displaySelectionService.currentDriver()
     val recoveryPolicy = RecoveryPolicy()
+    val metricRegistry = MetricRegistry()
 
     val screenDriverService = if (driver == null) {
-        ScreenDriverService(OfflineDisplayDriver, Dispatchers.IO, displaySelectionService, recoveryPolicy)
+        ScreenDriverService(OfflineDisplayDriver, Dispatchers.IO, displaySelectionService, recoveryPolicy, metricRegistry)
     } else {
-        ScreenDriverService(driver, Dispatchers.IO, displaySelectionService, recoveryPolicy)
+        ScreenDriverService(driver, Dispatchers.IO, displaySelectionService, recoveryPolicy, metricRegistry)
     }
 
     val readerInputService = ReaderInputService(screenDriverService)
-    val healthService = HealthService(screenDriverService)
-    val rateLimiter = RateLimiter(requestsPerMinute = appConfig.api.rateLimitPerMinute)
 
     dependencies {
         provide { appConfig }
         provide { appConfig.api }
         provide { appConfig.display }
         provide { Dispatchers.IO }
+        provide { metricRegistry }
         provide { displaySelectionService }
         provide { screenDriverService }
         provide { readerInputService }
-        provide { healthService }
-        provide { rateLimiter }
     }
 }
 

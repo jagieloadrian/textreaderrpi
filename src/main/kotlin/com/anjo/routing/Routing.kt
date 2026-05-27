@@ -1,12 +1,10 @@
 package com.anjo.routing
 
-import com.anjo.di.RateLimitPlugin
-import com.anjo.di.RateLimiter
+import com.anjo.config.model.ApiConfig
+import com.anjo.di.installApiRateLimiting
 import com.anjo.service.ReaderInputService
 import com.anjo.service.ScreenDriverService
-import com.anjo.service.HealthService
 import com.anjo.web.routes.displayApiRoutes
-import com.anjo.web.routes.healthRoutes
 import com.anjo.web.routes.webRoutes
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application
@@ -15,27 +13,25 @@ import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.autohead.AutoHeadResponse
 import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.plugins.swagger.swaggerUI
+import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
 fun Application.configureRouting() {
     install(AutoHeadResponse)
     val readerInputService: ReaderInputService by dependencies
     val screenDriverService: ScreenDriverService by dependencies
-    val healthService: HealthService by dependencies
-    val rateLimiter: RateLimiter by dependencies
+    val apiConfig: ApiConfig by dependencies
 
     routing {
-        // Apply rate limiting to /api/* and /health* paths (D-21, D-22)
-        install(RateLimitPlugin) {
-            limiter = rateLimiter
-            pathPrefixes = setOf("/api", "/health")
-        }
-
         staticResources("/static", "static")
         webRoutes(screenDriverService)
-        textRoutes(readerInputService)
-        displayApiRoutes(screenDriverService)
-        healthRoutes(healthService)
+
+        route("/api") {
+            installApiRateLimiting(apiConfig.rateLimitPerMinute)
+            textRoutes(readerInputService)
+            displayApiRoutes(screenDriverService)
+        }
+
         swaggerUI(path = "openapi") {
             info = OpenApiInfo(title = "My API", version = "1.0.0")
         }

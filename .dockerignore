@@ -1,0 +1,10 @@
+.git
+.gradle
+.idea
+.kotlin
+.planning
+build
+out
+**/.DS_Store
+**/node_modules
+
