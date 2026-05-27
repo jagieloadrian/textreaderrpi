@@ -68,6 +68,9 @@ blocked: 0
   test: 2
   artifacts: []
   missing: []
+  root_cause: "<html> missing data-theme=dark, <main> missing .container class, <script> in <head> instead of end of body"
+  fix: "fix(02-uat): correct Pico CSS layout — commit 4bdbebf"
+  fix_status: resolved
 
 - truth: "Status page should show non-empty `currentMessage` after text submission when message exists"
   status: failed
@@ -76,6 +79,9 @@ blocked: 0
   test: 4
   artifacts: []
   missing: []
+  root_cause: "ScreenDriverService.status() delegated to driver.status() which may return null currentMessage. Service had no cache of last sent message."
+  fix: "fix(02-uat): cache currentMessage in ScreenDriverService.lastSentMessage — commit 4bdbebf"
+  fix_status: resolved
 
 - truth: "POST `/api/display/select` with type `max7219` should return accepted: true and switch driver"
   status: failed
