@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
 APP_USER="textreaderrpi"
 APP_GROUP="textreaderrpi"
 INSTALL_DIR="/opt/textreaderrpi"
-SERVICE_FILE="deployment/systemd/textreaderrpi.service"
-JAR_SOURCE="build/libs/TextReaderRpi-all.jar"
+SERVICE_FILE="${SCRIPT_DIR}/textreaderrpi.service"
+JAR_SOURCE="${PROJECT_ROOT}/build/libs/TextReaderRpi-all.jar"
 
 if [[ "${EUID}" -ne 0 ]]; then
   echo "Run as root (sudo)." >&2
@@ -22,7 +25,7 @@ if ! id "${APP_USER}" >/dev/null 2>&1; then
 fi
 
 mkdir -p "${INSTALL_DIR}/logs"
-cp "${JAR_SOURCE}" "${INSTALL_DIR}/TextReaderRpi-all.jar"
+cp "${JAR_SOURCE}"   "${INSTALL_DIR}/TextReaderRpi-all.jar"
 cp "${SERVICE_FILE}" /etc/systemd/system/textreaderrpi.service
 chown -R "${APP_USER}:${APP_GROUP}" "${INSTALL_DIR}"
 
@@ -30,6 +33,6 @@ systemctl daemon-reload
 systemctl enable textreaderrpi
 systemctl restart textreaderrpi
 
-echo "textreaderrpi service installed/restarted."
-echo "Check status: systemctl status textreaderrpi"
-
+echo "textreaderrpi installed and started."
+echo "Status: systemctl status textreaderrpi"
+echo "Logs:   journalctl -u textreaderrpi -f"

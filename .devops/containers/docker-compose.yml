@@ -1,0 +1,28 @@
+services:
+  textreaderrpi:
+    image: textreaderrpi:latest
+    build:
+      context: ../..
+      dockerfile: .devops/containers/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - KTOR_ENV=production
+    env_file:
+      - ../../.env.local
+    volumes:
+      - logs:/opt/textreaderrpi/logs
+    devices:
+      - /dev/spidev0.0:/dev/spidev0.0
+      - /dev/i2c-1:/dev/i2c-1
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health/ready"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  logs:
+
