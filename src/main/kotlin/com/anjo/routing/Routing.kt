@@ -2,7 +2,9 @@ package com.anjo.routing
 
 import com.anjo.service.ReaderInputService
 import com.anjo.service.ScreenDriverService
+import com.anjo.service.HealthService
 import com.anjo.web.routes.displayApiRoutes
+import com.anjo.web.routes.healthRoutes
 import com.anjo.web.routes.webRoutes
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application
@@ -17,12 +19,14 @@ fun Application.configureRouting() {
     install(AutoHeadResponse)
     val readerInputService: ReaderInputService by dependencies
     val screenDriverService: ScreenDriverService by dependencies
+    val healthService: HealthService by dependencies
 
     routing {
         staticResources("/static", "static")
         webRoutes(screenDriverService)
         textRoutes(readerInputService)
         displayApiRoutes(screenDriverService)
+        healthRoutes(healthService)
         swaggerUI(path = "openapi") {
             info = OpenApiInfo(title = "My API", version = "1.0.0")
         }

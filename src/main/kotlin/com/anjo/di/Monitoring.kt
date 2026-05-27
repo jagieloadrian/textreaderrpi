@@ -1,6 +1,5 @@
 package com.anjo.di
 
-import dev.hayden.KHealth
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.callid.*
@@ -13,7 +12,6 @@ fun Application.configureMonitoring() {
             callId.isNotEmpty()
         }
     }
-    install(KHealth)
     install(CallLogging) {
         callIdMdc("call-id")
     }

@@ -4,6 +4,7 @@ import com.anjo.config.loader.ConfigLoader
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.anjo.service.DisplaySelectionService
+import com.anjo.service.HealthService
 import com.anjo.service.ReaderInputService
 import com.anjo.service.ScreenDriverService
 import com.pi4j.Pi4J
@@ -30,6 +31,7 @@ fun Application.configureDI() {
     }
 
     val readerInputService = ReaderInputService(screenDriverService)
+    val healthService = HealthService(screenDriverService)
 
     dependencies {
         provide { appConfig }
@@ -39,6 +41,7 @@ fun Application.configureDI() {
         provide { displaySelectionService }
         provide { screenDriverService }
         provide { readerInputService }
+        provide { healthService }
     }
 }
 
