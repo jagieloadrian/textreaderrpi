@@ -6,6 +6,7 @@ data class ApplicationConfig(
     val api: ApiConfig,
     val timing: TimingConfig,
     val logging: LoggingConfig,
-    val metrics: MetricsConfig = MetricsConfig(),
+    val metrics: MetricsConfig,
+    val retryConfig: RetryConfig
 )
 

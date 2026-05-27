@@ -1,5 +1,6 @@
 package com.anjo.service
 
+import com.anjo.config.model.RetryConfig
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual

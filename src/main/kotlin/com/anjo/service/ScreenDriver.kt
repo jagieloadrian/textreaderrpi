@@ -1,9 +1,9 @@
 package com.anjo.service
 
-import com.anjo.config.model.MetricsConfig
+import com.anjo.config.model.RetryConfig
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
-import com.codahale.metrics.MetricRegistry
+import com.anjo.model.ScreenDriverMetrics
 import com.codahale.metrics.Timer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
@@ -12,40 +12,35 @@ import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicReference
 
+
 class ScreenDriverService(
     private var driver: DisplayDriver,
     private val ioDispatcher: CoroutineDispatcher,
-    private val displaySelectionService: DisplaySelectionService? = null,
-    private val retryConfig: RetryConfig = RetryConfig(),
-    private val metricRegistry: MetricRegistry = MetricRegistry(),
-    private val metricsConfig: MetricsConfig = MetricsConfig(),
+    private val retryConfig: RetryConfig,
+    private val displaySelectionService: DisplaySelectionService?,
+    private val metrics: ScreenDriverMetrics,
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
 
     private val displayMutex = Mutex()
     private val pendingDisplayType = AtomicReference<String?>(null)
     private val lastSentMessage = AtomicReference<String?>(null)
-    private val p = metricsConfig.prefix
-    private val acceptedMeter = if (metricsConfig.enabled) metricRegistry.meter("$p.screenDriver.readInput.accepted") else null
-    private val failedMeter = if (metricsConfig.enabled) metricRegistry.meter("$p.screenDriver.readInput.failed") else null
-    private val inFlightCounter = if (metricsConfig.enabled) metricRegistry.counter("$p.screenDriver.readInput.inFlight") else null
-    private val executionTimer = if (metricsConfig.enabled) metricRegistry.timer("$p.screenDriver.readInput.execution") else null
 
     suspend fun readInput(input: String) {
         require(input.isNotBlank()) { "Text cannot be blank" }
-        acceptedMeter?.mark()
+        metrics.acceptedMeter?.mark()
         lastSentMessage.set(input)
-        val timerContext: Timer.Context? = executionTimer?.time()
-        inFlightCounter?.inc()
+        val timerContext: Timer.Context? = metrics.executionTimer?.time()
+        metrics.inFlightCounter?.inc()
         try {
             displayMutex.withLock {
                 executeWithRecovery(input)
             }
         } catch (e: Exception) {
-            failedMeter?.mark()
+            metrics.failedMeter?.mark()
             log.error("Display operation failed after retries: ${e.message}", e)
         } finally {
-            inFlightCounter?.dec()
+            metrics.inFlightCounter?.dec()
             timerContext?.stop()
             checkAndPerformPendingSwitch()
         }

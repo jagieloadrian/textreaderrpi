@@ -9,6 +9,7 @@ import com.anjo.config.model.LoggingConfig
 import com.anjo.config.model.Max7219Config
 import com.anjo.config.model.MetricsConfig
 import com.anjo.config.model.OledConfig
+import com.anjo.config.model.RetryConfig
 import com.anjo.config.model.TimingConfig
 import io.ktor.server.application.Application
 
@@ -68,6 +69,13 @@ object ConfigLoader {
             enabled = config.propertyOrNull("metrics.enabled")?.getString()?.toBoolean() ?: true,
             prefix = config.propertyOrNull("metrics.prefix")?.getString() ?: "textreaderrpi",
         )
+
+        val retryConfig = RetryConfig(
+            maxAttempts = config.propertyOrNull("retry.maxAttempts")?.getString()?.toIntOrNull() ?: 5,
+            initialDelayMs = config.propertyOrNull("retry.initialDelayMs")?.getString()?.toLongOrNull() ?: 1000L,
+            maxDelayMs = config.propertyOrNull("retry.maxDelayMs")?.getString()?.toLongOrNull() ?: 30000L,
+            factor = config.propertyOrNull("retry.factor")?.getString()?.toDoubleOrNull() ?: 2.0,
+        )
         
         return ApplicationConfig(
             display = displayConfig,
@@ -76,6 +84,7 @@ object ConfigLoader {
             timing = timingConfig,
             logging = loggingConfig,
             metrics = metricsConfig,
+            retryConfig = retryConfig
         )
     }
 

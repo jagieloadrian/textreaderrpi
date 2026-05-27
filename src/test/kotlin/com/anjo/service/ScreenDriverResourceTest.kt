@@ -1,51 +1,60 @@
 ﻿package com.anjo.service
+
+import com.anjo.config.model.MetricsConfig
+import com.anjo.config.model.RetryConfig
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
+import com.anjo.model.ScreenDriverMetrics
 import com.codahale.metrics.MetricRegistry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
+
 class ScreenDriverResourceTest : FunSpec({
     val fastRetry = RetryConfig(maxAttempts = 1, initialDelayMs = 1L)
+    val metricsConfig = MetricsConfig(enabled = true, prefix = "textreaderrpi")
+
+    fun service(driver: DisplayDriver, registry: MetricRegistry) = ScreenDriverService(
+        driver = driver,
+        ioDispatcher = Dispatchers.Unconfined,
+        retryConfig = fastRetry,
+        displaySelectionService = null,
+        metrics = ScreenDriverMetrics.from(registry, metricsConfig),
+    )
+
     test("repeated readInput operations keep in-flight gauge at zero after completion") {
         val driver = mockk<DisplayDriver>(relaxed = true)
-        val metrics = MetricRegistry()
-        val service = ScreenDriverService(
-            driver, Dispatchers.Unconfined,
-            retryConfig = fastRetry,
-            metricRegistry = metrics,
-        )
-        repeat(5) { service.readInput("text $it") }
-        metrics.counter("textreaderrpi.screenDriver.readInput.inFlight").count shouldBe 0L
-        metrics.meter("textreaderrpi.screenDriver.readInput.accepted").count shouldBe 5L
+        val registry = MetricRegistry()
+        val svc = service(driver, registry)
+
+        repeat(5) { svc.readInput("text $it") }
+
+        registry.counter("textreaderrpi.screenDriver.readInput.inFlight").count shouldBe 0L
+        registry.meter("textreaderrpi.screenDriver.readInput.accepted").count shouldBe 5L
     }
 
     test("failed display operations are counted and in-flight counter is released") {
         val driver = mockk<DisplayDriver>(relaxed = true)
         every { driver.scrollText(any(), any(), any()) } throws RuntimeException("hardware error")
         every { driver.status() } returns DisplayStatus(isActive = false, hardwareAvailable = false)
-        val metrics = MetricRegistry()
-        val service = ScreenDriverService(
-            driver, Dispatchers.Unconfined,
-            retryConfig = fastRetry,
-            metricRegistry = metrics,
-        )
-        service.readInput("will fail")
-        metrics.counter("textreaderrpi.screenDriver.readInput.inFlight").count shouldBe 0L
-        metrics.meter("textreaderrpi.screenDriver.readInput.failed").count shouldBe 1L
+        val registry = MetricRegistry()
+        val svc = service(driver, registry)
+
+        svc.readInput("will fail")
+
+        registry.counter("textreaderrpi.screenDriver.readInput.inFlight").count shouldBe 0L
+        registry.meter("textreaderrpi.screenDriver.readInput.failed").count shouldBe 1L
     }
 
     test("readInput execution time is recorded") {
         val driver = mockk<DisplayDriver>(relaxed = true)
-        val metrics = MetricRegistry()
-        val service = ScreenDriverService(
-            driver, Dispatchers.Unconfined,
-            retryConfig = fastRetry,
-            metricRegistry = metrics,
-        )
-        service.readInput("measure me")
-        metrics.timer("textreaderrpi.screenDriver.readInput.execution").count shouldBe 1L
+        val registry = MetricRegistry()
+        val svc = service(driver, registry)
+
+        svc.readInput("measure me")
+
+        registry.timer("textreaderrpi.screenDriver.readInput.execution").count shouldBe 1L
     }
 })

@@ -1,4 +1,4 @@
-package com.anjo.routing
+package com.anjo.di
 
 import com.anjo.config.model.ApiConfig
 import com.anjo.model.TextRequest

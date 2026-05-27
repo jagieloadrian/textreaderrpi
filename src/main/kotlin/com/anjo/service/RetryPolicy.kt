@@ -1,15 +1,9 @@
 package com.anjo.service
 
+import com.anjo.config.model.RetryConfig
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
 import kotlin.math.min
-
-data class RetryConfig(
-    val maxAttempts: Int = 5,
-    val initialDelayMs: Long = 1000,
-    val maxDelayMs: Long = 30000,
-    val factor: Double = 2.0,
-)
 
 private val log = LoggerFactory.getLogger("com.anjo.service.RetryPolicy")
 

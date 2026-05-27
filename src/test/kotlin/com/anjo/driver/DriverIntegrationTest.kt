@@ -1,7 +1,9 @@
 package com.anjo.driver
 
 import com.anjo.config.model.DisplayConfig
+import com.anjo.config.model.RetryConfig
 import com.anjo.service.DisplaySelectionService
+import com.anjo.model.ScreenDriverMetrics
 import com.anjo.service.ScreenDriverService
 import com.pi4j.context.Context
 import io.kotest.core.spec.style.FunSpec
@@ -32,7 +34,13 @@ class DriverIntegrationTest : FunSpec({
             }
         )
 
-        val service = ScreenDriverService(max, Dispatchers.Unconfined, selection)
+        val service = ScreenDriverService(
+            driver = max,
+            ioDispatcher = Dispatchers.Unconfined,
+            retryConfig = RetryConfig(maxAttempts = 1, initialDelayMs = 1L),
+            displaySelectionService = selection,
+            metrics = ScreenDriverMetrics.DISABLED,
+        )
 
         selection.getCurrentDisplayType() shouldBe "MAX7219"
         service.queueDisplaySwitch("lcd") shouldBe true
@@ -56,7 +64,13 @@ class DriverIntegrationTest : FunSpec({
             driverFactory = { type, _, _ -> if (type == "MAX7219") max else null }
         )
 
-        val service = ScreenDriverService(max, Dispatchers.Unconfined, selection)
+        val service = ScreenDriverService(
+            driver = max,
+            ioDispatcher = Dispatchers.Unconfined,
+            retryConfig = RetryConfig(maxAttempts = 1, initialDelayMs = 1L),
+            displaySelectionService = selection,
+            metrics = ScreenDriverMetrics.DISABLED,
+        )
         service.queueDisplaySwitch("unknown") shouldBe false
         selection.getCurrentDisplayType() shouldBe "MAX7219"
     }
