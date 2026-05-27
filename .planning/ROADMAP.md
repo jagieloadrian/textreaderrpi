@@ -306,11 +306,13 @@ Phase 5: Scheduling + Effects (3-5 weeks)
 
 ### Phase 4 Success Criteria
 
-- [ ] Routes and module boundaries are consistent and discoverable
-- [ ] `KHealth` is active and exposes extended health payload fields
-- [ ] Text submission route is protected by rate limiting
-- [ ] `/metrics` returns runtime + API + hardware metric groups in JSON
-- [ ] Existing tests pass and targeted observability tests are added
+- [x] Routes and module boundaries are consistent and discoverable
+- [x] `KHealth` is active and exposes extended health payload fields
+- [x] Text submission route is protected by rate limiting
+- [x] `/metrics` returns runtime + API + hardware metric groups in JSON
+- [x] Existing tests pass and targeted observability tests are added
+
+**Phase 4 Complete — 2026-05-27** ✅
 
 ---
 

@@ -1,7 +1,7 @@
 # Project State & Memory
 
 **Last Updated:** 2026-05-27  
-**Status:** Phase 4 PLANNED; ready to execute (5 plans, 3 waves)
+**Status:** Phase 4 COMPLETE — verified 2026-05-27; ready for Phase 5
 
 ## Current State
 
@@ -80,6 +80,21 @@
 | Flexibility | Support multiple displays | ⚪ Not started | Phase 2 work |
 | Reliability | 99.5% uptime, no crashes | 🟡 Unknown | Needs 24h test |
 | Test coverage | >70% | 🟢 Verified | JaCoCo gate enabled and passing (`jacocoTestCoverageVerification`) |
+
+## Phase 4 Status
+
+✅ **All Waves Complete — Phase VERIFIED (2026-05-27)**
+
+- 04-01: Feature-first routing modules (DisplayRoutes, HealthRoutes, MetricsRoutes) + rate-limit closure
+- 04-02: DevOps artifacts moved to .devops/; DisplayApi DTOs → com.anjo.model; com.anjo.api removed
+- 04-03: KHealth alignment + GET /health/detail extended payload (7 fields)
+- 04-04: GET /metrics endpoint (runtime/api/hardware groups) with dedicated rate limiting (120/min)  
+- 04-05: RecoveryPolicy readability refactor; ResourceTracker snapshot + MetricRegistry gauges; ScreenDriverService extracted executeWithRecovery()
+
+**Verification:** `.planning/phases/04-observability-cleanup/04-VERIFICATION.md` — status: PASSED  
+**Test Suite:** Full suite — BUILD SUCCESSFUL, JaCoCo PASS
+
+---
 
 ## Phase 3 Status
 
@@ -204,5 +219,5 @@ When resuming this project:
 
 ---
 
-**Status:** Phase 4 planned and ready to execute.  
-**Next Action:** Run `/gsd-execute-phase 4`.
+**Status:** Phase 4 complete. Phase 5 ready.  
+**Next Action:** Run `/gsd-discuss-phase 5` or `/gsd-plan-phase 5`.
