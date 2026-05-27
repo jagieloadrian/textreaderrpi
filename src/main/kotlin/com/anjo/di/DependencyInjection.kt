@@ -4,8 +4,10 @@ import com.anjo.config.loader.ConfigLoader
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.anjo.service.DisplaySelectionService
+import com.anjo.service.MetricsCollector
 import com.anjo.service.ReaderInputService
 import com.anjo.service.RecoveryPolicy
+import com.anjo.service.ResourceTracker
 import com.anjo.service.ScreenDriverService
 import com.codahale.metrics.MetricRegistry
 import com.pi4j.Pi4J
@@ -26,6 +28,10 @@ fun Application.configureDI() {
     val driver: DisplayDriver? = displaySelectionService.currentDriver()
     val recoveryPolicy = RecoveryPolicy()
     val metricRegistry = MetricRegistry()
+    val resourceTracker = ResourceTracker(
+        maxSlots = 10,
+        trackerName = "screenDriver"
+    )
 
     val screenDriverService = if (driver == null) {
         ScreenDriverService(OfflineDisplayDriver, Dispatchers.IO, displaySelectionService, recoveryPolicy, metricRegistry)
@@ -34,6 +40,7 @@ fun Application.configureDI() {
     }
 
     val readerInputService = ReaderInputService(screenDriverService)
+    val metricsCollector = MetricsCollector(metricRegistry, resourceTracker)
 
     dependencies {
         provide { appConfig }
@@ -41,9 +48,11 @@ fun Application.configureDI() {
         provide { appConfig.display }
         provide { Dispatchers.IO }
         provide { metricRegistry }
+        provide { resourceTracker }
         provide { displaySelectionService }
         provide { screenDriverService }
         provide { readerInputService }
+        provide { metricsCollector }
     }
 }
 

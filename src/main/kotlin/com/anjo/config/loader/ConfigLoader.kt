@@ -49,7 +49,8 @@ object ConfigLoader {
         val apiConfig = ApiConfig(
             maxTextLength = config.propertyOrNull("api.maxTextLength")?.getString()?.toIntOrNull() ?: 128,
             queueSize = config.propertyOrNull("api.queueSize")?.getString()?.toIntOrNull() ?: 10,
-            rateLimitPerMinute = config.propertyOrNull("api.rateLimitPerMinute")?.getString()?.toIntOrNull() ?: 60
+            rateLimitPerMinute = config.propertyOrNull("api.rateLimitPerMinute")?.getString()?.toIntOrNull() ?: 60,
+            metricsRateLimitPerMinute = config.propertyOrNull("api.metricsRateLimitPerMinute")?.getString()?.toIntOrNull() ?: 120
         )
 
         val timingConfig = TimingConfig(

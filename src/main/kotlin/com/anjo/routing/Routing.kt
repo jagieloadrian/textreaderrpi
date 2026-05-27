@@ -2,6 +2,7 @@ package com.anjo.routing
 
 import com.anjo.config.model.ApiConfig
 import com.anjo.di.installApiRateLimiting
+import com.anjo.service.MetricsCollector
 import com.anjo.service.ReaderInputService
 import com.anjo.service.ScreenDriverService
 import com.anjo.web.routes.webRoutes
@@ -20,11 +21,13 @@ fun Application.configureRouting() {
     val readerInputService: ReaderInputService by dependencies
     val screenDriverService: ScreenDriverService by dependencies
     val apiConfig: ApiConfig by dependencies
+    val metricsCollector: MetricsCollector by dependencies
 
     routing {
         staticResources("/static", "static")
         webRoutes(screenDriverService)
         healthRoutes(screenDriverService)
+        metricsRoutes(metricsCollector, apiConfig.metricsRateLimitPerMinute)
 
         route("/api") {
             installApiRateLimiting(apiConfig.rateLimitPerMinute)

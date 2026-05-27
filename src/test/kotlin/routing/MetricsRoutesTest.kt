@@ -1,0 +1,74 @@
+package com.anjo.routing
+
+import com.anjo.module
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldNotBeEmpty
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.testApplication
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+
+class MetricsRoutesTest : FunSpec({
+    test("GET /metrics returns 200 with JSON content") {
+        testApplication {
+            application { module() }
+
+            val response = client.get("/metrics")
+
+            response.status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    test("GET /metrics response contains timestamp and 3 metric groups") {
+        testApplication {
+            application { module() }
+
+            val response = client.get("/metrics")
+            val body = response.bodyAsText()
+            val json = Json.parseToJsonElement(body).jsonObject
+
+            json["timestamp"]!!.jsonPrimitive.content.shouldNotBeEmpty()
+            json["groups"]!!.jsonArray shouldHaveSize 3
+        }
+    }
+
+    test("GET /metrics groups include runtime, api, and hardware") {
+        testApplication {
+            application { module() }
+
+            val response = client.get("/metrics")
+            val body = response.bodyAsText()
+            val json = Json.parseToJsonElement(body).jsonObject
+            val groupNames = json["groups"]!!.jsonArray.map {
+                it.jsonObject["name"]!!.jsonPrimitive.content
+            }
+
+            groupNames shouldBe listOf("runtime", "api", "hardware")
+        }
+    }
+
+    test("runtime group contains uptime and jvm.memory metrics") {
+        testApplication {
+            application { module() }
+
+            val response = client.get("/metrics")
+            val body = response.bodyAsText()
+            val json = Json.parseToJsonElement(body).jsonObject
+            val runtimeGroup = json["groups"]!!.jsonArray[0].jsonObject
+            val metricKeys = runtimeGroup["metrics"]!!.jsonArray.map {
+                it.jsonObject["key"]!!.jsonPrimitive.content
+            }
+
+            metricKeys.contains("uptime") shouldBe true
+            metricKeys.contains("jvm.memory.used") shouldBe true
+            metricKeys.contains("jvm.memory.max") shouldBe true
+        }
+    }
+})
+
