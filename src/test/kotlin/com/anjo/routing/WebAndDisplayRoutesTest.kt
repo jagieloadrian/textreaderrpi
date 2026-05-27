@@ -60,7 +60,7 @@ class WebAndDisplayRoutesTest : FunSpec({
         testApplication {
             application { module() }
 
-            val response = client.get("/api/display/status")
+            val response = client.get("/api/v1/display/status")
 
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldContain "displayType"
@@ -72,7 +72,7 @@ class WebAndDisplayRoutesTest : FunSpec({
         testApplication {
             application { module() }
 
-            val response = client.post("/api/display/select") {
+            val response = client.post("/api/v1/display/select") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody("""{"type":"invalid-driver"}""")
             }

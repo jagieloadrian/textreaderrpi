@@ -28,14 +28,14 @@ class RateLimitRoutesTest : FunSpec({
             application {
                 install(ContentNegotiation) { json() }
                 routing {
-                    route("/api") {
+                    route("/api/v1") {
                         installApiRateLimiting(requestsPerMinute = 5)
                         get("/test") { call.respond(HttpStatusCode.OK, mapOf("ok" to true)) }
                     }
                 }
             }
             repeat(5) {
-                client.get("/api/test").status shouldBe HttpStatusCode.OK
+                client.get("/api/v1/test").status shouldBe HttpStatusCode.OK
             }
         }
     }
@@ -45,7 +45,7 @@ class RateLimitRoutesTest : FunSpec({
             application {
                 install(ContentNegotiation) { json() }
                 routing {
-                    route("/api") {
+                    route("/api/v1") {
                         installApiRateLimiting(requestsPerMinute = 2)
                         get("/test") { call.respond(HttpStatusCode.OK, mapOf("ok" to true)) }
                     }
@@ -53,10 +53,10 @@ class RateLimitRoutesTest : FunSpec({
             }
 
             repeat(2) {
-                client.get("/api/test").status shouldBe HttpStatusCode.OK
+                client.get("/api/v1/test").status shouldBe HttpStatusCode.OK
             }
 
-            val limited = client.get("/api/test")
+            val limited = client.get("/api/v1/test")
             limited.status shouldBe HttpStatusCode.TooManyRequests
             limited.headers[HttpHeaders.RetryAfter] shouldBe "60"
         }
@@ -67,27 +67,27 @@ class RateLimitRoutesTest : FunSpec({
             application {
                 install(ContentNegotiation) { json() }
                 routing {
-                    route("/api") {
+                    route("/api/v1") {
                         installApiRateLimiting(requestsPerMinute = 1)
                         get("/test") { call.respond(HttpStatusCode.OK, mapOf("ok" to true)) }
                     }
                 }
             }
 
-            client.get("/api/test")
-            val limited = client.get("/api/test")
+            client.get("/api/v1/test")
+            val limited = client.get("/api/v1/test")
 
             limited.status shouldBe HttpStatusCode.TooManyRequests
             limited.bodyAsText() shouldContain "Rate limit exceeded"
         }
     }
 
-    test("paths not matching /api are not rate-limited") {
+    test("paths not matching /api/v1 are not rate-limited") {
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
                 routing {
-                    route("/api") {
+                    route("/api/v1") {
                         installApiRateLimiting(requestsPerMinute = 1)
                         get("/test") { call.respond(HttpStatusCode.OK, mapOf("ok" to true)) }
                     }
@@ -101,43 +101,43 @@ class RateLimitRoutesTest : FunSpec({
         }
     }
 
-    test("full application limiter behavior on /api routes") {
+    test("full application limiter behavior on /api/v1 routes") {
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
                 routing {
-                    route("/api") {
+                    route("/api/v1") {
                         installApiRateLimiting(requestsPerMinute = 2)
                         get("/display/status") { call.respond(HttpStatusCode.OK, mapOf("test" to true)) }
                     }
                 }
             }
 
-            client.get("/api/display/status").status shouldBe HttpStatusCode.OK
-            client.get("/api/display/status").status shouldBe HttpStatusCode.OK
-            client.get("/api/display/status").status shouldBe HttpStatusCode.TooManyRequests
+            client.get("/api/v1/display/status").status shouldBe HttpStatusCode.OK
+            client.get("/api/v1/display/status").status shouldBe HttpStatusCode.OK
+            client.get("/api/v1/display/status").status shouldBe HttpStatusCode.TooManyRequests
         }
     }
 
-    test("POST /api/text is rate-limited with Retry-After header") {
+    test("POST /api/v1/text is rate-limited with Retry-After header") {
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
                 routing {
-                    route("/api") {
+                    route("/api/v1") {
                         installApiRateLimiting(requestsPerMinute = 1)
                         post("/text") { call.respond(HttpStatusCode.Accepted, mapOf("ok" to true)) }
                     }
                 }
             }
 
-            val first = client.post("/api/text") {
+            val first = client.post("/api/v1/text") {
                 header("Content-Type", "application/json")
                 setBody("""{"text":"hello"}""")
             }
             first.status shouldBe HttpStatusCode.Accepted
 
-            val limited = client.post("/api/text") {
+            val limited = client.post("/api/v1/text") {
                 header("Content-Type", "application/json")
                 setBody("""{"text":"hello"}""")
             }
@@ -146,20 +146,20 @@ class RateLimitRoutesTest : FunSpec({
         }
     }
 
-    test("GET /api/display/status returns 429 with Retry-After when rate limited") {
+    test("GET /api/v1/display/status returns 429 with Retry-After when rate limited") {
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
                 routing {
-                    route("/api") {
+                    route("/api/v1") {
                         installApiRateLimiting(requestsPerMinute = 1)
                         get("/display/status") { call.respond(HttpStatusCode.OK, mapOf("test" to true)) }
                     }
                 }
             }
 
-            client.get("/api/display/status").status shouldBe HttpStatusCode.OK
-            val limited = client.get("/api/display/status")
+            client.get("/api/v1/display/status").status shouldBe HttpStatusCode.OK
+            val limited = client.get("/api/v1/display/status")
             limited.status shouldBe HttpStatusCode.TooManyRequests
             limited.headers[HttpHeaders.RetryAfter] shouldBe "60"
         }

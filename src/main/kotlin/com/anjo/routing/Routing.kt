@@ -27,7 +27,7 @@ fun Application.configureRouting() {
         webRoutes(screenDriverService)
         metricsRoutes(metricsCollector, apiConfig.metricsRateLimitPerMinute)
 
-        route("/api") {
+        route("/api/v1") {
             installApiRateLimiting(apiConfig.rateLimitPerMinute)
             textRoutes(readerInputService)
             displayRoutes(screenDriverService)

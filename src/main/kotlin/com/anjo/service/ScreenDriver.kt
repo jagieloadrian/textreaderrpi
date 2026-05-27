@@ -12,7 +12,6 @@ import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicReference
 
-
 class ScreenDriverService(
     private var driver: DisplayDriver,
     private val ioDispatcher: CoroutineDispatcher,
