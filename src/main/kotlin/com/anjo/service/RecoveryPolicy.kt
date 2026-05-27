@@ -11,13 +11,17 @@ import kotlin.random.Random
  * Typed failure classification:
  * - [RetryableFailure] — transient errors that should be retried (default for unknown exceptions)
  * - [TerminalFailure] — permanent errors that fail fast without retry
+ *
+ * Usage: call [execute] with an operation name and a suspend block. The block is retried
+ * up to [maxAttempts] times on [RetryableFailure] or any generic exception; [TerminalFailure]
+ * propagates immediately without retry.
  */
 class RecoveryPolicy(
-    val maxAttempts: Int = 3,
-    val initialDelayMs: Long = 100L,
-    val multiplier: Double = 2.0,
-    val jitterMs: Long = 50L,
-    val maxDelayMs: Long = 5_000L,
+    val maxAttempts: Int = DEFAULT_MAX_ATTEMPTS,
+    val initialDelayMs: Long = DEFAULT_INITIAL_DELAY_MS,
+    val multiplier: Double = DEFAULT_MULTIPLIER,
+    val jitterMs: Long = DEFAULT_JITTER_MS,
+    val maxDelayMs: Long = DEFAULT_MAX_DELAY_MS,
 ) {
     private val log = LoggerFactory.getLogger(RecoveryPolicy::class.java)
 
@@ -27,12 +31,23 @@ class RecoveryPolicy(
     /** Transient failure — will be retried up to [maxAttempts]. */
     class RetryableFailure(message: String, cause: Throwable? = null) : Exception(message, cause)
 
+    companion object {
+        const val DEFAULT_MAX_ATTEMPTS = 3
+        const val DEFAULT_INITIAL_DELAY_MS = 100L
+        const val DEFAULT_MULTIPLIER = 2.0
+        const val DEFAULT_JITTER_MS = 50L
+        const val DEFAULT_MAX_DELAY_MS = 5_000L
+    }
+
     /**
      * Execute [block] with bounded retries.
      *
      * - [TerminalFailure] from [block] propagates immediately (no retry).
      * - [RetryableFailure] or any other exception triggers retry with exponential backoff + jitter.
      * - After [maxAttempts] exhausted, throws [TerminalFailure] wrapping the last exception.
+     *
+     * @param operationName Human-readable label used in log messages.
+     * @param block Suspend block to execute.
      */
     suspend fun <T> execute(operationName: String = "operation", block: suspend () -> T): T {
         var lastException: Throwable? = null
@@ -47,8 +62,7 @@ class RecoveryPolicy(
             } catch (e: Exception) {
                 lastException = e
                 if (attempt < maxAttempts) {
-                val jitter = if (jitterMs > 0) Random.nextLong(jitterMs) else 0L
-                    val waitMs = min(delayMs + jitter, maxDelayMs)
+                    val waitMs = calculateDelay(delayMs)
                     log.warn(
                         "[$operationName] transient failure on attempt $attempt/$maxAttempts, retrying in ${waitMs}ms: ${e.message}"
                     )
@@ -61,5 +75,10 @@ class RecoveryPolicy(
         }
         throw TerminalFailure("Max retry attempts ($maxAttempts) exceeded for [$operationName]", lastException)
     }
-}
 
+    /** Calculates the capped wait duration for the current delay, adding random jitter. */
+    private fun calculateDelay(currentDelay: Long): Long {
+        val jitter = if (jitterMs > 0) Random.nextLong(jitterMs) else 0L
+        return min(currentDelay + jitter, maxDelayMs)
+    }
+}

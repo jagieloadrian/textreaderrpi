@@ -1,4 +1,6 @@
 ﻿package com.anjo.service
+
+import com.codahale.metrics.MetricRegistry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
@@ -63,5 +65,47 @@ class ResourceTrackerTest : FunSpec({
         val id3 = tracker.acquire("r3")
         id3 shouldBeGreaterThan 0L
         tracker.heldCount shouldBe 2
+    }
+
+    // --- snapshot tests ---
+
+    test("snapshot reflects initial state") {
+        val tracker = ResourceTracker(maxSlots = 5)
+        val snap = tracker.snapshot
+        snap.capacity shouldBe 5
+        snap.active shouldBe 0
+        snap.available shouldBe 5
+        snap.isClosed shouldBe false
+    }
+
+    test("snapshot updates after acquire") {
+        val tracker = ResourceTracker(maxSlots = 5)
+        tracker.acquire("r1")
+        val snap = tracker.snapshot
+        snap.active shouldBe 1
+        snap.available shouldBe 4
+        snap.isClosed shouldBe false
+    }
+
+    test("snapshot returns to initial after release") {
+        val tracker = ResourceTracker(maxSlots = 5)
+        val id = tracker.acquire("r1")
+        tracker.release(id)
+        val snap = tracker.snapshot
+        snap.active shouldBe 0
+        snap.available shouldBe 5
+    }
+
+    test("snapshot isClosed is true after close") {
+        val tracker = ResourceTracker(maxSlots = 5)
+        tracker.close()
+        tracker.snapshot.isClosed shouldBe true
+    }
+
+    test("MetricRegistry gauges are registered when metricRegistry is provided") {
+        val registry = MetricRegistry()
+        ResourceTracker(maxSlots = 3, trackerName = "test", metricRegistry = registry)
+        registry.gauges.containsKey("resource.tracker.test.active") shouldBe true
+        registry.gauges.containsKey("resource.tracker.test.available") shouldBe true
     }
 })

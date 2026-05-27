@@ -34,11 +34,7 @@ class ScreenDriverService(
         busy.set(true)
         inFlightCounter.inc()
         try {
-            withContext(ioDispatcher) {
-                recoveryPolicy.execute("scrollText") {
-                    driver.scrollText(this, input)
-                }
-            }
+            executeWithRecovery(input)
         } catch (e: RecoveryPolicy.TerminalFailure) {
             failedMeter.mark()
             log.error("Display operation failed permanently after retries: ${e.message}", e)
@@ -47,6 +43,15 @@ class ScreenDriverService(
             inFlightCounter.dec()
             timerContext.stop()
             checkAndPerformPendingSwitch()
+        }
+    }
+
+    /** Execute a hardware scroll operation wrapped in the recovery policy. */
+    private suspend fun executeWithRecovery(input: String) {
+        withContext(ioDispatcher) {
+            recoveryPolicy.execute("scrollText") {
+                driver.scrollText(this, input)
+            }
         }
     }
 

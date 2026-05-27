@@ -30,7 +30,8 @@ fun Application.configureDI() {
     val metricRegistry = MetricRegistry()
     val resourceTracker = ResourceTracker(
         maxSlots = 10,
-        trackerName = "screenDriver"
+        trackerName = "screenDriver",
+        metricRegistry = metricRegistry,
     )
 
     val screenDriverService = if (driver == null) {
