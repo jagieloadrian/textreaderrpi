@@ -5,6 +5,7 @@ import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.anjo.service.DisplaySelectionService
 import com.anjo.service.HealthService
+import com.anjo.service.RecoveryPolicy
 import com.anjo.service.ReaderInputService
 import com.anjo.service.ScreenDriverService
 import com.pi4j.Pi4J
@@ -23,11 +24,12 @@ fun Application.configureDI() {
     )
 
     val driver: DisplayDriver? = displaySelectionService.currentDriver()
+    val recoveryPolicy = RecoveryPolicy()
 
     val screenDriverService = if (driver == null) {
-        ScreenDriverService(OfflineDisplayDriver, Dispatchers.IO, displaySelectionService)
+        ScreenDriverService(OfflineDisplayDriver, Dispatchers.IO, displaySelectionService, recoveryPolicy)
     } else {
-        ScreenDriverService(driver, Dispatchers.IO, displaySelectionService)
+        ScreenDriverService(driver, Dispatchers.IO, displaySelectionService, recoveryPolicy)
     }
 
     val readerInputService = ReaderInputService(screenDriverService)
