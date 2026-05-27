@@ -10,16 +10,15 @@ import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 
 class ScreenDriverRecoveryTest : FunSpec({
-    val fastRecovery = RecoveryPolicy(
+    val fastRetry = RetryConfig(
         maxAttempts = 3,
         initialDelayMs = 1L,
-        jitterMs = 0L,
     )
 
     test("readInput succeeds when driver works on first attempt") {
         val driver = mockk<DisplayDriver>(relaxed = true)
 
-        val service = ScreenDriverService(driver, Dispatchers.Unconfined, recoveryPolicy = fastRecovery)
+        val service = ScreenDriverService(driver, Dispatchers.Unconfined, retryConfig = fastRetry)
         service.readInput("hello")
 
         verify(exactly = 1) { driver.scrollText(any(), "hello", any()) }
@@ -35,23 +34,21 @@ class ScreenDriverRecoveryTest : FunSpec({
         }
         every { driver.status() } returns DisplayStatus(isActive = true, hardwareAvailable = true)
 
-        val service = ScreenDriverService(driver, Dispatchers.Unconfined, recoveryPolicy = fastRecovery)
+        val service = ScreenDriverService(driver, Dispatchers.Unconfined, retryConfig = fastRetry)
         service.readInput("test message")
 
         callCount shouldBe 2
     }
 
-    test("readInput does not throw after max retries — catches TerminalFailure internally") {
+    test("readInput does not throw after max retries — catches exception internally") {
         val driver = mockk<DisplayDriver>(relaxed = true)
 
         every { driver.scrollText(any(), any(), any()) } throws RuntimeException("hardware gone")
         every { driver.status() } returns DisplayStatus(isActive = false, hardwareAvailable = false)
 
-        val service = ScreenDriverService(driver, Dispatchers.Unconfined, recoveryPolicy = fastRecovery)
+        val service = ScreenDriverService(driver, Dispatchers.Unconfined, retryConfig = fastRetry)
 
-        // Should NOT throw — TerminalFailure is caught internally and logged
         service.readInput("this will fail hardware")
-        // If we get here without exception, the test passes
     }
 
     test("readInput releases busy flag even after permanent driver failure") {
@@ -60,12 +57,9 @@ class ScreenDriverRecoveryTest : FunSpec({
         every { driver.scrollText(any(), any(), any()) } throws RuntimeException("permanent failure")
         every { driver.status() } returns DisplayStatus(isActive = false, hardwareAvailable = false)
 
-        val service = ScreenDriverService(driver, Dispatchers.Unconfined, recoveryPolicy = fastRecovery)
+        val service = ScreenDriverService(driver, Dispatchers.Unconfined, retryConfig = fastRetry)
         service.readInput("first message")
 
-        // Should still be able to queue a switch after failure (busy flag released)
-        // If busy were stuck true, queueDisplaySwitch would set pending instead of switching
-        // We verify by calling again without deadlock
         service.readInput("second message")
     }
 
@@ -77,11 +71,10 @@ class ScreenDriverRecoveryTest : FunSpec({
             error = null,
         )
 
-        val service = ScreenDriverService(driver, Dispatchers.Unconfined, recoveryPolicy = fastRecovery)
+        val service = ScreenDriverService(driver, Dispatchers.Unconfined, retryConfig = fastRetry)
         val status = service.status()
 
         status.hardwareAvailable shouldBe true
         status.isActive shouldBe true
     }
 })
-

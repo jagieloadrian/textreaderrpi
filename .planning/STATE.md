@@ -219,5 +219,27 @@ When resuming this project:
 
 ---
 
-**Status:** Phase 4 complete. Phase 5 ready.  
-**Next Action:** Run `/gsd-discuss-phase 5` or `/gsd-plan-phase 5`.
+**Status:** Phase 5 PLANNED (2026-05-27) — 10 plans across 3 waves.  
+**Next Action:** Run `/gsd-execute-phase 5`.
+
+## Phase 5 Status
+
+📋 **Plans created: 10 | Waves: 3 | Ready to execute**
+
+### Wave 1 — Refactoring Completion (3 plans)
+- 05-01: Health endpoint consolidation + retry replacement (D5-01, D5-02, D5-03)
+- 05-02: Concurrency guard Mutex + metrics config-driving + comment removal (D5-04, D5-05, D5-06)
+- 05-03: Route package unification + test package unification (D5-07, D5-08)
+
+### Wave 2 — Scheduling Engine (4 plans, depends on Wave 1)
+- 05-04: Schedule data model + Exposed/H2 database setup [REQ-SCHED-01]
+- 05-05: SchedulerService coroutine engine + conflict policy [REQ-SCHED-01, REQ-CONFLICT-01]
+- 05-06: Schedule HTTP CRUD API + validation [REQ-SCHED-01]
+- 05-07: Schedule UI page + DI wiring + lifecycle verification [REQ-SCHED-01]
+
+### Wave 3 — Effects + Behavioral Tests (3 plans, depends on Wave 2)
+- 05-08: Effect renderer architecture + DisplayDriver extensions [REQ-EFFECT-01]
+- 05-09: Wire effect field into POST /api/text + POST /api/schedule [REQ-EFFECT-01]
+- 05-10: Timing-accurate behavior tests (virtual time, no Thread.sleep) [REQ-TEST-01]
+
+**Key library selections:** in-house retryWithBackoff, cron-utils, Exposed DSL + H2, kotlinx-coroutines-test

@@ -37,6 +37,12 @@ hardware:
   spiTimeoutMs: 1000
   gpioTimeoutMs: 500
 
+retry:
+  maxAttempts: 5
+  initialDelayMs: 1000
+  maxDelayMs: 30000
+  factor: 2.0
+
 api:
   maxTextLength: 128
   queueSize: 10

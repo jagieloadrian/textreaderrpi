@@ -13,7 +13,7 @@ class ScreenDriverService(
     private var driver: DisplayDriver,
     private val ioDispatcher: CoroutineDispatcher,
     private val displaySelectionService: DisplaySelectionService? = null,
-    private val recoveryPolicy: RecoveryPolicy = RecoveryPolicy(),
+    private val retryConfig: RetryConfig = RetryConfig(),
     private val metricRegistry: MetricRegistry = MetricRegistry(),
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
@@ -35,9 +35,9 @@ class ScreenDriverService(
         inFlightCounter.inc()
         try {
             executeWithRecovery(input)
-        } catch (e: RecoveryPolicy.TerminalFailure) {
+        } catch (e: Exception) {
             failedMeter.mark()
-            log.error("Display operation failed permanently after retries: ${e.message}", e)
+            log.error("Display operation failed after retries: ${e.message}", e)
         } finally {
             busy.set(false)
             inFlightCounter.dec()
@@ -46,10 +46,9 @@ class ScreenDriverService(
         }
     }
 
-    /** Execute a hardware scroll operation wrapped in the recovery policy. */
     private suspend fun executeWithRecovery(input: String) {
         withContext(ioDispatcher) {
-            recoveryPolicy.execute("scrollText") {
+            retryWithBackoff(retryConfig) {
                 driver.scrollText(this, input)
             }
         }

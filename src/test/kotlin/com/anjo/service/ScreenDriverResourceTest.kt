@@ -8,13 +8,13 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 class ScreenDriverResourceTest : FunSpec({
-    val fastRecovery = RecoveryPolicy(maxAttempts = 1, initialDelayMs = 1L, jitterMs = 0L)
+    val fastRetry = RetryConfig(maxAttempts = 1, initialDelayMs = 1L)
     test("repeated readInput operations keep in-flight gauge at zero after completion") {
         val driver = mockk<DisplayDriver>(relaxed = true)
         val metrics = MetricRegistry()
         val service = ScreenDriverService(
             driver, Dispatchers.Unconfined,
-            recoveryPolicy = fastRecovery,
+            retryConfig = fastRetry,
             metricRegistry = metrics,
         )
         repeat(5) { service.readInput("text $it") }
@@ -29,7 +29,7 @@ class ScreenDriverResourceTest : FunSpec({
         val metrics = MetricRegistry()
         val service = ScreenDriverService(
             driver, Dispatchers.Unconfined,
-            recoveryPolicy = fastRecovery,
+            retryConfig = fastRetry,
             metricRegistry = metrics,
         )
         service.readInput("will fail")
@@ -42,7 +42,7 @@ class ScreenDriverResourceTest : FunSpec({
         val metrics = MetricRegistry()
         val service = ScreenDriverService(
             driver, Dispatchers.Unconfined,
-            recoveryPolicy = fastRecovery,
+            retryConfig = fastRetry,
             metricRegistry = metrics,
         )
         service.readInput("measure me")

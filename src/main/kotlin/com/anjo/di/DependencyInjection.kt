@@ -6,7 +6,7 @@ import com.anjo.driver.DisplayStatus
 import com.anjo.service.DisplaySelectionService
 import com.anjo.service.MetricsCollector
 import com.anjo.service.ReaderInputService
-import com.anjo.service.RecoveryPolicy
+import com.anjo.service.RetryConfig
 import com.anjo.service.ResourceTracker
 import com.anjo.service.ScreenDriverService
 import com.codahale.metrics.MetricRegistry
@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 
 fun Application.configureDI() {
     val appConfig = ConfigLoader.loadConfig(this)
+    val config = environment.config
     val pi4jContext = Pi4J.newAutoContext()
 
     val displaySelectionService = DisplaySelectionService(
@@ -26,7 +27,12 @@ fun Application.configureDI() {
     )
 
     val driver: DisplayDriver? = displaySelectionService.currentDriver()
-    val recoveryPolicy = RecoveryPolicy()
+    val retryConfig = RetryConfig(
+        maxAttempts = config.propertyOrNull("retry.maxAttempts")?.getString()?.toIntOrNull() ?: 5,
+        initialDelayMs = config.propertyOrNull("retry.initialDelayMs")?.getString()?.toLongOrNull() ?: 1000L,
+        maxDelayMs = config.propertyOrNull("retry.maxDelayMs")?.getString()?.toLongOrNull() ?: 30000L,
+        factor = config.propertyOrNull("retry.factor")?.getString()?.toDoubleOrNull() ?: 2.0,
+    )
     val metricRegistry = MetricRegistry()
     val resourceTracker = ResourceTracker(
         maxSlots = 10,
@@ -35,9 +41,9 @@ fun Application.configureDI() {
     )
 
     val screenDriverService = if (driver == null) {
-        ScreenDriverService(OfflineDisplayDriver, Dispatchers.IO, displaySelectionService, recoveryPolicy, metricRegistry)
+        ScreenDriverService(OfflineDisplayDriver, Dispatchers.IO, displaySelectionService, retryConfig, metricRegistry)
     } else {
-        ScreenDriverService(driver, Dispatchers.IO, displaySelectionService, recoveryPolicy, metricRegistry)
+        ScreenDriverService(driver, Dispatchers.IO, displaySelectionService, retryConfig, metricRegistry)
     }
 
     val readerInputService = ReaderInputService(screenDriverService)
@@ -68,4 +74,3 @@ private object OfflineDisplayDriver : DisplayDriver {
     )
     override fun stop() = Unit
 }
-
