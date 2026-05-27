@@ -5,7 +5,11 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
@@ -13,6 +17,7 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
@@ -111,6 +116,52 @@ class RateLimitRoutesTest : FunSpec({
             client.get("/api/display/status").status shouldBe HttpStatusCode.OK
             client.get("/api/display/status").status shouldBe HttpStatusCode.OK
             client.get("/api/display/status").status shouldBe HttpStatusCode.TooManyRequests
+        }
+    }
+
+    test("POST /api/text is rate-limited with Retry-After header") {
+        testApplication {
+            application {
+                install(ContentNegotiation) { json() }
+                routing {
+                    route("/api") {
+                        installApiRateLimiting(requestsPerMinute = 1)
+                        post("/text") { call.respond(HttpStatusCode.Accepted, mapOf("ok" to true)) }
+                    }
+                }
+            }
+
+            val first = client.post("/api/text") {
+                header("Content-Type", "application/json")
+                setBody("""{"text":"hello"}""")
+            }
+            first.status shouldBe HttpStatusCode.Accepted
+
+            val limited = client.post("/api/text") {
+                header("Content-Type", "application/json")
+                setBody("""{"text":"hello"}""")
+            }
+            limited.status shouldBe HttpStatusCode.TooManyRequests
+            limited.headers[HttpHeaders.RetryAfter] shouldBe "60"
+        }
+    }
+
+    test("GET /api/display/status returns 429 with Retry-After when rate limited") {
+        testApplication {
+            application {
+                install(ContentNegotiation) { json() }
+                routing {
+                    route("/api") {
+                        installApiRateLimiting(requestsPerMinute = 1)
+                        get("/display/status") { call.respond(HttpStatusCode.OK, mapOf("test" to true)) }
+                    }
+                }
+            }
+
+            client.get("/api/display/status").status shouldBe HttpStatusCode.OK
+            val limited = client.get("/api/display/status")
+            limited.status shouldBe HttpStatusCode.TooManyRequests
+            limited.headers[HttpHeaders.RetryAfter] shouldBe "60"
         }
     }
 })

@@ -41,6 +41,7 @@ api:
   maxTextLength: 128
   queueSize: 10
   rateLimitPerMinute: 60
+  metricsRateLimitPerMinute: 120
 
 resources:
   screenDriverMaxSlots: 10

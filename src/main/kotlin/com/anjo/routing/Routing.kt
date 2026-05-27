@@ -4,7 +4,6 @@ import com.anjo.config.model.ApiConfig
 import com.anjo.di.installApiRateLimiting
 import com.anjo.service.ReaderInputService
 import com.anjo.service.ScreenDriverService
-import com.anjo.web.routes.displayApiRoutes
 import com.anjo.web.routes.webRoutes
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application
@@ -25,11 +24,12 @@ fun Application.configureRouting() {
     routing {
         staticResources("/static", "static")
         webRoutes(screenDriverService)
+        healthRoutes(screenDriverService)
 
         route("/api") {
             installApiRateLimiting(apiConfig.rateLimitPerMinute)
             textRoutes(readerInputService)
-            displayApiRoutes(screenDriverService)
+            displayRoutes(screenDriverService)
         }
 
         swaggerUI(path = "openapi") {
