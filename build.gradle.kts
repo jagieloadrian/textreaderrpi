@@ -28,6 +28,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.12.0")
 
     //SZWAGIER
     implementation("io.ktor:ktor-server-swagger")
@@ -40,6 +41,7 @@ dependencies {
     implementation("io.ktor:ktor-server-request-validation")
     implementation("io.ktor:ktor-server-status-pages")
     implementation("io.ktor:ktor-server-content-negotiation")
+    implementation("io.ktor:ktor-server-html-builder")
     implementation("io.ktor:ktor-serialization-kotlinx-json")
 
     //LOGGING
@@ -58,8 +60,11 @@ dependencies {
     implementation("com.pi4j:pi4j-plugin-mock:${pi4j_version}")
 
     //TEST
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlin_version")
     testImplementation("io.ktor:ktor-server-test-host")
+    testImplementation("io.mockk:mockk:1.14.3")
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:5.9.1")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
 }
 
 jacoco {
@@ -67,6 +72,7 @@ jacoco {
 }
 
 tasks.test {
+    useJUnitPlatform()
     jacoco {
         excludes += setOf(
             "com.anjo.model.*${'$'}serializer*",

@@ -53,14 +53,24 @@
 - Configuration file for display type selection
 - Dynamic display switching without code changes
 
+**2.6 Responsive HTML Pages (Primary Interaction Flow)**
+- Replace plain text/business responses with full responsive HTML pages for browser flows
+- Build pages using Ktor HTML DSL templates: https://ktor.io/docs/server-html-dsl.html#templates
+- Required pages:
+  - `GET /` for text submission form and operation feedback
+  - `GET /status` for active display and service status
+  - `GET /settings/display` for runtime display switching UI
+- Browser-facing 400/500 should render HTML error pages
+- Use a hybrid template strategy: shared base layout + route-specific page sections
+
 ### Phase 3 Features (Advanced)
 
-**2.6 Status Monitoring**
+**2.7 Status Monitoring**
 - `/health` endpoint for system status
 - Display uptime statistics
 - Hardware error logging and reporting
 
-**2.7 Text Management**
+**2.8 Text Management**
 - Display text history/queue
 - Scheduled text updates
 - Multiple concurrent displays
@@ -132,6 +142,9 @@
 - [ ] Configuration file controls display type selection
 - [ ] Switching display types doesn't require code changes
 - [ ] All display drivers share common interface
+- [ ] `GET /`, `GET /status`, and `GET /settings/display` render responsive HTML pages
+- [ ] HTML pages are generated with Ktor HTML DSL templates using shared layout + route-specific sections
+- [ ] Browser-oriented 400/500 responses render HTML error pages
 
 ### Production Readiness Acceptance
 - [ ] `/health` endpoint reports system status

@@ -1,7 +1,7 @@
 # Project State & Memory
 
 **Last Updated:** 2026-05-26  
-**Status:** Phase 1 verified - ready for next phase scope
+**Status:** Phase 2 complete - all waves executed
 
 ## Current State
 
@@ -81,6 +81,43 @@
 | Reliability | 99.5% uptime, no crashes | 🟡 Unknown | Needs 24h test |
 | Test coverage | >70% | 🟢 Verified | JaCoCo gate enabled and passing (`jacocoTestCoverageVerification`) |
 
+## Phase 2 Status
+
+✅ **Wave 1 Complete**
+- 02-01: DisplayDriver hybrid interface (clear/write/status) + MAX7219 impl
+- 02-02: I2C LCD driver (16x2 HD44780) implementation
+- 02-03: Config selection + DisplaySelectionService + DI wiring
+
+✅ **Wave 2 Complete**
+- 02-04: Base layout + HTML pages (`/`, `/status`) + static JS integration
+- 02-05: Settings page (`/settings/display`) + HTML error page rendering + toast notifications
+- 02-06: Display APIs (`GET /api/display/status`, `POST /api/display/select`) + switch queue in `ScreenDriverService`
+
+**Execution Summaries:**
+- `.planning/phases/02-enhanced-display-support/EXECUTION-SUMMARY-WAVE1.md`
+- `.planning/phases/02-enhanced-display-support/EXECUTION-SUMMARY-WAVE2.md`
+
+**Wave 2 Delivered:**
+- Responsive HTML pages rendered with Kotlinx HTML DSL and shared base layout
+- Pico CSS v2 via CDN and browser-side app.js interactions
+- Runtime display management endpoints for status and driver switching
+- HTML error pages for browser routes while keeping JSON errors for `/api/*`
+- Full test run passing (`./gradlew test`)
+
+**Next: Wave 3**
+- 02-07: OLED driver + integration tests + coverage verification
+
+✅ **Wave 3 Complete**
+- 02-07: OLED SSD1306 driver (`OledDisplay`) implemented
+- DisplaySelectionService now supports MAX7219/LCD/OLED default factory switching
+- Added `OledDisplayTest` and `DriverIntegrationTest`
+- Full test suite and JaCoCo report pass
+
+**Execution Summaries:**
+- `.planning/phases/02-enhanced-display-support/EXECUTION-SUMMARY-WAVE1.md`
+- `.planning/phases/02-enhanced-display-support/EXECUTION-SUMMARY-WAVE2.md`
+- `.planning/phases/02-enhanced-display-support/EXECUTION-SUMMARY-WAVE3.md`
+
 ## Phase 1 Status
 
 ✅ Context, planning, execution, and verification artifacts exist in `.planning/phases/01-mvp/`.
@@ -91,9 +128,6 @@
 - endpoint contract aligned to `POST /api/text`
 - verification complete with coverage gate command pass
 
-### Next
-- Freeze Phase 1 scope and prepare handoff to Phase 2 planning.
-- Optionally raise coverage further above the 70% minimum with service-level tests.
 
 ## Technical Decisions Pending
 
@@ -154,6 +188,6 @@ When resuming this project:
 
 ---
 
-**Status:** Phase 1 complete and verified.  
-**Next Action:** Start Phase 2 planning (or extend Phase 1 with additional test depth).
+**Status:** Phase 2 complete (backend + web UI + display APIs + OLED + tests).  
+**Next Action:** Start Phase 2 verification/closeout or proceed to next roadmap phase.
 

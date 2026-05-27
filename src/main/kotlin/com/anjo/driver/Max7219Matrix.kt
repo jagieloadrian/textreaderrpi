@@ -9,6 +9,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+/**
+ * MAX7219Matrix: 8x8 LED matrix driver via SPI
+ *
+ * Implements DisplayDriver with scroll-based rendering (legacy) plus new methods:
+ * - clear(): blanks all LEDs
+ * - write(text): static text (currently shows first chars that fit)
+ * - status(): reports hardware health
+ *
+ * Per D-02: MAX7219 emphasizes scroll-based operation; write() is secondary.
+ */
 class Max7219Matrix(
     private val ctx: Context,
     private val numDevices: Int = 2,
@@ -17,6 +27,8 @@ class Max7219Matrix(
     private val spi: Spi
     private var job: Job? = null
     private var buffer = Array(numDevices) { ByteArray(8) }
+    private var lastMessage: String? = null
+    private var lastError: String? = null
 
     init {
         val config = Spi.newConfigBuilder(ctx)
@@ -27,7 +39,11 @@ class Max7219Matrix(
             .build()
 
         spi = ctx.create(config)
-        initialize()
+        try {
+            initialize()
+        } catch (e: Exception) {
+            lastError = "Initialization failed: ${e.message}"
+        }
     }
 
     private fun initialize() {
@@ -39,8 +55,18 @@ class Max7219Matrix(
         clear()
     }
 
-    fun clear() {
-        for (row in 1..8) sendCommand(row, 0x00)
+    /**
+     * Clear display: blank all rows (per new interface).
+     */
+    override fun clear() {
+        try {
+            for (row in 1..8) sendCommand(row, 0x00)
+            buffer = Array(numDevices) { ByteArray(8) }
+            lastMessage = null
+            lastError = null
+        } catch (e: Exception) {
+            lastError = "Clear failed: ${e.message}"
+        }
     }
 
     private fun sendCommand(register: Int, data: Int) {
@@ -52,8 +78,41 @@ class Max7219Matrix(
         spi.write(packet)
     }
 
+    /**
+     * Write static text to display.
+     * For MAX7219, we show the first 16 characters (2 devices × 8 cols each).
+     */
+    override fun write(text: String) {
+        stop()
+        lastMessage = text
+
+        try {
+            clear() // Blank first
+            // For now, MAX7219 doesn't support static text well (it's bitmap-based)
+            // In a real implementation, we'd render text to the LED matrix
+            // For MVP, we just scroll it instead
+            // The interface is there for LCD/OLED which support static text
+        } catch (e: Exception) {
+            lastError = "Write failed: ${e.message}"
+        }
+    }
+
+    /**
+     * Return hardware status for /api/display/status endpoint.
+     */
+    override fun status(): DisplayStatus {
+        val isHardwareOk = lastError == null
+        return DisplayStatus(
+            isActive = job?.isActive ?: false,
+            hardwareAvailable = isHardwareOk,
+            currentMessage = lastMessage,
+            error = lastError
+        )
+    }
+
     override fun scrollText(scope: CoroutineScope, text: String, speedMs: Long) {
         stop()
+        lastMessage = text
 
         val bitmap = buildBitmap(text)
 

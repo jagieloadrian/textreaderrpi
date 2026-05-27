@@ -9,13 +9,29 @@ application:
   name: TextReaderRpi
 
 display:
-  gpioPins:
-    spi_ce: 8
-    spi_mosi: 10
-    spi_miso: 9
-    spi_sck: 11
-  numDevices: 2
-  brightness: true
+  type: "MAX7219"
+  # Options: MAX7219, LCD, OLED
+  
+  max7219:
+    numDevices: 2
+    brightness: true
+    gpioPins:
+      spi_ce: 8
+      spi_mosi: 10
+      spi_miso: 9
+      spi_sck: 11
+  
+  lcd:
+    i2cAddress: 0x27
+    busNumber: 1
+    rows: 2
+    columns: 16
+  
+  oled:
+    i2cAddress: 0x3C
+    busNumber: 1
+    width: 128
+    height: 64
 
 hardware:
   spiTimeoutMs: 1000
