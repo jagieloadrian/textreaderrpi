@@ -4,7 +4,7 @@ import com.anjo.di.configureDI
 import com.anjo.di.configureErrorHandling
 import com.anjo.di.configureHTTP
 import com.anjo.di.configureMonitoring
-import com.anjo.di.configureRequestValidation
+import com.anjo.validation.configureRequestValidation
 import com.anjo.di.configureSerialization
 import com.anjo.routing.configureRouting
 import io.ktor.server.application.Application

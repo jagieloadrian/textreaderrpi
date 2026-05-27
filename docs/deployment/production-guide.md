@@ -54,8 +54,8 @@ Expected behavior:
 Build via script:
 
 ```bash
-chmod +x .devops/host/build-docker-image.sh
-./.devops/host/build-docker-image.sh textreaderrpi:latest
+chmod +x .devops/containers/build-image.sh
+./.devops/containers/build-image.sh textreaderrpi:latest
 ```
 
 Or directly:
@@ -70,11 +70,21 @@ Run container:
 docker run --rm -p 8080:8080 --name textreaderrpi textreaderrpi:latest
 ```
 
-Verify container health:
+## 6) Docker Compose (Raspberry Pi)
+
+The compose file mounts SPI and I2C devices for hardware access:
 
 ```bash
-curl -i http://localhost:8080/health
-curl -i http://localhost:8080/health/ready
+cd .devops/containers
+docker compose up -d
+docker compose logs -f
+docker compose down
+```
+
+Configuration overrides go in a `.env.local` file in the project root:
+
+```env
+KTOR_ENV=production
 ```
 
 ## 6) Logs and Operations

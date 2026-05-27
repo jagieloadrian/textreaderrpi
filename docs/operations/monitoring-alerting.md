@@ -20,14 +20,16 @@ Response 200:
 Returns display driver readiness. 200 = hardware initialized and active. 503 = driver unavailable.
 ```
 GET http://localhost:8080/health/ready
-Response 200 (ready):
+
+200 OK (ready):
 {
   "status": "UP",
   "displayType": "MAX7219",
   "isActive": true,
   "lastError": null
 }
-Response 503 (not ready):
+
+503 Service Unavailable (not ready):
 {
   "status": "DOWN",
   "displayType": "UNKNOWN",
@@ -35,60 +37,90 @@ Response 503 (not ready):
   "lastError": "No display driver available"
 }
 ```
-**Alert trigger:** Any 503 response sustained for > 2 minutes indicates hardware failure.
+
+**Alert trigger:** Sustained `503` for > 2 minutes → hardware failure.
+
 ---
+
+## GET /metrics — Runtime Metrics
+
+Internal metrics endpoint returning JVM and API counters as JSON.
+
+```
+GET http://localhost:8080/metrics
+200 OK
+{
+  "timestamp": "2026-05-28T10:00:00Z",
+  "groups": [
+    { "name": "runtime", "metrics": [ { "key": "uptime", "value": 3600 }, ... ] },
+    { "name": "api",     "metrics": [ ... ] }
+  ]
+}
+```
+
+Rate-limited separately from the API (configure `api.metricsRateLimitPerMinute` in `application.yaml`).
+
+---
+
 ## Log-Based Alerting
-Application logs are emitted to systemd journal. Key patterns to monitor:
+
+Application logs go to the systemd journal (`journalctl -u textreaderrpi`).
+
 | Pattern | Level | Meaning |
 |---|---|---|
-| `Display operation failed permanently` | ERROR | Driver failed after all retries — hardware issue |
-| `all N attempts exhausted` | ERROR | RecoveryPolicy retry budget exhausted |
-| `acquire(readInput) rejected: at capacity` | WARN | ResourceTracker at limit — potential load spike |
-| `HealthService started` | INFO | Application started successfully |
+| `Display operation failed after retries` | ERROR | Driver failed after all retry attempts — hardware issue |
+| `All N retry attempts exhausted` | ERROR | Retry budget exhausted — surface to ops |
+
 ### Querying Logs
+
 ```bash
-# Show all ERROR logs
+# All ERROR-level entries
 sudo journalctl -u textreaderrpi -p err
-# Monitor for display failures in real time
-sudo journalctl -u textreaderrpi -f | grep "permanently"
-# Count failed retry events in last hour
-sudo journalctl -u textreaderrpi --since "1 hour ago" | grep "all.*attempts exhausted" | wc -l
+
+# Stream display failures in real time
+sudo journalctl -u textreaderrpi -f | grep "failed after retries"
+
+# Count retry exhaustion events in last hour
+sudo journalctl -u textreaderrpi --since "1 hour ago" | grep "retry attempts exhausted" | wc -l
 ```
+
 ---
-## Alerting Recommendations
+
+## Alerting Options
+
 ### Option A: Simple cron health check
+
 ```bash
 # /etc/cron.d/textreaderrpi-health
 */2 * * * * root curl -sf http://localhost:8080/health/ready || systemctl restart textreaderrpi
 ```
+
 ### Option B: Systemd watchdog (recommended)
-The service unit uses `ExecStartPost` to validate readiness at startup. For ongoing watchdog:
-Add to the `[Service]` section of the unit file:
+
+The service unit uses `ExecStartPost` to validate readiness at startup.
+For ongoing watchdog, add to the `[Service]` section:
+
 ```ini
 WatchdogSec=120
 NotifyAccess=main
 ```
-And update the application to send `sd_notify WATCHDOG=1` periodically (future enhancement).
+
+And send `sd_notify WATCHDOG=1` periodically from the application.
+
 ### Option C: External uptime monitor
-Point an external monitor (UptimeRobot, Grafana Alerting, custom script) to:
-- `GET /health` — should return 200 always
-- `GET /health/ready` — should return 200 when hardware is connected
+
+Point any external monitor (UptimeRobot, Grafana Alerting, custom script) to:
+
+- `GET /health` — should always return `200`
+- `GET /health/ready` — returns `200` when hardware is connected
+
 ---
-## /metrics — EXPLICITLY DEFERRED
-The `/metrics` endpoint and Prometheus/Grafana dashboarding are **deferred to Phase 4+**.
-**Decision record (D-39):** `/metrics` endpoint and advanced monitoring dashboards are out of scope for Phase 3. This is a tracked decision, not an oversight.
-**Tracked follow-up:** See ROADMAP.md — Phase 4 scope should include:
-- Micrometer integration
-- `GET /metrics` (Prometheus format)
-- Dashboard templates for Grafana
-- Histogram metrics for request latency and recovery time
----
-## Memory Management
+
+## Memory
+
 The `/health` liveness endpoint exposes JVM heap stats:
+
 - `memoryUsedMb` — current heap usage
 - `memoryMaxMb` — configured max heap
-**Alert threshold:** If `memoryUsedMb / memoryMaxMb > 0.90` for > 5 minutes, consider restart.
-Heap logs are also emitted at startup:
-```
-INFO  com.anjo.service.HealthService - HealthService started, heap: 57mb/512mb
-```
+
+**Alert threshold:** `memoryUsedMb / memoryMaxMb > 0.90` for > 5 minutes → consider restart.

@@ -87,8 +87,12 @@ DevOps artifacts are organized under `.devops/` — `host/` for bare-metal deplo
 Quick Docker run:
 
 ```bash
-./.devops/host/build-docker-image.sh textreaderrpi:latest
+# Build image
+./.devops/containers/build-image.sh textreaderrpi:latest
 docker run --rm -p 8080:8080 textreaderrpi:latest
+
+# Or with Docker Compose (includes device mounts for Raspberry Pi)
+cd .devops/containers && docker compose up -d
 ```
 
 ## Notes
