@@ -31,6 +31,10 @@ This phase clarifies HOW to restructure and instrument current capabilities with
 - **D4-08:** Extend health payload with Phase 3 fields from `03-01-SUMMARY.md`: `uptime`, `memoryUsedMb`, `memoryMaxMb`, `displayType`, `isActive`, `lastError`.
 - **D4-09:** Keep `/health` and `/health/ready` behavior semantics stable while reintroducing KHealth.
 - **D4-20:** Implement KHealth integration via adapter/bridge so existing endpoint contracts remain stable.
+- **D4-24:** Keep explicit KHealth checks as baseline contract:
+  - `healthChecks { check("appAlive") { true } }`
+  - `readyChecks { check("displayReady") { screenDriverService.status().hardwareAvailable } }`
+  and extend response model with phase metrics fields (no downgrade of prior health payload).
 
 ### Cleanup/refactor scope
 - **D4-10:** Reorganize DevOps artifacts under `.devops/` (deployment scripts, Dockerfile, docker-compose).
@@ -43,6 +47,10 @@ This phase clarifies HOW to restructure and instrument current capabilities with
 - **D4-21:** DevOps directory shape is environment-based: `.devops/containers/*` and `.devops/host/*`.
 - **D4-22:** Routing structure after cleanup is feature-first (`text`, `health`, `display`, `metrics`).
 - **D4-23:** Test suite cleanup must align tests under package paths mirroring production code ownership.
+- **D4-25:** Recovery policy execution should move to annotation-driven usage (remove manual policy block injection in `ScreenDriverService`).
+- **D4-26:** RecoveryPolicy implementation path: prefer proven Kotlin/Java approach (library-backed or simplified in-house equivalent), with reduced code noise and clearer control flow.
+- **D4-27:** Metrics instrumentation should be annotation-driven and configured from `application.yaml` (avoid hardcoded metric wiring in service bodies).
+- **D4-28:** `ResourceTracker` is under review for necessity; removal is blocked until explicit user confirmation.
 
 ### Execution priority (locked)
 1. **Routing cleanup first** (feature-first modules + rate-limit coverage closure)
@@ -52,6 +60,9 @@ This phase clarifies HOW to restructure and instrument current capabilities with
 
 ### Deferred ideas (outside Phase 4)
 - **D4-17:** Scheduling and effects implementation is deferred to Phase 5.
+
+### Explicit confirmation gates
+- **G4-01:** `ResourceTracker` may only be removed after direct user approval in-session.
 
 ## Canonical References
 
@@ -64,6 +75,7 @@ This phase clarifies HOW to restructure and instrument current capabilities with
 - `.planning/phases/03-production-ready/03-CONTEXT.md`
 - `.planning/phases/03-production-ready/03-01-SUMMARY.md`
 - `.planning/phases/03-production-ready/03-VERIFICATION.md`
+- `notatki.txt`
 
 ### Architecture and integration context
 - `.planning/codebase/ARCHITECTURE.md`

@@ -9,6 +9,7 @@
 - `/metrics` contract and rollout strategy
 - Cleanup/refactor backlog promoted into phase scope
 - Health implementation direction (KHealth restoration with extended fields)
+- Attached file constraints from `notatki.txt` for context update
 
 ## Final Decisions Captured
 
@@ -29,6 +30,9 @@
 - Integration mode: adapter/bridge over KHealth to preserve existing endpoint contracts.
 - Extend health response with additional fields from Phase 3 outcomes:
   - `uptime`, `memoryUsedMb`, `memoryMaxMb`, `displayType`, `isActive`, `lastError`.
+- Keep baseline KHealth checks explicitly in design:
+  - `healthChecks { check("appAlive") { true } }`
+  - `readyChecks { check("displayReady") { screenDriverService.status().hardwareAvailable } }`
 
 ### Cleanup and Refactor
 - Reorganize devops artifacts under `.devops/containers/*` and `.devops/host/*`.
@@ -39,6 +43,10 @@
 - Refactor `RecoveryPolicy` for readability and remove excessive comments.
 - Refactor `ResourceTracker` toward a monitoring-oriented module.
 - Standardize tests into one convention: package structure mirrors production ownership.
+- Move recovery handling toward annotation-driven usage (instead of manual policy block wiring).
+- Prefer proven Kotlin/Java recovery approach or simplified equivalent implementation.
+- Move metrics wiring toward annotation-driven model with `application.yaml` config.
+- `ResourceTracker` removal remains blocked pending explicit user confirmation.
 
 ### Execution Priority (4a)
 1. Routing cleanup
@@ -53,6 +61,7 @@
 - `.planning/phases/03-production-ready/03-CONTEXT.md`
 - `.planning/phases/03-production-ready/03-01-SUMMARY.md`
 - `.planning/phases/03-production-ready/03-VERIFICATION.md`
+- `notatki.txt`
 
 ## Ready for Next Step
 Proceed to phase planning with `/gsd-plan-phase 4`.
