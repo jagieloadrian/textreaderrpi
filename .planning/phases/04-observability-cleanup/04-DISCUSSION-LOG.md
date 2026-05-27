@@ -9,9 +9,6 @@
 - `/metrics` contract and rollout strategy
 - Cleanup/refactor backlog promoted into phase scope
 - Health implementation direction (KHealth restoration with extended fields)
-- Re-confirmation of KHealth integration safety
-- Deeper detail for RecoveryPolicy and ResourceTracker refactor goals
-- Phase 4a execution priority ordering
 
 ## Final Decisions Captured
 
@@ -32,7 +29,6 @@
 - Integration mode: adapter/bridge over KHealth to preserve existing endpoint contracts.
 - Extend health response with additional fields from Phase 3 outcomes:
   - `uptime`, `memoryUsedMb`, `memoryMaxMb`, `displayType`, `isActive`, `lastError`.
-- Additional lock: preserve current `/health` and `/health/ready` behavior/status semantics and avoid plugin route conflicts.
 
 ### Cleanup and Refactor
 - Reorganize devops artifacts under `.devops/containers/*` and `.devops/host/*`.
@@ -43,9 +39,6 @@
 - Refactor `RecoveryPolicy` for readability and remove excessive comments.
 - Refactor `ResourceTracker` toward a monitoring-oriented module.
 - Standardize tests into one convention: package structure mirrors production ownership.
-- Refactor detail lock:
-  - `RecoveryPolicy`: improve readability without changing retry/backoff behavior.
-  - `ResourceTracker`: expose clear metric-friendly counters/state snapshots for `/metrics`.
 
 ### Execution Priority (4a)
 1. Routing cleanup

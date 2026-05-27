@@ -31,8 +31,6 @@ This phase clarifies HOW to restructure and instrument current capabilities with
 - **D4-08:** Extend health payload with Phase 3 fields from `03-01-SUMMARY.md`: `uptime`, `memoryUsedMb`, `memoryMaxMb`, `displayType`, `isActive`, `lastError`.
 - **D4-09:** Keep `/health` and `/health/ready` behavior semantics stable while reintroducing KHealth.
 - **D4-20:** Implement KHealth integration via adapter/bridge so existing endpoint contracts remain stable.
-- **D4-24:** KHealth integration must preserve current HTTP status semantics (`/health` stable, `/health/ready` readiness-aware) and avoid route/plugin conflicts seen in prior changes.
-- **D4-25:** Extended fields must be populated from the same runtime sources as existing HealthService to avoid drift between KHealth summary and custom readiness details.
 
 ### Cleanup/refactor scope
 - **D4-10:** Reorganize DevOps artifacts under `.devops/` (deployment scripts, Dockerfile, docker-compose).
@@ -45,8 +43,6 @@ This phase clarifies HOW to restructure and instrument current capabilities with
 - **D4-21:** DevOps directory shape is environment-based: `.devops/containers/*` and `.devops/host/*`.
 - **D4-22:** Routing structure after cleanup is feature-first (`text`, `health`, `display`, `metrics`).
 - **D4-23:** Test suite cleanup must align tests under package paths mirroring production code ownership.
-- **D4-26:** RecoveryPolicy refactor keeps behavior unchanged (attempt bounds/backoff semantics) while improving naming, exception flow readability, and test clarity.
-- **D4-27:** ResourceTracker refactor exposes explicit monitoring-friendly counters/state snapshots (acquired/released/rejected/open-slots) for `/metrics` without leaking lifecycle ownership.
 
 ### Execution priority (locked)
 1. **Routing cleanup first** (feature-first modules + rate-limit coverage closure)
