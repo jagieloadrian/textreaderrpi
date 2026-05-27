@@ -237,14 +237,14 @@ Phase 3: Production Ready (8-10 weeks)
 
 ### Phase 3 Success Criteria
 
-- [ ] System runs 24h+ without intervention
-- [ ] Hardware errors automatically recovered
-- [ ] `/health` endpoint monitored by external service
-- [ ] Rate limiting prevents abuse
-- [ ] JVM memory usage <256MB under load
-- [ ] Graceful shutdown in <10s
-- [ ] All documentation complete and accurate
-- [ ] Deployment process documented and tested
+- [x] System runs 24h+ without intervention
+- [x] Hardware errors automatically recovered
+- [x] `/health` endpoint monitored by external service
+- [x] Rate limiting prevents abuse
+- [x] JVM memory usage <256MB under load
+- [x] Graceful shutdown in <10s
+- [x] All documentation complete and accurate
+- [x] Deployment process documented and tested
 
 ---
 
@@ -252,6 +252,7 @@ Phase 3: Production Ready (8-10 weeks)
 
 Potential features for future phases (not part of initial roadmap):
 
+- **`/metrics` Endpoint (D-39):** Micrometer integration, `GET /metrics` (Prometheus format), Grafana dashboard templates, histogram metrics for request latency and recovery time — explicitly deferred from Phase 3
 - **Text Scheduling:** Display different text at specific times
 - **Text Effects:** Fade, reverse scroll, blinking
 - **Multi-zone:** Different text on different displays
