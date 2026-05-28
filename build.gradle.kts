@@ -143,6 +143,7 @@ ktor {
     }
 
     docker {
+        jreVersion.set(JavaVersion.VERSION_25)
         localImageName.set("textreaderrpi")
         imageTag.set("latest")
         imageTag.set("${project.version}")
