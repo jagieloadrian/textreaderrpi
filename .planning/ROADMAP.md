@@ -325,10 +325,12 @@ Phase 5: Scheduling + Effects (3-5 weeks)
 
 | Requirement | Status | Priority |
 |-------------|--------|----------|
-| Scheduled text updates | Planned | MUST |
-| Effect rendering options (fade/blink/reverse/scroll variants) | Planned | SHOULD |
-| Queueing/conflict policy for schedules | Planned | MUST |
-| Timing-accurate behavior tests | Planned | MUST |
+| Scheduled text updates | ✅ Complete | MUST |
+| Effect rendering options (fade/blink/reverse/scroll variants) | ✅ Complete | SHOULD |
+| Queueing/conflict policy for schedules | ✅ Complete | MUST |
+| Timing-accurate behavior tests | ✅ Complete | MUST |
+
+**Phase 5 Complete — 2026-05-28** ✅
 
 ---
 
