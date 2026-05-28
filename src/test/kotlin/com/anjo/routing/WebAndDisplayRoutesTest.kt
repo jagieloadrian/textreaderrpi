@@ -15,72 +15,54 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 
 class WebAndDisplayRoutesTest : FunSpec({
-    test("GET / returns HTML page") {
+    test("should return HTML for GET /") {
         testApplication {
             application { module() }
-
-            val response = client.get("/") {
-                header(HttpHeaders.Accept, ContentType.Text.Html.toString())
-            }
-
+            val response = client.get("/") { header(HttpHeaders.Accept, ContentType.Text.Html.toString()) }
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldContain "Send Text"
             response.bodyAsText() shouldContain "charCounter"
         }
     }
 
-    test("GET /status returns status HTML") {
+    test("should return status HTML for GET /status") {
         testApplication {
             application { module() }
-
-            val response = client.get("/status") {
-                header(HttpHeaders.Accept, ContentType.Text.Html.toString())
-            }
-
+            val response = client.get("/status") { header(HttpHeaders.Accept, ContentType.Text.Html.toString()) }
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldContain "Display Status"
         }
     }
 
-    test("GET /settings/display returns settings HTML") {
+    test("should return display settings HTML for GET /settings/display") {
         testApplication {
             application { module() }
-
-            val response = client.get("/settings/display") {
-                header(HttpHeaders.Accept, ContentType.Text.Html.toString())
-            }
-
+            val response = client.get("/settings/display") { header(HttpHeaders.Accept, ContentType.Text.Html.toString()) }
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldContain "Display Settings"
             response.bodyAsText() shouldContain "applyDriverBtn"
         }
     }
 
-    test("GET /api/display/status returns json") {
+    test("should return JSON with display status for GET /api/v1/display/status") {
         testApplication {
             application { module() }
-
             val response = client.get("/api/v1/display/status")
-
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldContain "displayType"
             response.bodyAsText() shouldContain "hardwareAvailable"
         }
     }
 
-    test("POST /api/display/select rejects invalid type") {
+    test("should reject invalid driver type with 400 on POST /api/v1/display/select") {
         testApplication {
             application { module() }
-
             val response = client.post("/api/v1/display/select") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody("""{"type":"invalid-driver"}""")
             }
-
             response.status shouldBe HttpStatusCode.BadRequest
             response.bodyAsText() shouldContain "Unsupported driver type"
         }
     }
-
 })
-

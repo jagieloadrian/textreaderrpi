@@ -2,102 +2,225 @@
 
 [![CI](https://github.com/jagieloadrian/textreaderrpi/actions/workflows/ci.yml/badge.svg)](https://github.com/jagieloadrian/textreaderrpi/actions/workflows/ci.yml)
 
-Ktor service for sending text to a Raspberry Pi MAX7219 display via Pi4J.
+Ktor service for rendering scrolling text and scheduled messages on a Raspberry Pi display (MAX7219, LCD, OLED) via Pi4J.
 
-## Current API
+---
 
-- `POST /api/text`
-  - request JSON: `{"text":"Hello"}`
-  - success: `202 Accepted`
-  - validation errors: `400 Bad Request` (`StatusPages` + structured `ErrorResponse`)
-- `GET /api/display/status`
-- `POST /api/display/select`
-  - request JSON: `{"type":"max7219"}` (`max7219`, `lcd`, `oled`)
-- `GET /health` and `GET /health/ready` (KHealth)
-- Swagger UI: `/openapi`
+## API
 
-## Current Code Layout
+### Text
 
-All runtime code lives under `src/main/kotlin/com/anjo`.
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/text` | Send text immediately (`202 Accepted`) |
 
-```text
-com/anjo/
-├── Application.kt
-├── config/
-│   ├── loader/        # ConfigLoader
-│   └── model/         # ApplicationConfig, ApiConfig, DisplayConfig, ...
-├── di/
-│   ├── DependencyInjection.kt
-│   ├── HTTP.kt
-│   ├── Monitoring.kt
-│   └── Serialization.kt
-├── routing/
-│   ├── Routing.kt                 # route composition
-│   ├── TextRoutes.kt              # business endpoint(s)
-│   ├── RequestValidationConfig.kt # RequestValidation plugin setup
-│   └── ErrorHandling.kt           # StatusPages setup
-├── service/
-├── driver/
-├── model/
-├── validation/
-└── utils/
+```bash
+curl -X POST http://localhost:8080/api/v1/text \
+  -H 'Content-Type: application/json' \
+  -d '{"text":"Hello","effect":"SCROLL"}'
 ```
 
-## DI and Request Flow
+Effects: `SCROLL` (default), `BLINK`, `REVERSE`, `FADE`
 
-1. `Application.module()` calls config + DI + routing setup.
-2. `DependencyInjection.kt` builds and provides app dependencies (including driver/services).
-3. `RequestValidationConfig.kt` installs Ktor `RequestValidation`.
-4. `ErrorHandling.kt` installs `StatusPages` and maps exceptions to API errors.
-5. `TextRoutes.kt` handles business route(s), currently `POST /api/text`.
+### Schedules
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/schedule` | List all schedules |
+| `POST` | `/api/v1/schedule` | Create schedule |
+| `GET` | `/api/v1/schedule/{id}` | Get schedule |
+| `PATCH` | `/api/v1/schedule/{id}` | Update schedule |
+| `POST` | `/api/v1/schedule/{id}/cancel` | Stop recurring/cron schedule (keeps record) |
+| `DELETE` | `/api/v1/schedule/{id}` | Delete schedule |
+
+**Trigger types:**
+- `ONESHOT` — fires once at ISO-8601 timestamp: `"2026-06-01T12:00:00Z"`
+- `RECURRING` — repeats on interval: `"5m"`, `"1h"`, `"30s"`, `"2d"`
+- `CRON` — Unix cron expression: `"0 * * * *"`
+
+```bash
+curl -X POST http://localhost:8080/api/v1/schedule \
+  -H 'Content-Type: application/json' \
+  -d '{"text":"Hourly reminder","triggerType":"CRON","triggerValue":"0 * * * *","effect":"SCROLL","priority":0}'
+```
+
+### Display
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/display/status` | Driver status JSON |
+| `POST` | `/api/v1/display/select` | Switch driver (`MAX7219`, `LCD`, `OLED`) |
+
+### System
+
+| Path | Description |
+|---|---|
+| `GET /health` | Liveness — `200` while process is running |
+| `GET /health/ready` | Readiness — `200` when display driver active |
+| `GET /metrics` | Runtime metrics JSON (JVM + API counters) |
+| `GET /openapi` | Swagger UI |
+
+---
 
 ## Configuration
 
-Runtime config is read from `src/main/resources/application.yaml` through:
+All settings have defaults. Override via environment variables or `.env.local`:
 
-- `com.anjo.config.loader.ConfigLoader`
-- `com.anjo.config.model.*`
+```bash
+cp .env.example .env.local
+```
 
-Main sections in YAML:
+Key variables:
 
-- `display`
-- `hardware`
-- `api`
-- `timing`
-- `logging`
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `8080` | HTTP port |
+| `DISPLAY_TYPE` | `MAX7219` | `MAX7219`, `LCD`, `OLED` |
+| `DATABASE_URL` | H2 file | Switch to PostgreSQL by changing this + driver |
+| `DATABASE_DRIVER` | `org.h2.Driver` | `org.postgresql.Driver` for Postgres |
+| `LOG_LEVEL` | `INFO` | `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR` |
+| `API_RATE_LIMIT` | `60` | Requests per minute cap |
+
+→ Full variable reference in [`docs/deployment/production-guide.md`](docs/deployment/production-guide.md).
+
+---
 
 ## Build and Run
 
+The Ktor Gradle plugin handles **everything** — no Dockerfile needed.
+
 ```bash
-./gradlew compileKotlin
+# Run tests
 ./gradlew test
-./gradlew build
+
+# Run locally
 ./gradlew run
+
+# Build fat JAR
+./gradlew buildFatJar
+# → build/libs/textreaderrpi.jar
+
+# Build Docker image and load into local daemon
+./gradlew publishImageToLocalRegistry
+
+# Build Docker image tarball (CI / registry export)
+./gradlew buildImage
+
+# Build and run in a container immediately
+./gradlew runDocker
+
+# Push to Docker Hub
+DOCKER_HUB_USERNAME=you DOCKER_HUB_PASSWORD=token ./gradlew publishImage
 ```
 
-## Deployment Artifacts
+Image configuration lives in `build.gradle.kts`:
+```kotlin
+ktor {
+    docker {
+        localImageName.set("textreaderrpi")
+        imageTag.set("latest")
+    }
+}
+```
 
-DevOps artifacts are organized under `.devops/` — `host/` for bare-metal deployment (systemd, scripts) and `containers/` for containerized deployment (Dockerfile).
+---
 
-- `.devops/host/textreaderrpi.service` - systemd unit
-- `.devops/host/install-systemd.sh` - host install/restart helper
-- `.devops/containers/Dockerfile` - container image definition
-- `.devops/host/build-docker-image.sh` - docker build helper
+## Deployment
 
-Quick Docker run:
+### Docker Compose (Raspberry Pi with SPI/I2C hardware)
 
 ```bash
-# Build image
-./.devops/containers/build-image.sh textreaderrpi:latest
-docker run --rm -p 8080:8080 textreaderrpi:latest
+# Step 1 — build image
+./gradlew publishImageToLocalRegistry
 
-# Or with Docker Compose (includes device mounts for Raspberry Pi)
-cd .devops/containers && docker compose up -d
+# Step 2 — configure
+cp .env.example .env.local   # edit as needed
+
+# Step 3 — start
+cd .devops/containers
+docker compose up -d
+docker compose logs -f
 ```
+
+### Docker (standalone)
+
+```bash
+./gradlew publishImageToLocalRegistry
+docker run --rm -p 8080:8080 --env-file .env.local textreaderrpi:latest
+```
+
+### Systemd (host install)
+
+```bash
+./gradlew buildFatJar
+sudo ./.devops/host/install-systemd.sh
+```
+
+→ Full deployment guide: [`docs/deployment/production-guide.md`](docs/deployment/production-guide.md)  
+→ Monitoring & alerting: [`docs/operations/monitoring-alerting.md`](docs/operations/monitoring-alerting.md)
+
+---
+
+## Code Layout
+
+```text
+src/main/kotlin/com/anjo/
+├── Application.kt
+├── config/
+│   ├── loader/          # ConfigLoader (reads YAML + env vars)
+│   └── model/           # DatabaseConfig, ApiConfig, DisplayConfig, ...
+├── db/
+│   ├── DatabaseFactory.kt
+│   ├── ScheduleRepository.kt
+│   └── SchedulesTable.kt
+├── di/
+│   ├── DependencyInjection.kt
+│   ├── ErrorHandling.kt
+│   ├── HTTP.kt
+│   ├── Monitoring.kt
+│   ├── RateLimiting.kt
+│   └── Serialization.kt
+├── driver/
+│   ├── DisplayDriver.kt       # interface
+│   ├── Max7219Matrix.kt
+│   ├── LcdDisplay.kt
+│   ├── OledDisplay.kt
+│   └── OfflineDisplayDriver.kt
+├── routing/
+│   ├── Routing.kt
+│   ├── TextRoutes.kt
+│   ├── DisplayRoutes.kt
+│   ├── ScheduleRoutes.kt
+│   └── MetricsRoutes.kt
+├── service/
+│   ├── ScreenDriverService.kt
+│   ├── SchedulerService.kt
+│   ├── DisplaySelectionService.kt
+│   ├── EffectRendererFactory.kt
+│   └── effect/               # ScrollEffect, BlinkEffect, FadeEffect, ReverseEffect
+├── model/
+├── validation/
+└── utils/
+
+.devops/
+├── containers/
+│   ├── Dockerfile             # Ktor plugin buildFatJar-based
+│   ├── docker-compose.yml     # Full env var mapping + device mounts
+│   ├── build-image.sh
+│   └── .env.example
+└── host/
+    ├── textreaderrpi.service  # systemd unit
+    └── install-systemd.sh
+
+.env.example                   # Root-level env var template
+```
+
+---
 
 ## Notes
 
-- Project uses Ktor DI plugin (`io.ktor.server.plugins.di`).
-- Hardware integration is through Pi4J and `Max7219Matrix`.
-- Integration tests use Ktor `testApplication`.
-
+- Built with **Ktor 3.5** + **Kotlin 2.3** + **Exposed 1.3** (PostgreSQL-compatible schema).
+- Hardware integration via **Pi4J 4.x** (JitPack).
+- Scheduler supports `ONESHOT`, `RECURRING`, and `CRON` triggers — persisted in H2 or PostgreSQL.
+- Switching databases: change `DATABASE_URL` + `DATABASE_DRIVER` env vars only — no code change required.
+- Docker image is built entirely by the Ktor Gradle plugin (`./gradlew publishImageToLocalRegistry`) — **no Dockerfile** in the repository.

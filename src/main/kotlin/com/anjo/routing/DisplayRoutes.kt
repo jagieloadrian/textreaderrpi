@@ -11,6 +11,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("DisplayRoutes")
 
 fun Route.displayRoutes(screenDriverService: ScreenDriverService) {
     route("/display") {
@@ -33,6 +36,7 @@ fun Route.displayRoutes(screenDriverService: ScreenDriverService) {
             val allowed = setOf("max7219", "lcd", "oled")
 
             if (normalized !in allowed) {
+                log.warn("Driver switch rejected — unsupported type: ${request.type}")
                 call.respond(
                     HttpStatusCode.BadRequest,
                     DisplaySelectResponse(
@@ -45,6 +49,7 @@ fun Route.displayRoutes(screenDriverService: ScreenDriverService) {
 
             val queued = screenDriverService.queueDisplaySwitch(normalized)
             if (!queued) {
+                log.warn("Driver switch rejected — queueDisplaySwitch returned false for type: $normalized")
                 call.respond(
                     HttpStatusCode.BadRequest,
                     DisplaySelectResponse(
@@ -55,6 +60,7 @@ fun Route.displayRoutes(screenDriverService: ScreenDriverService) {
                 return@post
             }
 
+            log.info("Driver switch accepted: $normalized")
             call.respond(
                 DisplaySelectResponse(
                     accepted = true,
@@ -64,4 +70,3 @@ fun Route.displayRoutes(screenDriverService: ScreenDriverService) {
         }
     }
 }
-

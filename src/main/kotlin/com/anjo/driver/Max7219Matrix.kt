@@ -103,6 +103,17 @@ class Max7219Matrix(
         job?.cancel()
     }
 
+    override suspend fun setBrightness(level: Int) {
+        sendCommand(REG_INTENSITY, level.coerceIn(0, 15))
+    }
+
+    override suspend fun displayStatic(text: String) {
+        stop()
+        lastMessage = text
+        val bitmap = buildBitmap(text)
+        if (bitmap.size / 8 >= numDevices) render(bitmap, 0)
+    }
+
     private fun sendCommand(register: Int, data: Int) {
         val packet = ByteArray(numDevices * 2)
         for (i in 0 until numDevices) {

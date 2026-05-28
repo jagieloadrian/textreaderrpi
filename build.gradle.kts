@@ -1,11 +1,7 @@
-val kotlin_version: String by project
-val logback_version: String by project
-val pi4j_version:String by project
-
 plugins {
-    kotlin("jvm") version "2.3.0"
-    id("io.ktor.plugin") version "3.4.2"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
+    alias(ktorLibs.plugins.kotlin.jvm)
+    alias(ktorLibs.plugins.ktor)
+    alias(ktorLibs.plugins.kotlin.serialization)
     jacoco
 }
 
@@ -21,64 +17,77 @@ kotlin {
 }
 
 dependencies {
-    //CORE
-    implementation("io.ktor:ktor-server-core")
-    implementation("io.ktor:ktor-server-di")
-    implementation("io.ktor:ktor-server-host-common")
-    implementation("io.ktor:ktor-server-netty")
+    // Core Ktor
+    implementation(ktorLibs.ktor.server.core)
+    implementation(ktorLibs.ktor.server.di)
+    implementation(ktorLibs.ktor.server.host.common)
+    implementation(ktorLibs.ktor.server.netty)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.12.0")
+    // Kotlin
+    implementation(ktorLibs.kotlinx.coroutines.core)
+    implementation(ktorLibs.kotlinx.html.jvm)
 
-    //SZWAGIER
-    implementation("io.ktor:ktor-server-swagger")
-    implementation("io.ktor:ktor-server-routing-openapi")
+    // Swagger / OpenAPI
+    implementation(ktorLibs.ktor.server.swagger)
 
-    //ROUTING
-    implementation("io.ktor:ktor-server-auto-head-response")
-    implementation("io.ktor:ktor-server-cors")
-    implementation("io.ktor:ktor-server-default-headers")
-    implementation("io.ktor:ktor-server-request-validation")
-    implementation("io.ktor:ktor-server-status-pages")
-    implementation("io.ktor:ktor-server-content-negotiation")
-    implementation("io.ktor:ktor-server-html-builder")
-    implementation("io.ktor:ktor-serialization-kotlinx-json")
+    // Routing features
+    implementation(ktorLibs.ktor.server.auto.head.response)
+    implementation(ktorLibs.ktor.server.cors)
+    implementation(ktorLibs.ktor.server.default.headers)
+    implementation(ktorLibs.ktor.server.request.validation)
+    implementation(ktorLibs.ktor.server.status.pages)
+    implementation(ktorLibs.ktor.server.content.negotiation)
+    implementation(ktorLibs.ktor.server.html.builder)
+    implementation(ktorLibs.ktor.serialization.kotlinx.json)
 
-    //LOGGING
-    implementation("ch.qos.logback:logback-classic:$logback_version")
+    // Logging
+    implementation(ktorLibs.logback.classic)
 
-    //MONITORING AND CONFIG
-    implementation("io.ktor:ktor-server-config-yaml")
-    implementation("io.ktor:ktor-server-call-logging")
-    implementation("io.ktor:ktor-server-call-id")
-    implementation(ktorLibs.server.metrics)
-    implementation("dev.hayden:khealth:3.0.2")
+    // Monitoring & config
+    implementation(ktorLibs.ktor.server.config.yaml)
+    implementation(ktorLibs.ktor.server.call.logging)
+    implementation(ktorLibs.ktor.server.call.id)
+    implementation(ktorLibs.ktor.server.metrics)
+    implementation(ktorLibs.khealth)
     implementation(ktorLibs.flaxoos.ktor.server.rateLimiting)
 
-    //PI4J AND PI4K
-    implementation("com.pi4j:pi4j-core:${pi4j_version}")
-    implementation("com.pi4j:pi4j-ktx:${pi4j_version}")
-    implementation("com.pi4j:pi4j-plugin-pigpio:${pi4j_version}")
-    implementation("com.pi4j:pi4j-plugin-mock:${pi4j_version}")
+    // Pi4J
+    implementation(ktorLibs.pi4j.core)
+    implementation(ktorLibs.pi4j.ktx)
+    implementation(ktorLibs.pi4j.plugin.pigpio)
+    implementation(ktorLibs.pi4j.plugin.mock)
 
-    //TEST
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlin_version")
-    testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation("io.mockk:mockk:1.14.3")
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:5.9.1")
-    testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
+    // Database
+    implementation(ktorLibs.exposed.core)
+    implementation(ktorLibs.exposed.jdbc)
+    implementation(ktorLibs.exposed.java.time)
+    implementation(ktorLibs.hikaricp)
+    implementation(ktorLibs.cron.utils)
+    // JDBC drivers — loaded at runtime based on application.yaml driver setting
+    runtimeOnly(ktorLibs.h2)
+    runtimeOnly(ktorLibs.postgresql)
+    // H2 also needed in tests
+    testRuntimeOnly(ktorLibs.h2)
+
+    // Test
+    testImplementation(ktorLibs.kotlin.test.junit5)
+    testImplementation(ktorLibs.ktor.server.test.host)
+    testImplementation(ktorLibs.mockk)
+    testImplementation(ktorLibs.kotest.runner.junit5)
+    testImplementation(ktorLibs.kotest.assertions.core)
+    testImplementation(ktorLibs.kotlinx.coroutines.test)
 }
 
 jacoco {
-    toolVersion = "0.8.13"
+    toolVersion = ktorLibs.versions.jacoco.get()
 }
 
 tasks.test {
     useJUnitPlatform()
     jacoco {
         excludes += setOf(
-            "com.anjo.model.*${'$'}serializer*",
-            "com.anjo.model.*${'$'}Companion*"
+            $$"com.anjo.model.*$serializer*",
+            $$"com.anjo.model.*$Companion*"
         )
     }
     finalizedBy(tasks.jacocoTestReport, tasks.jacocoTestCoverageVerification)
@@ -119,6 +128,24 @@ tasks.jacocoTestCoverageVerification {
                 minimum = "0.70".toBigDecimal()
             }
         }
+    }
+}
+
+ktor {
+    openApi {
+        enabled = true
+        codeInferenceEnabled = true
+        onlyCommented = false
+    }
+
+    fatJar {
+        archiveFileName.set("textreaderrpi.jar")
+    }
+
+    docker {
+        localImageName.set("textreaderrpi")
+        imageTag.set("latest")
+        imageTag.set("${project.version}")
     }
 }
 

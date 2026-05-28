@@ -15,56 +15,41 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 class MetricsRoutesTest : FunSpec({
-    test("GET /metrics returns 200 with JSON content") {
+    test("should return 200 JSON for GET /metrics") {
         testApplication {
             application { module() }
-
             val response = client.get("/metrics")
-
             response.status shouldBe HttpStatusCode.OK
         }
     }
 
-    test("GET /metrics response contains timestamp and 2 metric groups") {
+    test("should include timestamp and 2 groups in metrics response") {
         testApplication {
             application { module() }
-
-            val response = client.get("/metrics")
-            val body = response.bodyAsText()
-            val json = Json.parseToJsonElement(body).jsonObject
-
+            val json = Json.parseToJsonElement(client.get("/metrics").bodyAsText()).jsonObject
             json["timestamp"]!!.jsonPrimitive.content.shouldNotBeEmpty()
             json["groups"]!!.jsonArray shouldHaveSize 2
         }
     }
 
-    test("GET /metrics groups include runtime and api") {
+    test("should have runtime and api groups in metrics") {
         testApplication {
             application { module() }
-
-            val response = client.get("/metrics")
-            val body = response.bodyAsText()
-            val json = Json.parseToJsonElement(body).jsonObject
+            val json = Json.parseToJsonElement(client.get("/metrics").bodyAsText()).jsonObject
             val groupNames = json["groups"]!!.jsonArray.map {
                 it.jsonObject["name"]!!.jsonPrimitive.content
             }
-
             groupNames shouldBe listOf("runtime", "api")
         }
     }
 
-    test("runtime group contains uptime and jvm.memory metrics") {
+    test("should contain uptime and jvm memory metrics in runtime group") {
         testApplication {
             application { module() }
-
-            val response = client.get("/metrics")
-            val body = response.bodyAsText()
-            val json = Json.parseToJsonElement(body).jsonObject
-            val runtimeGroup = json["groups"]!!.jsonArray[0].jsonObject
-            val metricKeys = runtimeGroup["metrics"]!!.jsonArray.map {
+            val json = Json.parseToJsonElement(client.get("/metrics").bodyAsText()).jsonObject
+            val metricKeys = json["groups"]!!.jsonArray[0].jsonObject["metrics"]!!.jsonArray.map {
                 it.jsonObject["key"]!!.jsonPrimitive.content
             }
-
             metricKeys.contains("uptime") shouldBe true
             metricKeys.contains("jvm.memory.used") shouldBe true
             metricKeys.contains("jvm.memory.max") shouldBe true

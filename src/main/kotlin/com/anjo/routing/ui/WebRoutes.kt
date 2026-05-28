@@ -1,5 +1,4 @@
-package com.anjo.routing
-
+package com.anjo.routing.ui
 import com.anjo.service.ScreenDriverService
 import com.anjo.web.templates.IndexPage
 import com.anjo.web.templates.SettingsPage
@@ -9,12 +8,10 @@ import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-
 fun Route.webRoutes(screenDriverService: ScreenDriverService) {
     get("/") {
         call.respondText(IndexPage().render(), ContentType.Text.Html)
     }
-
     get("/status") {
         val status = screenDriverService.status()
         call.respondText(
@@ -28,16 +25,13 @@ fun Route.webRoutes(screenDriverService: ScreenDriverService) {
             ContentType.Text.Html
         )
     }
-
     get("/settings/display") {
         call.respondText(
             SettingsPage(screenDriverService.currentDisplayType()).render(),
             ContentType.Text.Html
         )
     }
-
     get("/home") {
         call.respondRedirect("/")
     }
 }
-

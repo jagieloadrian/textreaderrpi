@@ -14,44 +14,33 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 class OledDisplayTest : FunSpec({
-    test("implements display contract and exposes healthy status") {
+    test("should expose healthy status via display contract") {
         val context = mockk<Context>()
         val i2c = mockk<I2C>(relaxed = true)
         every { context.create(any<I2CConfig>()) } returns i2c
-
         val driver = OledDisplay(context)
-
         driver.clear()
         driver.write("HELLO")
-        val status = driver.status()
-
-        status.currentMessage shouldBe "HELLO"
+        driver.status().currentMessage shouldBe "HELLO"
     }
 
-    test("fails fast when i2c is unavailable") {
+    test("should report hardware unavailable when I2C fails") {
         val context = mockk<Context>()
         every { context.create(any<I2CConfig>()) } throws IllegalStateException("no bus")
-
         val driver = OledDisplay(context)
         val status = driver.status()
-
         status.hardwareAvailable.shouldBeFalse()
         status.error.shouldNotBeNull().shouldContain("I2C initialization failed")
     }
 
-    test("scrollText keeps last message and can be stopped") {
+    test("should keep last message and stop cleanly") {
         val context = mockk<Context>()
         val i2c = mockk<I2C>(relaxed = true)
         every { context.create(any<I2CConfig>()) } returns i2c
-
         val driver = OledDisplay(context)
         val scope = CoroutineScope(Dispatchers.Unconfined)
         driver.scrollText(scope, "SCROLL", 1)
         driver.stop()
-
-        val status = driver.status()
-        status.isActive.shouldBeFalse()
+        driver.status().isActive.shouldBeFalse()
     }
 })
-
-

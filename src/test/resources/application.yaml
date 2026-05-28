@@ -1,0 +1,56 @@
+ktor:
+  application:
+    modules:
+      - com.anjo.ApplicationKt.module
+application:
+  name: TextReaderRpi-Test
+display:
+  type: "MAX7219"
+  max7219:
+    numDevices: 2
+    brightness: true
+    gpioPins:
+      spi_ce: 8
+      spi_mosi: 10
+      spi_miso: 9
+      spi_sck: 11
+  lcd:
+    i2cAddress: 0x27
+    busNumber: 1
+    rows: 2
+    columns: 16
+  oled:
+    i2cAddress: 0x3C
+    busNumber: 1
+    width: 128
+    height: 64
+hardware:
+  spiTimeoutMs: 1000
+  gpioTimeoutMs: 500
+retry:
+  maxAttempts: 1
+  initialDelayMs: 10
+  maxDelayMs: 100
+  factor: 2.0
+metrics:
+  enabled: true
+  prefix: "textreaderrpi-test"
+api:
+  maxTextLength: 128
+  queueSize: 10
+  rateLimitPerMinute: 60
+  metricsRateLimitPerMinute: 120
+database:
+  url: "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL"
+  driver: "org.h2.Driver"
+  user: "sa"
+  password: ""
+  poolSize: 2
+resources:
+  screenDriverMaxSlots: 10
+timing:
+  scrollSpeed: 16
+  refreshRate: 60
+logging:
+  level: INFO
+  format: json

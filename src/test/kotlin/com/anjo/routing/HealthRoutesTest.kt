@@ -10,35 +10,29 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 
 class HealthRoutesTest : FunSpec({
-    test("GET /health returns 200 with KHealth appAlive check") {
+    test("should return 200 with appAlive check for GET /health") {
         testApplication {
             application { module() }
-
             val response = client.get("/health")
-
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldContain "appAlive"
         }
     }
 
-    test("GET /health/ready returns readiness check details") {
+    test("should return readiness details for GET /health/ready") {
         testApplication {
             application { module() }
-
             val response = client.get("/health/ready")
-
             val validStatuses = setOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable)
             response.status shouldBe response.status.also { assert(it in validStatuses) }
             response.bodyAsText() shouldContain "displayReady"
         }
     }
 
-    test("GET /health/detail returns 404 after endpoint removal") {
+    test("should return 404 for GET /health/detail") {
         testApplication {
             application { module() }
-
             val response = client.get("/health/detail")
-
             response.status shouldBe HttpStatusCode.NotFound
         }
     }
