@@ -5,7 +5,11 @@ import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.anjo.model.ScreenDriverMetrics
 import com.codahale.metrics.Timer
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -25,15 +29,20 @@ class ScreenDriverService(
     private val pendingDisplayType = AtomicReference<String?>(null)
     private val lastSentMessage = AtomicReference<String?>(null)
 
-    suspend fun readInput(input: String) {
-        require(input.isNotBlank()) { "Text cannot be blank" }
+    @Volatile private var currentScheduledId: String? = null
+    @Volatile private var currentDisplayJob: Job? = null
+
+    /** Called by ad-hoc POST /api/text — preempts any running scheduled display. */
+    suspend fun displayImmediate(text: String, effect: String = "SCROLL") {
+        currentDisplayJob?.cancel()
+        currentScheduledId = null
         metrics.acceptedMeter?.mark()
-        lastSentMessage.set(input)
+        lastSentMessage.set(text)
         val timerContext: Timer.Context? = metrics.executionTimer?.time()
         metrics.inFlightCounter?.inc()
         try {
             displayMutex.withLock {
-                executeWithRecovery(input)
+                executeWithRecovery(text)
             }
         } catch (e: Exception) {
             metrics.failedMeter?.mark()
@@ -43,6 +52,32 @@ class ScreenDriverService(
             timerContext?.stop()
             checkAndPerformPendingSwitch()
         }
+    }
+
+    /** Called by the scheduler — registers the job for cancellation via displayImmediate. */
+    suspend fun displayScheduled(text: String, scheduleId: String, effect: String = "SCROLL") {
+        currentScheduledId = scheduleId
+        currentDisplayJob = currentCoroutineContext().job
+        lastSentMessage.set(text)
+        try {
+            displayMutex.withLock {
+                executeWithRecovery(text)
+            }
+        } catch (_: CancellationException) {
+            // Scheduler handles re-queue; do not rethrow
+        } catch (e: Exception) {
+            log.error("Scheduled display failed for schedule $scheduleId: ${e.message}", e)
+        } finally {
+            if (currentScheduledId == scheduleId) {
+                currentScheduledId = null
+                currentDisplayJob = null
+            }
+            checkAndPerformPendingSwitch()
+        }
+    }
+
+    suspend fun readInput(input: String) {
+        displayImmediate(input)
     }
 
     private suspend fun executeWithRecovery(input: String) {

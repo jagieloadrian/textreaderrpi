@@ -9,10 +9,13 @@ import com.anjo.service.DisplaySelectionService
 import com.anjo.service.MetricsCollector
 import com.anjo.service.ReaderInputService
 import com.anjo.model.ScreenDriverMetrics
+import com.anjo.service.SchedulerService
 import com.anjo.service.ScreenDriverService
 import com.codahale.metrics.MetricRegistry
 import com.pi4j.Pi4J
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStarted
+import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.plugins.di.dependencies
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +51,11 @@ fun Application.configureDI() {
     val readerInputService = ReaderInputService(screenDriverService)
     val metricsCollector = MetricsCollector(metricRegistry)
     val scheduleRepository = ScheduleRepository()
+    val schedulerService = SchedulerService(scheduleRepository, screenDriverService)
+
+    // Lifecycle hooks
+    monitor.subscribe(ApplicationStarted) { schedulerService.start() }
+    monitor.subscribe(ApplicationStopping) { schedulerService.stop() }
 
     dependencies {
         provide { appConfig }
@@ -60,6 +68,7 @@ fun Application.configureDI() {
         provide { readerInputService }
         provide { metricsCollector }
         provide { scheduleRepository }
+        provide { schedulerService }
     }
 }
 
