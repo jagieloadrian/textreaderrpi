@@ -10,7 +10,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 
 fun Route.textRoutes(readerInputService: ReaderInputService) {
-    post("/api/text") {
+    post("/text") {
         val request = call.receive<TextRequest>()
         readerInputService.readInput(request.text)
 

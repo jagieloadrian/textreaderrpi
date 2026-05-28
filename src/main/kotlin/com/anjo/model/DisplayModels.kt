@@ -1,4 +1,4 @@
-package com.anjo.api
+package com.anjo.model
 
 import kotlinx.serialization.Serializable
 

@@ -10,6 +10,10 @@ Ktor service for sending text to a Raspberry Pi MAX7219 display via Pi4J.
   - request JSON: `{"text":"Hello"}`
   - success: `202 Accepted`
   - validation errors: `400 Bad Request` (`StatusPages` + structured `ErrorResponse`)
+- `GET /api/display/status`
+- `POST /api/display/select`
+  - request JSON: `{"type":"max7219"}` (`max7219`, `lcd`, `oled`)
+- `GET /health` and `GET /health/ready` (KHealth)
 - Swagger UI: `/openapi`
 
 ## Current Code Layout
@@ -69,6 +73,26 @@ Main sections in YAML:
 ./gradlew test
 ./gradlew build
 ./gradlew run
+```
+
+## Deployment Artifacts
+
+DevOps artifacts are organized under `.devops/` — `host/` for bare-metal deployment (systemd, scripts) and `containers/` for containerized deployment (Dockerfile).
+
+- `.devops/host/textreaderrpi.service` - systemd unit
+- `.devops/host/install-systemd.sh` - host install/restart helper
+- `.devops/containers/Dockerfile` - container image definition
+- `.devops/host/build-docker-image.sh` - docker build helper
+
+Quick Docker run:
+
+```bash
+# Build image
+./.devops/containers/build-image.sh textreaderrpi:latest
+docker run --rm -p 8080:8080 textreaderrpi:latest
+
+# Or with Docker Compose (includes device mounts for Raspberry Pi)
+cd .devops/containers && docker compose up -d
 ```
 
 ## Notes

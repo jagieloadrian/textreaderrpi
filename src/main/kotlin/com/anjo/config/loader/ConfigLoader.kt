@@ -3,14 +3,15 @@ package com.anjo.config.loader
 import com.anjo.config.model.ApiConfig
 import com.anjo.config.model.ApplicationConfig
 import com.anjo.config.model.DisplayConfig
-import com.anjo.config.model.Max7219Config
-import com.anjo.config.model.LcdConfig
-import com.anjo.config.model.OledConfig
 import com.anjo.config.model.HardwareConfig
+import com.anjo.config.model.LcdConfig
 import com.anjo.config.model.LoggingConfig
+import com.anjo.config.model.Max7219Config
+import com.anjo.config.model.MetricsConfig
+import com.anjo.config.model.OledConfig
+import com.anjo.config.model.RetryConfig
 import com.anjo.config.model.TimingConfig
-
-import io.ktor.server.application.*
+import io.ktor.server.application.Application
 
 object ConfigLoader {
     fun loadConfig(application: Application): ApplicationConfig {
@@ -50,7 +51,8 @@ object ConfigLoader {
         val apiConfig = ApiConfig(
             maxTextLength = config.propertyOrNull("api.maxTextLength")?.getString()?.toIntOrNull() ?: 128,
             queueSize = config.propertyOrNull("api.queueSize")?.getString()?.toIntOrNull() ?: 10,
-            rateLimitPerMinute = config.propertyOrNull("api.rateLimitPerMinute")?.getString()?.toIntOrNull() ?: 60
+            rateLimitPerMinute = config.propertyOrNull("api.rateLimitPerMinute")?.getString()?.toIntOrNull() ?: 60,
+            metricsRateLimitPerMinute = config.propertyOrNull("api.metricsRateLimitPerMinute")?.getString()?.toIntOrNull() ?: 120
         )
 
         val timingConfig = TimingConfig(
@@ -62,13 +64,27 @@ object ConfigLoader {
             level = config.propertyOrNull("logging.level")?.getString() ?: "INFO",
             format = config.propertyOrNull("logging.format")?.getString() ?: "json"
         )
+
+        val metricsConfig = MetricsConfig(
+            enabled = config.propertyOrNull("metrics.enabled")?.getString()?.toBoolean() ?: true,
+            prefix = config.propertyOrNull("metrics.prefix")?.getString() ?: "textreaderrpi",
+        )
+
+        val retryConfig = RetryConfig(
+            maxAttempts = config.propertyOrNull("retry.maxAttempts")?.getString()?.toIntOrNull() ?: 5,
+            initialDelayMs = config.propertyOrNull("retry.initialDelayMs")?.getString()?.toLongOrNull() ?: 1000L,
+            maxDelayMs = config.propertyOrNull("retry.maxDelayMs")?.getString()?.toLongOrNull() ?: 30000L,
+            factor = config.propertyOrNull("retry.factor")?.getString()?.toDoubleOrNull() ?: 2.0,
+        )
         
         return ApplicationConfig(
             display = displayConfig,
             hardware = hardwareConfig,
             api = apiConfig,
             timing = timingConfig,
-            logging = loggingConfig
+            logging = loggingConfig,
+            metrics = metricsConfig,
+            retryConfig = retryConfig
         )
     }
 

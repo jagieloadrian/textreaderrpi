@@ -1,0 +1,34 @@
+﻿[Unit]
+Description=TextReaderRpi - Display Text Driver Service
+After=network.target
+
+[Service]
+Type=simple
+User=textreaderrpi
+Group=textreaderrpi
+
+WorkingDirectory=/opt/textreaderrpi
+EnvironmentFile=-/opt/textreaderrpi/.env
+ExecStart=/usr/bin/java -jar /opt/textreaderrpi/TextReaderRpi-all.jar
+
+Restart=on-failure
+RestartSec=5s
+RestartPreventExitStatus=0
+
+ExecStartPost=/bin/bash -c 'for i in $(seq 1 12); do sleep 5; curl -sf http://localhost:8080/health/ready && exit 0; done; exit 1'
+
+LimitNOFILE=65536
+TimeoutStartSec=90s
+TimeoutStopSec=30s
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/textreaderrpi/logs
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=textreaderrpi
+
+[Install]
+WantedBy=multi-user.target

@@ -51,7 +51,9 @@ dependencies {
     implementation("io.ktor:ktor-server-config-yaml")
     implementation("io.ktor:ktor-server-call-logging")
     implementation("io.ktor:ktor-server-call-id")
+    implementation(ktorLibs.server.metrics)
     implementation("dev.hayden:khealth:3.0.2")
+    implementation(ktorLibs.flaxoos.ktor.server.rateLimiting)
 
     //PI4J AND PI4K
     implementation("com.pi4j:pi4j-core:${pi4j_version}")

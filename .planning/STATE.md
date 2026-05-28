@@ -1,7 +1,7 @@
 # Project State & Memory
 
-**Last Updated:** 2026-05-26  
-**Status:** Phase 2 complete - all waves executed
+**Last Updated:** 2026-05-27  
+**Status:** Phase 4 COMPLETE — verified 2026-05-27; ready for Phase 5
 
 ## Current State
 
@@ -29,7 +29,7 @@
 - ✅ `.planning/research/KTOR_PATTERNS.md` (Best practices for embedded systems)
 - ✅ `.planning/PROJECT.md` (Project context and vision)
 - ✅ `.planning/REQUIREMENTS.md` (Feature scope and acceptance criteria)
-- ✅ `.planning/ROADMAP.md` (3-phase development plan)
+- ✅ `.planning/ROADMAP.md` (5-phase development plan)
 - ✅ `.planning/config.json` (Workflow preferences)
 
 ## Known Quality Gaps (from CONCERNS.md)
@@ -80,6 +80,37 @@
 | Flexibility | Support multiple displays | ⚪ Not started | Phase 2 work |
 | Reliability | 99.5% uptime, no crashes | 🟡 Unknown | Needs 24h test |
 | Test coverage | >70% | 🟢 Verified | JaCoCo gate enabled and passing (`jacocoTestCoverageVerification`) |
+
+## Phase 4 Status
+
+✅ **All Waves Complete — Phase VERIFIED (2026-05-27)**
+
+- 04-01: Feature-first routing modules (DisplayRoutes, HealthRoutes, MetricsRoutes) + rate-limit closure
+- 04-02: DevOps artifacts moved to .devops/; DisplayApi DTOs → com.anjo.model; com.anjo.api removed
+- 04-03: KHealth alignment + GET /health/detail extended payload (7 fields)
+- 04-04: GET /metrics endpoint (runtime/api/hardware groups) with dedicated rate limiting (120/min)  
+- 04-05: RecoveryPolicy readability refactor; ResourceTracker snapshot + MetricRegistry gauges; ScreenDriverService extracted executeWithRecovery()
+
+**Verification:** `.planning/phases/04-observability-cleanup/04-VERIFICATION.md` — status: PASSED  
+**Test Suite:** Full suite — BUILD SUCCESSFUL, JaCoCo PASS
+
+---
+
+## Phase 3 Status
+
+✅ **All Waves Complete — Phase VERIFIED**
+
+- 03-01: HealthService + `/health` + `/health/ready` endpoints
+- 03-02: RecoveryPolicy + exponential backoff + ScreenDriverService integration
+- 03-03: ResourceTracker bounded slots + ScreenDriverService resource lifecycle
+- 03-04: RateLimitPlugin (fixed-window, 60 req/min, HTTP 429 + Retry-After)
+- 03-05: systemd service file + production guide + monitoring/alerting doc
+
+**Verification:** `.planning/phases/03-production-ready/03-VERIFICATION.md` — status: PASSED  
+**Test Suite:** 40 Phase 3 tests + full suite — BUILD SUCCESSFUL  
+**JaCoCo Gate:** >70% — PASS
+
+---
 
 ## Phase 2 Status
 
@@ -188,6 +219,27 @@ When resuming this project:
 
 ---
 
-**Status:** Phase 2 complete (backend + web UI + display APIs + OLED + tests).  
-**Next Action:** Start Phase 2 verification/closeout or proceed to next roadmap phase.
+**Status:** Phase 5 Wave 1 COMPLETE (2026-05-28) — Wave 2 next.  
+**Next Action:** Run `/gsd-execute-phase 5 --wave 2` to execute scheduling engine plans.
 
+## Phase 5 Status
+
+✅ **Wave 1 Complete (2026-05-28)**
+
+### Wave 1 — Refactoring Completion ✅
+- 05-01: Health endpoint consolidation + retry replacement (D5-01, D5-02, D5-03) ✅
+- 05-02: Concurrency guard Mutex + metrics config-driving + comment removal (D5-04, D5-05, D5-06) ✅
+- 05-03: Route package unification + test package unification (D5-07, D5-08) ✅
+
+### Wave 2 — Scheduling Engine (4 plans, depends on Wave 1)
+- 05-04: Schedule data model + Exposed/H2 database setup [REQ-SCHED-01]
+- 05-05: SchedulerService coroutine engine + conflict policy [REQ-SCHED-01, REQ-CONFLICT-01]
+- 05-06: Schedule HTTP CRUD API + validation [REQ-SCHED-01]
+- 05-07: Schedule UI page + DI wiring + lifecycle verification [REQ-SCHED-01]
+
+### Wave 3 — Effects + Behavioral Tests (3 plans, depends on Wave 2)
+- 05-08: Effect renderer architecture + DisplayDriver extensions [REQ-EFFECT-01]
+- 05-09: Wire effect field into POST /api/text + POST /api/schedule [REQ-EFFECT-01]
+- 05-10: Timing-accurate behavior tests (virtual time, no Thread.sleep) [REQ-TEST-01]
+
+**Key library selections:** in-house retryWithBackoff, cron-utils, Exposed DSL + H2, kotlinx-coroutines-test

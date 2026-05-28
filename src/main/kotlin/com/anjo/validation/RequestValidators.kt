@@ -2,7 +2,7 @@ package com.anjo.validation
 
 import com.anjo.config.model.ApiConfig
 import com.anjo.model.TextRequest
-import io.ktor.server.plugins.requestvalidation.*
+import io.ktor.server.plugins.requestvalidation.ValidationResult
 
 object RequestValidators {
     fun validateTextRequest(req: TextRequest, apiConfig: ApiConfig): ValidationResult {

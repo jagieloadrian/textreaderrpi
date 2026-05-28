@@ -1,32 +1,55 @@
 package com.anjo.service
 
-import com.anjo.driver.DisplayStatus
+import com.anjo.config.model.RetryConfig
 import com.anjo.driver.DisplayDriver
+import com.anjo.driver.DisplayStatus
+import com.anjo.model.ScreenDriverMetrics
+import com.codahale.metrics.Timer
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.concurrent.atomic.AtomicBoolean
+import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicReference
 
 class ScreenDriverService(
     private var driver: DisplayDriver,
     private val ioDispatcher: CoroutineDispatcher,
-    private val displaySelectionService: DisplaySelectionService? = null,
+    private val retryConfig: RetryConfig,
+    private val displaySelectionService: DisplaySelectionService?,
+    private val metrics: ScreenDriverMetrics,
 ) {
-    private val busy = AtomicBoolean(false)
+    private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
+
+    private val displayMutex = Mutex()
     private val pendingDisplayType = AtomicReference<String?>(null)
     private val lastSentMessage = AtomicReference<String?>(null)
 
     suspend fun readInput(input: String) {
         require(input.isNotBlank()) { "Text cannot be blank" }
+        metrics.acceptedMeter?.mark()
         lastSentMessage.set(input)
-        busy.set(true)
+        val timerContext: Timer.Context? = metrics.executionTimer?.time()
+        metrics.inFlightCounter?.inc()
         try {
-            withContext(ioDispatcher) {
+            displayMutex.withLock {
+                executeWithRecovery(input)
+            }
+        } catch (e: Exception) {
+            metrics.failedMeter?.mark()
+            log.error("Display operation failed after retries: ${e.message}", e)
+        } finally {
+            metrics.inFlightCounter?.dec()
+            timerContext?.stop()
+            checkAndPerformPendingSwitch()
+        }
+    }
+
+    private suspend fun executeWithRecovery(input: String) {
+        withContext(ioDispatcher) {
+            retryWithBackoff(retryConfig) {
                 driver.scrollText(this, input)
             }
-        } finally {
-            busy.set(false)
-            checkAndPerformPendingSwitch()
         }
     }
 
@@ -43,7 +66,7 @@ class ScreenDriverService(
         val normalizedType = displayType.uppercase()
         val selectionService = displaySelectionService ?: return false
 
-        if (busy.get()) {
+        if (displayMutex.isLocked) {
             pendingDisplayType.set(normalizedType)
             return true
         }

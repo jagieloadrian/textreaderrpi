@@ -2,8 +2,8 @@ package com.anjo.service
 
 import com.anjo.config.model.DisplayConfig
 import com.anjo.driver.DisplayDriver
-import com.anjo.driver.Max7219Matrix
 import com.anjo.driver.LcdDisplay
+import com.anjo.driver.Max7219Matrix
 import com.anjo.driver.OledDisplay
 import com.pi4j.context.Context
 import java.util.concurrent.ConcurrentLinkedQueue

@@ -4,8 +4,11 @@ import com.anjo.config.loader.ConfigLoader
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.anjo.service.DisplaySelectionService
+import com.anjo.service.MetricsCollector
 import com.anjo.service.ReaderInputService
+import com.anjo.model.ScreenDriverMetrics
 import com.anjo.service.ScreenDriverService
+import com.codahale.metrics.MetricRegistry
 import com.pi4j.Pi4J
 import io.ktor.server.application.Application
 import io.ktor.server.plugins.di.dependencies
@@ -21,24 +24,30 @@ fun Application.configureDI() {
         displayConfig = appConfig.display
     )
 
-    val driver: DisplayDriver? = displaySelectionService.currentDriver()
+    val metricRegistry = MetricRegistry()
+    val screenDriverMetrics = ScreenDriverMetrics.from(metricRegistry, appConfig.metrics)
 
-    val screenDriverService = if (driver == null) {
-        ScreenDriverService(OfflineDisplayDriver, Dispatchers.IO, displaySelectionService)
-    } else {
-        ScreenDriverService(driver, Dispatchers.IO, displaySelectionService)
-    }
+    val screenDriverService = ScreenDriverService(
+        driver = displaySelectionService.currentDriver() ?: OfflineDisplayDriver,
+        ioDispatcher = Dispatchers.IO,
+        retryConfig = appConfig.retryConfig,
+        displaySelectionService = displaySelectionService,
+        metrics = screenDriverMetrics,
+    )
 
     val readerInputService = ReaderInputService(screenDriverService)
+    val metricsCollector = MetricsCollector(metricRegistry)
 
     dependencies {
         provide { appConfig }
         provide { appConfig.api }
         provide { appConfig.display }
         provide { Dispatchers.IO }
+        provide { metricRegistry }
         provide { displaySelectionService }
         provide { screenDriverService }
         provide { readerInputService }
+        provide { metricsCollector }
     }
 }
 
@@ -53,4 +62,3 @@ private object OfflineDisplayDriver : DisplayDriver {
     )
     override fun stop() = Unit
 }
-

@@ -9,20 +9,18 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-/**
- * MAX7219Matrix: 8x8 LED matrix driver via SPI
- *
- * Implements DisplayDriver with scroll-based rendering (legacy) plus new methods:
- * - clear(): blanks all LEDs
- * - write(text): static text (currently shows first chars that fit)
- * - status(): reports hardware health
- *
- * Per D-02: MAX7219 emphasizes scroll-based operation; write() is secondary.
- */
 class Max7219Matrix(
     private val ctx: Context,
     private val numDevices: Int = 2,
 ) : DisplayDriver {
+
+    companion object {
+        private const val REG_DISPLAY_TEST = 0x0F
+        private const val REG_SHUTDOWN     = 0x0C
+        private const val REG_SCAN_LIMIT   = 0x0B
+        private const val REG_INTENSITY    = 0x0A
+        private const val REG_DECODE_MODE  = 0x09
+    }
 
     private val spi: Spi
     private var job: Job? = null
@@ -47,17 +45,14 @@ class Max7219Matrix(
     }
 
     private fun initialize() {
-        sendCommand(0x0F, 0x00)
-        sendCommand(0x0C, 0x01)
-        sendCommand(0x0B, 0x07)
-        sendCommand(0x0A, 0x08)
-        sendCommand(0x09, 0x00)
+        sendCommand(REG_DISPLAY_TEST, 0x00)
+        sendCommand(REG_SHUTDOWN,     0x01)
+        sendCommand(REG_SCAN_LIMIT,   0x07)
+        sendCommand(REG_INTENSITY,    0x08)
+        sendCommand(REG_DECODE_MODE,  0x00)
         clear()
     }
 
-    /**
-     * Clear display: blank all rows (per new interface).
-     */
     override fun clear() {
         try {
             for (row in 1..8) sendCommand(row, 0x00)
@@ -69,45 +64,12 @@ class Max7219Matrix(
         }
     }
 
-    private fun sendCommand(register: Int, data: Int) {
-        val packet = ByteArray(numDevices * 2)
-        for (i in 0 until numDevices) {
-            packet[i * 2] = register.toByte()
-            packet[i * 2 + 1] = data.toByte()
-        }
-        spi.write(packet)
-    }
-
-    /**
-     * Write static text to display.
-     * For MAX7219, we show the first 16 characters (2 devices × 8 cols each).
-     */
     override fun write(text: String) {
         stop()
+        clear()
         lastMessage = text
-
-        try {
-            clear() // Blank first
-            // For now, MAX7219 doesn't support static text well (it's bitmap-based)
-            // In a real implementation, we'd render text to the LED matrix
-            // For MVP, we just scroll it instead
-            // The interface is there for LCD/OLED which support static text
-        } catch (e: Exception) {
-            lastError = "Write failed: ${e.message}"
-        }
-    }
-
-    /**
-     * Return hardware status for /api/display/status endpoint.
-     */
-    override fun status(): DisplayStatus {
-        val isHardwareOk = lastError == null
-        return DisplayStatus(
-            isActive = job?.isActive ?: false,
-            hardwareAvailable = isHardwareOk,
-            currentMessage = lastMessage,
-            error = lastError
-        )
+        val bitmap = buildBitmap(text)
+        if (bitmap.size / 8 >= numDevices * 8) render(bitmap, 0)
     }
 
     override fun scrollText(scope: CoroutineScope, text: String, speedMs: Long) {
@@ -128,31 +90,41 @@ class Max7219Matrix(
         }
     }
 
-    private fun render(bitmap: ByteArray, offset: Int) {
+    override fun status(): DisplayStatus {
+        return DisplayStatus(
+            isActive = job?.isActive ?: false,
+            hardwareAvailable = lastError == null,
+            currentMessage = lastMessage,
+            error = lastError,
+        )
+    }
 
+    override fun stop() {
+        job?.cancel()
+    }
+
+    private fun sendCommand(register: Int, data: Int) {
+        val packet = ByteArray(numDevices * 2)
+        for (i in 0 until numDevices) {
+            packet[i * 2]     = register.toByte()
+            packet[i * 2 + 1] = data.toByte()
+        }
+        spi.write(packet)
+    }
+
+    private fun render(bitmap: ByteArray, offset: Int) {
+        val bitmapWidth = bitmap.size / 8
         val baseOffset = offset * 8
-        val width = bitmap.size / 8
 
         for (d in 0 until numDevices) {
-
             val deviceOffset = baseOffset + (d * 8)
             val rowBuf = buffer[d]
 
             for (row in 0 until 8) {
-
                 var value = 0
-                var x = deviceOffset + row
-
-                // FULL UNROLL (zero loop overhead)
-                value = (value shl 1) or bitmap.getSafe(x, row, width)
-                value = (value shl 1) or bitmap.getSafe(++x, row, width)
-                value = (value shl 1) or bitmap.getSafe(++x, row, width)
-                value = (value shl 1) or bitmap.getSafe(++x, row, width)
-                value = (value shl 1) or bitmap.getSafe(++x, row, width)
-                value = (value shl 1) or bitmap.getSafe(++x, row, width)
-                value = (value shl 1) or bitmap.getSafe(++x, row, width)
-                value = (value shl 1) or bitmap.getSafe(++x, row, width)
-
+                for (col in 0 until 8) {
+                    value = (value shl 1) or bitmap.getSafe(deviceOffset + col, row, bitmapWidth)
+                }
                 rowBuf[row] = value.toByte()
             }
         }
@@ -161,61 +133,36 @@ class Max7219Matrix(
     }
 
     private fun buildBitmap(text: String): ByteArray {
-
-        val temp = ArrayList<Int>(text.length * 6)
-
-        for (c in text) {
-            val ch = getChar(c)
-            for (col in ch) {
-                temp.add(col.toInt())
+        val columns = buildList {
+            for (c in text) {
+                for (col in getChar(c)) add(col.toInt())
+                add(0)
             }
-            temp.add(0)
         }
-
-        val width = temp.size
-        val bitmap = ByteArray(width * 8)
-
+        val bitmap = ByteArray(columns.size * 8)
         var i = 0
-        for (x in 0 until width) {
-            val col = temp[x]
-
-            bitmap[i++] = ((col shr 0) and 1).toByte()
-            bitmap[i++] = ((col shr 1) and 1).toByte()
-            bitmap[i++] = ((col shr 2) and 1).toByte()
-            bitmap[i++] = ((col shr 3) and 1).toByte()
-            bitmap[i++] = ((col shr 4) and 1).toByte()
-            bitmap[i++] = ((col shr 5) and 1).toByte()
-            bitmap[i++] = ((col shr 6) and 1).toByte()
-            bitmap[i++] = ((col shr 7) and 1).toByte()
+        for (col in columns) {
+            for (bit in 0 until 8) {
+                bitmap[i++] = ((col shr bit) and 1).toByte()
+            }
         }
-
         return bitmap
     }
 
     private fun flush(buf: Array<ByteArray>) {
         val packet = ByteArray(numDevices * 2)
-
         for (row in 0 until 8) {
             var i = 0
-
             for (d in 0 until numDevices) {
                 packet[i++] = (row + 1).toByte()
                 packet[i++] = buf[d][row]
             }
-
             spi.write(packet)
         }
     }
 
-    private fun getChar(c: Char): ByteArray {
-        return Font.asciiFont[c] ?: Font.asciiFont[' ']!!
-    }
+    private fun getChar(c: Char): ByteArray = Font.asciiFont[c] ?: Font.asciiFont[' ']!!
 
-    private fun ByteArray.getSafe(x: Int, row: Int, width: Int): Int {
-        return if (x < width) this[(x * 8) + row].toInt() else 0
-    }
-
-    override fun stop() {
-        job?.cancel()
-    }
+    private fun ByteArray.getSafe(x: Int, row: Int, width: Int): Int =
+        if (x < width) this[(x * 8) + row].toInt() else 0
 }

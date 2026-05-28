@@ -37,10 +37,24 @@ hardware:
   spiTimeoutMs: 1000
   gpioTimeoutMs: 500
 
+retry:
+  maxAttempts: 5
+  initialDelayMs: 1000
+  maxDelayMs: 30000
+  factor: 2.0
+
+metrics:
+  enabled: true
+  prefix: "textreaderrpi"
+
 api:
   maxTextLength: 128
   queueSize: 10
   rateLimitPerMinute: 60
+  metricsRateLimitPerMinute: 120
+
+resources:
+  screenDriverMaxSlots: 10
 
 timing:
   scrollSpeed: 16
