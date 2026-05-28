@@ -36,7 +36,7 @@ class TextApiRouteTest {
             setBody("""{"text":""}""")
         }
 
-        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
         val body = response.bodyAsText()
         assertContains(body, "error")
     }
@@ -50,7 +50,7 @@ class TextApiRouteTest {
             setBody("""{"text":"$longText"}""")
         }
 
-        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
         val body = response.bodyAsText()
         assertContains(body, "error")
     }

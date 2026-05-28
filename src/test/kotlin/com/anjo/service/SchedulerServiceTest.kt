@@ -1,7 +1,7 @@
 package com.anjo.service
 
 import com.anjo.db.ScheduleRepository
-import com.anjo.effect.EffectRenderer
+import com.anjo.service.effect.EffectRenderer
 import com.anjo.model.Effect
 import com.anjo.model.Schedule
 import com.anjo.model.TriggerType

@@ -1,0 +1,2 @@
+1. zrobić update wszystkich dependencji w pliku ktor-libs.versions.toml, sprawdzic w mvn central jakie są i zrobić update
+2.

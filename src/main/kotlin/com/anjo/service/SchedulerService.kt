@@ -1,7 +1,6 @@
 package com.anjo.service
 
 import com.anjo.db.ScheduleRepository
-import com.anjo.effect.EffectRenderer
 import com.anjo.model.Schedule
 import com.anjo.model.TriggerType
 import com.cronutils.model.CronType
@@ -73,17 +72,6 @@ class SchedulerService(
         }
     }
 
-    suspend fun requeueAfterInterruption(id: String) {
-        try {
-            repository.updateStatus(id, "ACTIVE")
-            val schedule = repository.findById(id)
-            if (schedule != null) {
-                schedule(schedule)
-            }
-        } catch (e: Exception) {
-            log.error("Failed to requeue schedule $id: ${e.message}", e)
-        }
-    }
 
     private suspend fun tickLoop() {
         while (scope.isActive) {

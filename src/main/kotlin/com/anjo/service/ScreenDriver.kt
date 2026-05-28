@@ -3,7 +3,7 @@ package com.anjo.service
 import com.anjo.config.model.RetryConfig
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
-import com.anjo.effect.EffectRenderer
+import com.anjo.service.effect.EffectRenderer
 import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
 import com.codahale.metrics.Timer

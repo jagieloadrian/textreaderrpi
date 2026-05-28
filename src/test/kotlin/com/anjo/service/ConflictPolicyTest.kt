@@ -2,9 +2,10 @@ package com.anjo.service
 
 import com.anjo.config.model.RetryConfig
 import com.anjo.driver.DisplayDriver
-import com.anjo.effect.ScrollEffect
 import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
+import com.anjo.service.effect.EffectRenderer
+import com.anjo.service.effect.ScrollEffect
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coVerify
@@ -83,7 +84,7 @@ class ConflictPolicyTest : FunSpec({
             val mockRepo = mockk<com.anjo.db.ScheduleRepository>(relaxed = true)
             val mockScreen = mockk<ScreenDriverService>(relaxed = true)
             val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
-            val mockRenderer = mockk<com.anjo.effect.EffectRenderer>(relaxed = true)
+            val mockRenderer = mockk<EffectRenderer>(relaxed = true)
 
             io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
@@ -98,7 +99,7 @@ class ConflictPolicyTest : FunSpec({
                 triggerType = com.anjo.model.TriggerType.ONESHOT,
                 triggerValue = java.time.Instant.now().minusSeconds(1).toString(), // already past
                 priority = 0,
-                effect = com.anjo.model.Effect.SCROLL,
+                effect = Effect.SCROLL,
                 createdAt = "2026-01-01T00:00:00Z"
             )
             val highPriority = com.anjo.model.Schedule(
@@ -134,7 +135,7 @@ class ConflictPolicyTest : FunSpec({
             val mockRepo = mockk<com.anjo.db.ScheduleRepository>(relaxed = true)
             val mockScreen = mockk<ScreenDriverService>(relaxed = true)
             val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
-            val mockRenderer = mockk<com.anjo.effect.EffectRenderer>(relaxed = true)
+            val mockRenderer = mockk<EffectRenderer>(relaxed = true)
 
             io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
@@ -149,7 +150,7 @@ class ConflictPolicyTest : FunSpec({
                 triggerValue = java.time.Instant.now().minusSeconds(1).toString(),
                 priority = 5,
                 createdAt = "2026-01-01T00:00:00Z",
-                effect = com.anjo.model.Effect.SCROLL
+                effect = Effect.SCROLL
             )
             val later = com.anjo.model.Schedule(
                 id = "e2",
@@ -158,7 +159,7 @@ class ConflictPolicyTest : FunSpec({
                 triggerValue = java.time.Instant.now().minusSeconds(1).toString(),
                 priority = 5,
                 createdAt = "2026-01-01T00:01:00Z",
-                effect = com.anjo.model.Effect.SCROLL
+                effect = Effect.SCROLL
             )
             // Repository returns [later, earlier] — reverse order
             io.mockk.coEvery { mockRepo.findAllActive() } returns listOf(later, earlier)

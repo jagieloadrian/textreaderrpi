@@ -1,10 +1,11 @@
 package com.anjo.service
-import com.anjo.effect.BlinkEffect
-import com.anjo.effect.EffectRenderer
-import com.anjo.effect.FadeEffect
-import com.anjo.effect.ReverseEffect
-import com.anjo.effect.ScrollEffect
+import com.anjo.service.effect.EffectRenderer
 import com.anjo.model.Effect
+import com.anjo.service.effect.BlinkEffect
+import com.anjo.service.effect.FadeEffect
+import com.anjo.service.effect.ReverseEffect
+import com.anjo.service.effect.ScrollEffect
+
 class EffectRendererFactory {
     fun create(effect: Effect): EffectRenderer = when (effect) {
         Effect.SCROLL -> ScrollEffect()

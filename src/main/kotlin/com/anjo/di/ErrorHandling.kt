@@ -31,12 +31,12 @@ fun Application.configureErrorHandling() {
         exception<RequestValidationException> { call, cause ->
             if (call.prefersHtml()) {
                 call.respondText(
-                    ErrorPage(400, cause.reasons.firstOrNull() ?: "Validation failed").render(),
+                    ErrorPage(422, cause.reasons.firstOrNull() ?: "Validation failed").render(),
                     ContentType.Text.Html
                 )
             } else {
                 call.respond(
-                    HttpStatusCode.BadRequest,
+                    HttpStatusCode.UnprocessableEntity,
                     ErrorResponse(
                         ErrorDetails.now(
                             code = "VAL_001",

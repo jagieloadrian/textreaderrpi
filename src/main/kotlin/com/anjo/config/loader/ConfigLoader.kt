@@ -2,6 +2,7 @@ package com.anjo.config.loader
 
 import com.anjo.config.model.ApiConfig
 import com.anjo.config.model.ApplicationConfig
+import com.anjo.config.model.DatabaseConfig
 import com.anjo.config.model.DisplayConfig
 import com.anjo.config.model.HardwareConfig
 import com.anjo.config.model.LcdConfig
@@ -76,6 +77,14 @@ object ConfigLoader {
             maxDelayMs = config.propertyOrNull("retry.maxDelayMs")?.getString()?.toLongOrNull() ?: 30000L,
             factor = config.propertyOrNull("retry.factor")?.getString()?.toDoubleOrNull() ?: 2.0,
         )
+
+        val databaseConfig = DatabaseConfig(
+            url = config.propertyOrNull("database.url")?.getString() ?: "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",
+            driver = config.propertyOrNull("database.driver")?.getString() ?: "org.h2.Driver",
+            user = config.propertyOrNull("database.user")?.getString() ?: "",
+            password = config.propertyOrNull("database.password")?.getString() ?: "",
+            poolSize = config.propertyOrNull("database.poolSize")?.getString()?.toIntOrNull() ?: 5
+        )
         
         return ApplicationConfig(
             display = displayConfig,
@@ -84,7 +93,8 @@ object ConfigLoader {
             timing = timingConfig,
             logging = loggingConfig,
             metrics = metricsConfig,
-            retryConfig = retryConfig
+            retryConfig = retryConfig,
+            databaseConfig
         )
     }
 

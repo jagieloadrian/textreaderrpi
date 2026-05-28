@@ -33,7 +33,7 @@
 
     const text = input.value ?? "";
     try {
-      const response = await fetch("/api/text", {
+      const response = await fetch("/api/v1/text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text })
@@ -61,7 +61,7 @@
     if (!select) return;
 
     try {
-      const response = await fetch("/api/display/select", {
+      const response = await fetch("/api/v1/display/select", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: select.value })

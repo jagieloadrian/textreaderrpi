@@ -37,6 +37,8 @@ object BaseLayout {
                         a(href = "/status") { +label("/status", "Status", activePath) }
                         span { +" | " }
                         a(href = "/settings/display") { +label("/settings/display", "Settings", activePath) }
+                        span { +" | " }
+                        a(href = "/schedule") { +label("/schedule", "Schedule", activePath) }
                     }
                 }
                 main(classes = "container") { content() }

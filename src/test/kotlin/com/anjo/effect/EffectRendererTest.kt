@@ -1,13 +1,16 @@
 package com.anjo.effect
 
 import com.anjo.driver.DisplayDriver
+import com.anjo.service.effect.BlinkEffect
+import com.anjo.service.effect.FadeEffect
+import com.anjo.service.effect.ReverseEffect
+import com.anjo.service.effect.ScrollEffect
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 

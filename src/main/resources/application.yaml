@@ -56,6 +56,8 @@ api:
 database:
   url: "jdbc:h2:file:./data/schedules;DB_CLOSE_DELAY=-1;AUTO_SERVER=FALSE"
   driver: "org.h2.Driver"
+  user: "sa"
+  password: ""
   poolSize: 5
 
 resources:
