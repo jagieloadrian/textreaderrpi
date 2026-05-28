@@ -1,2 +1,8 @@
 1. zrobić update wszystkich dependencji w pliku ktor-libs.versions.toml, sprawdzic w mvn central jakie są i zrobić update
-2.
+2. Schedule.isExpired() w pliku Schedule.kt nie jest używany - czemu? czy można go usunąć?
+3. w ui w sekcji home chciałbym aby użytkownik wybrał efekt wyświetlania, podobnie do w schedule
+4. jak wybiore inicjalny driver (max7219), potem jak zmienie na oled to nie mogę znów wybrać z powrotem max7219 (błąd 2026-05-28 12:13:02.871 [eventLoopGroupProxy-4-1]  INFO  Application - 400 Bad Request: POST - /api/v1/display/select in 3ms)
+5. zmien kolejnosc w ui na home, schedule, settings, status, opakuj je w ładne taby
+6. po dodaniu shceudle nie wyświetla mi sie list pod oknem dodawania, powinno dynamicznie sie samemu odświeżyć
+7. brakuje ustrukturyzowanych logów, nie wiadomo co się dzieje, dodaj logi do wszystkich ważnych akcji, np. dodanie schedule, usunięcie, wybranie drivera, itp.
+

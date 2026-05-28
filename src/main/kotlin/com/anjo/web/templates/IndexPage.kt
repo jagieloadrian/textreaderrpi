@@ -6,7 +6,9 @@ import kotlinx.html.div
 import kotlinx.html.h2
 import kotlinx.html.id
 import kotlinx.html.label
+import kotlinx.html.option
 import kotlinx.html.p
+import kotlinx.html.select
 import kotlinx.html.textArea
 
 class IndexPage {
@@ -34,6 +36,20 @@ class IndexPage {
                 id = "charCounter"
                 +"0 / 128"
             }
+            div {
+                label {
+                    htmlFor = "effectSelect"
+                    +"Effect"
+                }
+                select {
+                    id = "effectSelect"
+                    name = "effect"
+                    option { value = "SCROLL"; selected = true; +"Scroll" }
+                    option { value = "BLINK"; +"Blink" }
+                    option { value = "REVERSE"; +"Reverse" }
+                    option { value = "FADE"; +"Fade" }
+                }
+            }
             button {
                 id = "submitTextBtn"
                 +"Send"
@@ -41,4 +57,3 @@ class IndexPage {
         }
     }
 }
-

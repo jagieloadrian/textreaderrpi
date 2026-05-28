@@ -18,6 +18,8 @@ class DisplaySelectionService(
     private var currentType: String = "UNKNOWN"
     private val displayLock = ReentrantReadWriteLock()
     private val pendingSwitches = ConcurrentLinkedQueue<String>()
+    // Cache drivers by type to avoid re-registering Pi4J hardware IDs
+    private val driverCache = mutableMapOf<String, DisplayDriver>()
 
     init {
         selectDisplayAtStartup(displayConfig.type)
@@ -35,8 +37,12 @@ class DisplaySelectionService(
     }
 
     private fun createDriver(displayType: String): DisplayDriver? {
+        // Return cached driver to prevent Pi4J from rejecting duplicate hardware registrations
+        driverCache[displayType]?.let { return it }
         return try {
-            driverFactory(displayType, ctx, displayConfig)
+            val driver = driverFactory(displayType, ctx, displayConfig) ?: return null
+            driverCache[displayType] = driver
+            driver
         } catch (e: Exception) {
             System.err.println("Failed to create $displayType driver: ${e.message}")
             null
@@ -60,7 +66,7 @@ class DisplaySelectionService(
             val newDriver = createDriver(normalizedType)
 
             return if (newDriver != null) {
-                currentDriver?.stop()
+                currentDriver?.stop() // stop any ongoing animation
                 currentDriver = newDriver
                 currentType = normalizedType
                 pendingSwitches.offer(normalizedType)

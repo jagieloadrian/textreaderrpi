@@ -12,17 +12,23 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("ScheduleRoutes")
 
 fun Route.scheduleRoutes(repository: ScheduleRepository, schedulerService: SchedulerService) {
     route("/schedule") {
         get {
-            call.respond(repository.findAll())
+            val schedules = repository.findAll()
+            log.debug("GET /api/v1/schedule — returning ${schedules.size} schedule(s)")
+            call.respond(schedules)
         }
 
         post {
             val body = call.receive<Schedule>()
             val created = repository.insert(body)
             schedulerService.schedule(created)
+            log.info("Schedule created: id=${created.id} trigger=${created.triggerType}:${created.triggerValue} effect=${created.effect} priority=${created.priority}")
             call.respond(HttpStatusCode.Created, created)
         }
 
@@ -40,6 +46,7 @@ fun Route.scheduleRoutes(repository: ScheduleRepository, schedulerService: Sched
                     ?: return@delete call.respond(HttpStatusCode.BadRequest, "missing id")
                 schedulerService.cancel(id)
                 if (!repository.delete(id)) return@delete call.respond(HttpStatusCode.NotFound)
+                log.info("Schedule deleted: id=$id")
                 call.respond(HttpStatusCode.NoContent)
             }
 
@@ -53,6 +60,7 @@ fun Route.scheduleRoutes(repository: ScheduleRepository, schedulerService: Sched
                     schedulerService.cancel(id)
                     schedulerService.schedule(updated)
                 }
+                log.info("Schedule updated: id=$id status=${updated.status}")
                 call.respond(updated)
             }
         }

@@ -1,7 +1,6 @@
 package com.anjo.model
 
 import kotlinx.serialization.Serializable
-import java.time.Instant
 
 enum class Effect { SCROLL, BLINK, REVERSE, FADE }
 
@@ -22,13 +21,3 @@ data class Schedule(
     val createdAt: String? = null,
     val status: ScheduleStatus = ScheduleStatus.ACTIVE
 )
-
-fun Schedule.isExpired(): Boolean {
-    val expires = expiresAt ?: return false
-    return try {
-        Instant.now().isAfter(Instant.parse(expires))
-    } catch (_: Exception) {
-        false
-    }
-}
-

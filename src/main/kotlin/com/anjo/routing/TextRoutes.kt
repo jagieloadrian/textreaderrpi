@@ -8,10 +8,14 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("TextRoutes")
 
 fun Route.textRoutes(screenDriverService: ScreenDriverService) {
     post("/text") {
         val request = call.receive<TextRequest>()
+        log.info("Text received: length=${request.text.length} effect=${request.effect}")
         screenDriverService.displayImmediate(request.text, request.effect)
         call.respond(
             HttpStatusCode.Accepted,

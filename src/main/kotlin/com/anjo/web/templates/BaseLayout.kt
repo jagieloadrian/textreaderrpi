@@ -8,14 +8,15 @@ import kotlinx.html.h1
 import kotlinx.html.head
 import kotlinx.html.header
 import kotlinx.html.html
+import kotlinx.html.li
 import kotlinx.html.link
 import kotlinx.html.main
 import kotlinx.html.meta
 import kotlinx.html.nav
 import kotlinx.html.script
-import kotlinx.html.span
 import kotlinx.html.stream.createHTML
 import kotlinx.html.title
+import kotlinx.html.ul
 
 object BaseLayout {
     fun render(pageTitle: String, activePath: String, content: FlowContent.() -> Unit): String {
@@ -32,13 +33,12 @@ object BaseLayout {
                 header(classes = "container") {
                     h1 { +"TextReaderRpi" }
                     nav {
-                        a(href = "/") { +label("/", "Home", activePath) }
-                        span { +" | " }
-                        a(href = "/status") { +label("/status", "Status", activePath) }
-                        span { +" | " }
-                        a(href = "/settings/display") { +label("/settings/display", "Settings", activePath) }
-                        span { +" | " }
-                        a(href = "/schedule") { +label("/schedule", "Schedule", activePath) }
+                        ul {
+                            li { a(href = "/") { attributes["aria-current"] = if (activePath == "/") "page" else ""; +"Home" } }
+                            li { a(href = "/schedule") { attributes["aria-current"] = if (activePath == "/schedule") "page" else ""; +"Schedule" } }
+                            li { a(href = "/settings/display") { attributes["aria-current"] = if (activePath == "/settings/display") "page" else ""; +"Settings" } }
+                            li { a(href = "/status") { attributes["aria-current"] = if (activePath == "/status") "page" else ""; +"Status" } }
+                        }
                     }
                 }
                 main(classes = "container") { content() }
@@ -47,9 +47,4 @@ object BaseLayout {
             }
         }
     }
-
-    private fun label(path: String, text: String, activePath: String): String {
-        return if (activePath == path) "$text *" else text
-    }
 }
-

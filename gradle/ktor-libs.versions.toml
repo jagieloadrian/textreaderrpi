@@ -2,7 +2,7 @@
 # Core
 kotlin = "2.3.0"
 ktor = "3.4.2"
-logback = "1.5.6"
+logback = "1.5.18"
 kotlinx-coroutines = "1.10.2"
 kotlinx-html = "0.12.0"
 

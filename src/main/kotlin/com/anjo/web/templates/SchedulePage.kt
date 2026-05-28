@@ -76,6 +76,7 @@ fun FlowContent.schedulePage(schedules: List<Schedule>) {
         }
     }
     div {
+        id = "scheduleListContainer"
         style = "margin-top: 2rem"
         if (schedules.isEmpty()) {
             div { +"No schedules yet." }
