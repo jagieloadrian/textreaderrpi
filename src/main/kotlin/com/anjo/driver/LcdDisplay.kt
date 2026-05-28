@@ -144,4 +144,13 @@ class LcdDisplay(
     override fun stop() {
         job?.cancel()
     }
+
+    override suspend fun setBrightness(level: Int) {
+        // LCD 16x2 HD44780 backlight not software-controllable via I2C in this implementation
+        // No-op: log as informational
+    }
+
+    override suspend fun displayStatic(text: String) {
+        write(text)
+    }
 }

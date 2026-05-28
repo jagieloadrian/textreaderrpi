@@ -3,6 +3,8 @@ package com.anjo.service
 import com.anjo.config.model.RetryConfig
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
+import com.anjo.effect.EffectRenderer
+import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
 import com.codahale.metrics.Timer
 import kotlinx.coroutines.CancellationException
@@ -22,6 +24,7 @@ class ScreenDriverService(
     private val retryConfig: RetryConfig,
     private val displaySelectionService: DisplaySelectionService?,
     private val metrics: ScreenDriverMetrics,
+    private val effectFactory: EffectRendererFactory = EffectRendererFactory(),
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
 
@@ -33,7 +36,7 @@ class ScreenDriverService(
     @Volatile private var currentDisplayJob: Job? = null
 
     /** Called by ad-hoc POST /api/text — preempts any running scheduled display. */
-    suspend fun displayImmediate(text: String, effect: String = "SCROLL") {
+    suspend fun displayImmediate(text: String, effect: Effect = Effect.SCROLL) {
         currentDisplayJob?.cancel()
         currentScheduledId = null
         metrics.acceptedMeter?.mark()
@@ -42,7 +45,7 @@ class ScreenDriverService(
         metrics.inFlightCounter?.inc()
         try {
             displayMutex.withLock {
-                executeWithRecovery(text)
+                executeWithRecovery(text, effectFactory.create(effect))
             }
         } catch (e: Exception) {
             metrics.failedMeter?.mark()
@@ -55,13 +58,13 @@ class ScreenDriverService(
     }
 
     /** Called by the scheduler — registers the job for cancellation via displayImmediate. */
-    suspend fun displayScheduled(text: String, scheduleId: String, effect: String = "SCROLL") {
+    suspend fun displayScheduled(text: String, scheduleId: String, renderer: EffectRenderer) {
         currentScheduledId = scheduleId
         currentDisplayJob = currentCoroutineContext().job
         lastSentMessage.set(text)
         try {
             displayMutex.withLock {
-                executeWithRecovery(text)
+                executeWithRecovery(text, renderer)
             }
         } catch (_: CancellationException) {
             // Scheduler handles re-queue; do not rethrow
@@ -80,10 +83,10 @@ class ScreenDriverService(
         displayImmediate(input)
     }
 
-    private suspend fun executeWithRecovery(input: String) {
+    private suspend fun executeWithRecovery(input: String, renderer: EffectRenderer) {
         withContext(ioDispatcher) {
             retryWithBackoff(retryConfig) {
-                driver.scrollText(this, input)
+                renderer.render(input, driver)
             }
         }
     }

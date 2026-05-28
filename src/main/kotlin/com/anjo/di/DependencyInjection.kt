@@ -9,6 +9,7 @@ import com.anjo.service.DisplaySelectionService
 import com.anjo.service.MetricsCollector
 import com.anjo.service.ReaderInputService
 import com.anjo.model.ScreenDriverMetrics
+import com.anjo.service.EffectRendererFactory
 import com.anjo.service.SchedulerService
 import com.anjo.service.ScreenDriverService
 import com.codahale.metrics.MetricRegistry
@@ -51,7 +52,8 @@ fun Application.configureDI() {
     val readerInputService = ReaderInputService(screenDriverService)
     val metricsCollector = MetricsCollector(metricRegistry)
     val scheduleRepository = ScheduleRepository()
-    val schedulerService = SchedulerService(scheduleRepository, screenDriverService)
+    val effectRendererFactory = EffectRendererFactory()
+    val schedulerService = SchedulerService(scheduleRepository, screenDriverService, effectRendererFactory)
 
     // Lifecycle hooks
     monitor.subscribe(ApplicationStarted) { schedulerService.start() }
@@ -68,6 +70,7 @@ fun Application.configureDI() {
         provide { readerInputService }
         provide { metricsCollector }
         provide { scheduleRepository }
+        provide { effectRendererFactory }
         provide { schedulerService }
     }
 }

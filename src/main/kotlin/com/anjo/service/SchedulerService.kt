@@ -1,6 +1,7 @@
 package com.anjo.service
 
 import com.anjo.db.ScheduleRepository
+import com.anjo.effect.EffectRenderer
 import com.anjo.model.Schedule
 import com.anjo.model.TriggerType
 import com.cronutils.model.CronType
@@ -22,19 +23,20 @@ import java.util.concurrent.ConcurrentHashMap
 
 class SchedulerService(
     private val repository: ScheduleRepository,
-    private val screenService: ScreenDriverService
+    private val screenService: ScreenDriverService,
+    private val effectFactory: EffectRendererFactory,
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 ) {
     private val log = LoggerFactory.getLogger(SchedulerService::class.java)
-    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val activeJobs = ConcurrentHashMap<String, Job>()
     private val cronParser = CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX))
 
     fun start() {
         log.info("SchedulerService starting")
         scope.launch {
-            // Load all active schedules from DB and schedule them
             try {
                 val active = repository.findAllActive()
+                    .sortedWith(compareByDescending<Schedule> { it.priority }.thenBy { it.createdAt ?: "" })
                 active.forEach { schedule(it) }
                 log.info("Loaded ${active.size} active schedule(s) from database")
             } catch (e: Exception) {
@@ -86,9 +88,11 @@ class SchedulerService(
     private suspend fun tickLoop() {
         while (scope.isActive) {
             try {
-                delay(60_000L) // check every minute
+                delay(60_000L)
                 val active = repository.findAllActive()
-                active.filter { !activeJobs.containsKey(it.id) }.forEach { schedule(it) }
+                    .sortedWith(compareByDescending<Schedule> { it.priority }.thenBy { it.createdAt ?: "" })
+                    .filter { !activeJobs.containsKey(it.id) }
+                active.forEach { schedule(it) }
             } catch (_: CancellationException) {
                 break
             } catch (e: Exception) {
@@ -160,7 +164,8 @@ class SchedulerService(
 
     private suspend fun fire(schedule: Schedule) {
         try {
-            screenService.displayScheduled(schedule.text, schedule.id, schedule.effect.name)
+            val renderer = effectFactory.create(schedule.effect)
+            screenService.displayScheduled(schedule.text, schedule.id, renderer)
         } catch (e: Exception) {
             log.error("Failed to fire schedule ${schedule.id}: ${e.message}", e)
         }

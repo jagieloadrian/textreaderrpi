@@ -132,4 +132,15 @@ class OledDisplay(
     override fun stop() {
         job?.cancel()
     }
+
+    override suspend fun setBrightness(level: Int) {
+        // SSD1306 contrast register 0x81 maps 0-15 to 0-255
+        val contrastValue = (level.coerceIn(0, 15) * 17).coerceIn(0, 255)
+        sendCommand(0x81)
+        sendCommand(contrastValue)
+    }
+
+    override suspend fun displayStatic(text: String) {
+        write(text)
+    }
 }
