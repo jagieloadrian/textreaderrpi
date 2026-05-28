@@ -1,17 +1,61 @@
 services:
   textreaderrpi:
+    # Image is built by Gradle, not Docker Compose.
+    # Run first: ./gradlew publishImageToLocalRegistry
     image: textreaderrpi:latest
-    build:
-      context: ../..
-      dockerfile: .devops/containers/Dockerfile
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:8080"
     environment:
-      - KTOR_ENV=production
+      # ── Server ──────────────────────────────────────────────────────────────
+      PORT: "${PORT:-8080}"
+
+      # ── Database ─────────────────────────────────────────────────────────────
+      # H2 (default):
+      DATABASE_URL: "${DATABASE_URL:-jdbc:h2:file:/data/schedules;DB_CLOSE_DELAY=-1;AUTO_SERVER=FALSE}"
+      DATABASE_DRIVER: "${DATABASE_DRIVER:-org.h2.Driver}"
+      DATABASE_USER: "${DATABASE_USER:-sa}"
+      DATABASE_PASSWORD: "${DATABASE_PASSWORD:-}"
+      DATABASE_POOL_SIZE: "${DATABASE_POOL_SIZE:-5}"
+
+      # ── Display ──────────────────────────────────────────────────────────────
+      DISPLAY_TYPE: "${DISPLAY_TYPE:-MAX7219}"
+      MAX7219_NUM_DEVICES: "${MAX7219_NUM_DEVICES:-2}"
+      GPIO_SPI_CE: "${GPIO_SPI_CE:-8}"
+      GPIO_SPI_MOSI: "${GPIO_SPI_MOSI:-10}"
+      GPIO_SPI_MISO: "${GPIO_SPI_MISO:-9}"
+      GPIO_SPI_SCK: "${GPIO_SPI_SCK:-11}"
+      I2C_BUS: "${I2C_BUS:-1}"
+
+      # ── Hardware timeouts ────────────────────────────────────────────────────
+      SPI_TIMEOUT_MS: "${SPI_TIMEOUT_MS:-1000}"
+      GPIO_TIMEOUT_MS: "${GPIO_TIMEOUT_MS:-500}"
+
+      # ── API ──────────────────────────────────────────────────────────────────
+      API_MAX_TEXT_LENGTH: "${API_MAX_TEXT_LENGTH:-128}"
+      API_QUEUE_SIZE: "${API_QUEUE_SIZE:-10}"
+      API_RATE_LIMIT: "${API_RATE_LIMIT:-60}"
+      API_METRICS_RATE_LIMIT: "${API_METRICS_RATE_LIMIT:-120}"
+
+      # ── Retry ────────────────────────────────────────────────────────────────
+      RETRY_MAX_ATTEMPTS: "${RETRY_MAX_ATTEMPTS:-5}"
+      RETRY_INITIAL_DELAY_MS: "${RETRY_INITIAL_DELAY_MS:-1000}"
+      RETRY_MAX_DELAY_MS: "${RETRY_MAX_DELAY_MS:-30000}"
+      RETRY_FACTOR: "${RETRY_FACTOR:-2.0}"
+
+      # ── Metrics & Logging ────────────────────────────────────────────────────
+      METRICS_ENABLED: "${METRICS_ENABLED:-true}"
+      METRICS_PREFIX: "${METRICS_PREFIX:-textreaderrpi}"
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+      LOG_FORMAT: "${LOG_FORMAT:-json}"
+      SCREEN_DRIVER_MAX_SLOTS: "${SCREEN_DRIVER_MAX_SLOTS:-10}"
+      SCROLL_SPEED: "${SCROLL_SPEED:-16}"
+      REFRESH_RATE: "${REFRESH_RATE:-60}"
+
     env_file:
       - ../../.env.local
     volumes:
-      - logs:/opt/textreaderrpi/logs
+      - data:/data
+      - logs:/app/logs
     devices:
       - /dev/spidev0.0:/dev/spidev0.0
       - /dev/i2c-1:/dev/i2c-1
@@ -24,5 +68,5 @@ services:
     restart: unless-stopped
 
 volumes:
+  data:
   logs:
-

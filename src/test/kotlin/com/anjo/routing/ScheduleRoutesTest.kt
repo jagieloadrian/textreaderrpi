@@ -7,7 +7,6 @@ import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -18,7 +17,7 @@ import io.ktor.server.testing.testApplication
 
 class ScheduleRoutesTest : FunSpec({
 
-    test("GET /api/v1/schedule returns 200 with list") {
+    test("should return 200 with schedule list for GET /api/v1/schedule") {
         testApplication {
             application { module() }
             val response = client.get("/api/v1/schedule")
@@ -27,7 +26,7 @@ class ScheduleRoutesTest : FunSpec({
         }
     }
 
-    test("POST /api/v1/schedule returns 201 for valid recurring body") {
+    test("should return 201 when creating valid recurring schedule") {
         testApplication {
             application { module() }
             val response = client.post("/api/v1/schedule") {
@@ -38,7 +37,7 @@ class ScheduleRoutesTest : FunSpec({
         }
     }
 
-    test("POST /api/v1/schedule returns 422 for text > 512 chars") {
+    test("should return 422 when text exceeds 512 characters") {
         testApplication {
             application { module() }
             val longText = "a".repeat(513)
@@ -50,7 +49,7 @@ class ScheduleRoutesTest : FunSpec({
         }
     }
 
-    test("POST /api/v1/schedule returns 422 for invalid cron") {
+    test("should return 422 with error for invalid cron expression") {
         testApplication {
             application { module() }
             val response = client.post("/api/v1/schedule") {
@@ -62,7 +61,7 @@ class ScheduleRoutesTest : FunSpec({
         }
     }
 
-    test("POST /api/v1/schedule returns 201 for valid cron expression") {
+    test("should return 201 for valid cron expression") {
         testApplication {
             application { module() }
             val response = client.post("/api/v1/schedule") {
@@ -73,7 +72,7 @@ class ScheduleRoutesTest : FunSpec({
         }
     }
 
-    test("GET /api/v1/schedule/{id} returns 404 for missing id") {
+    test("should return 404 for unknown schedule id on GET") {
         testApplication {
             application { module() }
             val response = client.get("/api/v1/schedule/nonexistent-id")
@@ -81,7 +80,7 @@ class ScheduleRoutesTest : FunSpec({
         }
     }
 
-    test("DELETE /api/v1/schedule/{id} returns 404 for missing id") {
+    test("should return 404 when deleting unknown schedule") {
         testApplication {
             application { module() }
             val response = client.delete("/api/v1/schedule/nonexistent-id")
@@ -89,7 +88,31 @@ class ScheduleRoutesTest : FunSpec({
         }
     }
 
-    test("POST then GET then DELETE round-trip") {
+    test("should return 204 when cancelling active recurring schedule") {
+        testApplication {
+            application { module() }
+            val createResponse = client.post("/api/v1/schedule") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"cancel test","triggerType":"RECURRING","triggerValue":"1h","effect":"SCROLL","priority":0}""")
+            }
+            createResponse.status shouldBe HttpStatusCode.Created
+            val id = Regex(""""id"\s*:\s*"([^"]+)"""").find(createResponse.bodyAsText())?.groupValues?.get(1)
+
+            requireNotNull(id) { "id missing from create response" }
+            val cancelResponse = client.post("/api/v1/schedule/$id/cancel")
+            cancelResponse.status shouldBe HttpStatusCode.NoContent
+        }
+    }
+
+    test("should return 204 idempotently for cancel on unknown id") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/schedule/nonexistent-id/cancel")
+            response.status shouldBe HttpStatusCode.NoContent
+        }
+    }
+
+    test("should complete POST GET DELETE round-trip successfully") {
         testApplication {
             application { module() }
             val createResponse = client.post("/api/v1/schedule") {
@@ -100,18 +123,11 @@ class ScheduleRoutesTest : FunSpec({
             val body = createResponse.bodyAsText()
             body shouldContain "roundtrip test"
 
-            // Extract id from response body (simple JSON parse)
-            val idMatch = Regex(""""id"\s*:\s*"([^"]+)"""").find(body)
-            val id = idMatch?.groupValues?.get(1)
-
+            val id = Regex(""""id"\s*:\s*"([^"]+)"""").find(body)?.groupValues?.get(1)
             if (id != null && id.isNotEmpty()) {
-                val getResponse = client.get("/api/v1/schedule/$id")
-                getResponse.status shouldBe HttpStatusCode.OK
-
-                val deleteResponse = client.delete("/api/v1/schedule/$id")
-                deleteResponse.status shouldBe HttpStatusCode.NoContent
+                client.get("/api/v1/schedule/$id").status shouldBe HttpStatusCode.OK
+                client.delete("/api/v1/schedule/$id").status shouldBe HttpStatusCode.NoContent
             }
         }
     }
 })
-

@@ -29,7 +29,6 @@ dependencies {
 
     // Swagger / OpenAPI
     implementation(ktorLibs.ktor.server.swagger)
-    implementation(ktorLibs.ktor.server.routing.openapi)
 
     // Routing features
     implementation(ktorLibs.ktor.server.auto.head.response)
@@ -62,9 +61,13 @@ dependencies {
     implementation(ktorLibs.exposed.core)
     implementation(ktorLibs.exposed.jdbc)
     implementation(ktorLibs.exposed.java.time)
-    implementation(ktorLibs.h2)
     implementation(ktorLibs.hikaricp)
     implementation(ktorLibs.cron.utils)
+    // JDBC drivers — loaded at runtime based on application.yaml driver setting
+    runtimeOnly(ktorLibs.h2)
+    runtimeOnly(ktorLibs.postgresql)
+    // H2 also needed in tests
+    testRuntimeOnly(ktorLibs.h2)
 
     // Test
     testImplementation(ktorLibs.kotlin.test.junit5)
@@ -83,8 +86,8 @@ tasks.test {
     useJUnitPlatform()
     jacoco {
         excludes += setOf(
-            "com.anjo.model.*${'$'}serializer*",
-            "com.anjo.model.*${'$'}Companion*"
+            $$"com.anjo.model.*$serializer*",
+            $$"com.anjo.model.*$Companion*"
         )
     }
     finalizedBy(tasks.jacocoTestReport, tasks.jacocoTestCoverageVerification)
@@ -125,6 +128,24 @@ tasks.jacocoTestCoverageVerification {
                 minimum = "0.70".toBigDecimal()
             }
         }
+    }
+}
+
+ktor {
+    openApi {
+        enabled = true
+        codeInferenceEnabled = true
+        onlyCommented = false
+    }
+
+    fatJar {
+        archiveFileName.set("textreaderrpi.jar")
+    }
+
+    docker {
+        localImageName.set("textreaderrpi")
+        imageTag.set("latest")
+        imageTag.set("${project.version}")
     }
 }
 

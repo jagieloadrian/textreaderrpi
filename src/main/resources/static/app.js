@@ -97,6 +97,9 @@
       return;
     }
 
+    const isStoppable = s =>
+      s.status === "ACTIVE" && (s.triggerType === "RECURRING" || s.triggerType === "CRON");
+
     const rows = schedules.map(s => `
       <tr>
         <td>${escHtml(s.id.slice(0, 8))}</td>
@@ -104,7 +107,10 @@
         <td>${escHtml(s.triggerType)}: ${escHtml(s.triggerValue)}</td>
         <td>${escHtml(s.effect)}</td>
         <td>${escHtml(s.status)}</td>
-        <td><a href="#" data-delete-id="${escHtml(s.id)}">Delete</a></td>
+        <td>
+          ${isStoppable(s) ? `<a href="#" data-stop-id="${escHtml(s.id)}">Stop</a> ` : ""}
+          <a href="#" data-delete-id="${escHtml(s.id)}">Delete</a>
+        </td>
       </tr>`).join("");
 
     container.innerHTML = `
@@ -114,6 +120,13 @@
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>`;
+
+    container.querySelectorAll("[data-stop-id]").forEach(link => {
+      link.addEventListener("click", async e => {
+        e.preventDefault();
+        await stopSchedule(link.getAttribute("data-stop-id"));
+      });
+    });
 
     container.querySelectorAll("[data-delete-id]").forEach(link => {
       link.addEventListener("click", async e => {
@@ -150,6 +163,20 @@
       } else {
         const err = await response.json().catch(() => ({}));
         showToast(err.message || "Failed to create schedule", "error");
+      }
+    } catch (_) {
+      showToast("Network error", "error");
+    }
+  }
+
+  async function stopSchedule(id) {
+    try {
+      const response = await fetch(`/api/v1/schedule/${id}/cancel`, { method: "POST" });
+      if (response.ok || response.status === 204) {
+        showToast("Schedule stopped", "success");
+        await loadSchedules();
+      } else {
+        showToast("Failed to stop schedule", "error");
       }
     } catch (_) {
       showToast("Network error", "error");

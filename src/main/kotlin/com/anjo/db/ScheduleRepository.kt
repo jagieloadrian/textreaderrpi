@@ -4,30 +4,30 @@ import com.anjo.model.Effect
 import com.anjo.model.Schedule
 import com.anjo.model.ScheduleStatus
 import com.anjo.model.TriggerType
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.update
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import java.time.Instant
 import java.util.UUID
 
 class ScheduleRepository {
 
-    suspend fun findAll(): List<Schedule> = newSuspendedTransaction {
+    suspend fun findAll(): List<Schedule> = suspendTransaction {
         SchedulesTable.selectAll().map { it.toSchedule() }
     }
 
-    suspend fun findById(id: String): Schedule? = newSuspendedTransaction {
+    suspend fun findById(id: String): Schedule? = suspendTransaction {
         SchedulesTable.selectAll()
             .where { SchedulesTable.id eq id }
             .map { it.toSchedule() }
             .singleOrNull()
     }
 
-    suspend fun findAllActive(): List<Schedule> = newSuspendedTransaction {
+    suspend fun findAllActive(): List<Schedule> = suspendTransaction {
         SchedulesTable.selectAll()
             .where { SchedulesTable.status eq "ACTIVE" }
             .map { it.toSchedule() }
@@ -36,7 +36,7 @@ class ScheduleRepository {
     suspend fun insert(schedule: Schedule): Schedule {
         val newId = UUID.randomUUID().toString()
         val createdAt = Instant.now().toString()
-        newSuspendedTransaction {
+        suspendTransaction {
             SchedulesTable.insert {
                 it[id] = newId
                 it[text] = schedule.text
@@ -54,7 +54,7 @@ class ScheduleRepository {
     }
 
     suspend fun update(id: String, schedule: Schedule): Schedule? {
-        val updated = newSuspendedTransaction {
+        val updated = suspendTransaction {
             SchedulesTable.update({ SchedulesTable.id eq id }) {
                 it[text] = schedule.text
                 it[triggerType] = schedule.triggerType.name
@@ -70,7 +70,7 @@ class ScheduleRepository {
     }
 
     suspend fun updateStatus(id: String, status: String) {
-        newSuspendedTransaction {
+        suspendTransaction {
             SchedulesTable.update({ SchedulesTable.id eq id }) {
                 it[SchedulesTable.status] = status
             }
@@ -78,7 +78,7 @@ class ScheduleRepository {
     }
 
     suspend fun delete(id: String): Boolean {
-        val deletedRows = newSuspendedTransaction {
+        val deletedRows = suspendTransaction {
             SchedulesTable.deleteWhere { SchedulesTable.id eq id }
         }
         return deletedRows > 0
@@ -97,4 +97,3 @@ class ScheduleRepository {
         status = ScheduleStatus.valueOf(this[SchedulesTable.status])
     )
 }
-

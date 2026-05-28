@@ -9,11 +9,11 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNotNull
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class ScheduleRepositoryTest : FunSpec({
 
@@ -29,14 +29,10 @@ class ScheduleRepositoryTest : FunSpec({
     }
 
     val testSchedule: () -> Schedule = {
-        Schedule(
-            text = "hello",
-            triggerType = TriggerType.RECURRING,
-            triggerValue = "5m"
-        )
+        Schedule(text = "hello", triggerType = TriggerType.RECURRING, triggerValue = "5m")
     }
 
-    test("insert and findById round-trip") {
+    test("should find inserted schedule by id") {
         runTest {
             val inserted = repository.insert(testSchedule())
             inserted.id.shouldNotBeNull()
@@ -49,49 +45,37 @@ class ScheduleRepositoryTest : FunSpec({
         }
     }
 
-    test("findAll returns all records") {
+    test("should return all inserted records") {
         runTest {
             repository.insert(testSchedule())
             repository.insert(testSchedule().copy(text = "world"))
-
-            val all = repository.findAll()
-            all shouldHaveAtLeastSize 2
+            repository.findAll() shouldHaveAtLeastSize 2
         }
     }
 
-    test("delete removes record") {
+    test("should remove record after delete") {
         runTest {
             val inserted = repository.insert(testSchedule())
-            val deleted = repository.delete(inserted.id)
-            deleted shouldBe true
-
-            val found = repository.findById(inserted.id)
-            found.shouldBeNull()
+            repository.delete(inserted.id) shouldBe true
+            repository.findById(inserted.id).shouldBeNull()
         }
     }
 
-    test("update changes text field") {
+    test("should update text field") {
         runTest {
             val inserted = repository.insert(testSchedule())
             val updated = repository.update(inserted.id, inserted.copy(text = "updated"))
             updated.shouldNotBeNull()
             updated.text shouldBe "updated"
-
-            val found = repository.findById(inserted.id)
-            found.shouldNotBeNull()
-            found.text shouldBe "updated"
+            repository.findById(inserted.id)?.text shouldBe "updated"
         }
     }
 
-    test("updateStatus changes status") {
+    test("should change schedule status to DONE") {
         runTest {
             val inserted = repository.insert(testSchedule())
             repository.updateStatus(inserted.id, "DONE")
-
-            val found = repository.findById(inserted.id)
-            found.shouldNotBeNull()
-            found.status shouldBe ScheduleStatus.DONE
+            repository.findById(inserted.id)?.status shouldBe ScheduleStatus.DONE
         }
     }
 })
-

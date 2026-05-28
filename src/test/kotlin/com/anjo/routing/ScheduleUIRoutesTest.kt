@@ -14,7 +14,7 @@ import io.ktor.server.testing.testApplication
 
 class ScheduleUIRoutesTest : FunSpec({
 
-    test("GET /schedule returns 200 with HTML content type") {
+    test("should return 200 HTML for GET /schedule") {
         testApplication {
             application { module() }
             val response = client.get("/schedule") {
@@ -25,7 +25,7 @@ class ScheduleUIRoutesTest : FunSpec({
         }
     }
 
-    test("GET /schedule page contains Schedule Manager heading") {
+    test("should contain Schedule Manager heading on /schedule page") {
         testApplication {
             application { module() }
             val response = client.get("/schedule")
@@ -34,7 +34,7 @@ class ScheduleUIRoutesTest : FunSpec({
         }
     }
 
-    test("GET /schedule page contains schedule table headers") {
+    test("should contain table headers Text and Status on /schedule page") {
         testApplication {
             application { module() }
             val response = client.get("/schedule")
@@ -44,4 +44,3 @@ class ScheduleUIRoutesTest : FunSpec({
         }
     }
 })
-

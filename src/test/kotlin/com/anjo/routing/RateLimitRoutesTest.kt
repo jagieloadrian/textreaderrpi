@@ -23,7 +23,7 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 
 class RateLimitRoutesTest : FunSpec({
-    test("requests below limit are allowed through") {
+    test("should allow requests below rate limit") {
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
@@ -34,13 +34,11 @@ class RateLimitRoutesTest : FunSpec({
                     }
                 }
             }
-            repeat(5) {
-                client.get("/api/v1/test").status shouldBe HttpStatusCode.OK
-            }
+            repeat(5) { client.get("/api/v1/test").status shouldBe HttpStatusCode.OK }
         }
     }
 
-    test("requests over limit receive 429 with Retry-After header") {
+    test("should return 429 with Retry-After header when rate limit exceeded") {
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
@@ -51,18 +49,14 @@ class RateLimitRoutesTest : FunSpec({
                     }
                 }
             }
-
-            repeat(2) {
-                client.get("/api/v1/test").status shouldBe HttpStatusCode.OK
-            }
-
+            repeat(2) { client.get("/api/v1/test").status shouldBe HttpStatusCode.OK }
             val limited = client.get("/api/v1/test")
             limited.status shouldBe HttpStatusCode.TooManyRequests
             limited.headers[HttpHeaders.RetryAfter] shouldBe "60"
         }
     }
 
-    test("rate-limited response contains error message") {
+    test("should include error message in rate-limited response") {
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
@@ -73,16 +67,14 @@ class RateLimitRoutesTest : FunSpec({
                     }
                 }
             }
-
             client.get("/api/v1/test")
             val limited = client.get("/api/v1/test")
-
             limited.status shouldBe HttpStatusCode.TooManyRequests
             limited.bodyAsText() shouldContain "Rate limit exceeded"
         }
     }
 
-    test("paths not matching /api/v1 are not rate-limited") {
+    test("should not rate-limit paths outside /api/v1") {
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
@@ -94,14 +86,11 @@ class RateLimitRoutesTest : FunSpec({
                     get("/status") { call.respond(HttpStatusCode.OK, mapOf("ok" to true)) }
                 }
             }
-
-            repeat(5) {
-                client.get("/status").status shouldBe HttpStatusCode.OK
-            }
+            repeat(5) { client.get("/status").status shouldBe HttpStatusCode.OK }
         }
     }
 
-    test("full application limiter behavior on /api/v1 routes") {
+    test("should rate-limit /api/v1 routes after threshold") {
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
@@ -112,14 +101,13 @@ class RateLimitRoutesTest : FunSpec({
                     }
                 }
             }
-
             client.get("/api/v1/display/status").status shouldBe HttpStatusCode.OK
             client.get("/api/v1/display/status").status shouldBe HttpStatusCode.OK
             client.get("/api/v1/display/status").status shouldBe HttpStatusCode.TooManyRequests
         }
     }
 
-    test("POST /api/v1/text is rate-limited with Retry-After header") {
+    test("should rate-limit POST /api/v1/text with Retry-After header") {
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
@@ -130,13 +118,11 @@ class RateLimitRoutesTest : FunSpec({
                     }
                 }
             }
-
             val first = client.post("/api/v1/text") {
                 header("Content-Type", "application/json")
                 setBody("""{"text":"hello"}""")
             }
             first.status shouldBe HttpStatusCode.Accepted
-
             val limited = client.post("/api/v1/text") {
                 header("Content-Type", "application/json")
                 setBody("""{"text":"hello"}""")
@@ -146,7 +132,7 @@ class RateLimitRoutesTest : FunSpec({
         }
     }
 
-    test("GET /api/v1/display/status returns 429 with Retry-After when rate limited") {
+    test("should return 429 with Retry-After for rate-limited GET /api/v1/display/status") {
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
@@ -157,7 +143,6 @@ class RateLimitRoutesTest : FunSpec({
                     }
                 }
             }
-
             client.get("/api/v1/display/status").status shouldBe HttpStatusCode.OK
             val limited = client.get("/api/v1/display/status")
             limited.status shouldBe HttpStatusCode.TooManyRequests

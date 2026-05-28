@@ -52,13 +52,14 @@ class SchedulerService(
     }
 
     fun schedule(schedule: Schedule) {
-        cancel(schedule.id) // cancel any existing job for this id before re-scheduling
+        activeJobs.remove(schedule.id)?.cancel()
         val job = when (schedule.triggerType) {
             TriggerType.ONESHOT -> launchOneShot(schedule)
             TriggerType.RECURRING -> launchRecurring(schedule)
             TriggerType.CRON -> launchCron(schedule)
         }
         if (job != null) {
+            log.debug("Coroutine launched for schedule id=${schedule.id} type=${schedule.triggerType}")
             activeJobs[schedule.id] = job
         }
     }
@@ -152,6 +153,7 @@ class SchedulerService(
 
     private suspend fun fire(schedule: Schedule) {
         try {
+            log.info("Firing schedule id=${schedule.id} text='${schedule.text.take(30)}' effect=${schedule.effect}")
             val renderer = effectFactory.create(schedule.effect)
             screenService.displayScheduled(schedule.text, schedule.id, renderer)
         } catch (e: Exception) {
@@ -173,4 +175,3 @@ class SchedulerService(
         }
     }
 }
-

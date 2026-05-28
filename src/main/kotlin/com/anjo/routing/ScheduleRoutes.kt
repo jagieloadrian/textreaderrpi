@@ -50,6 +50,14 @@ fun Route.scheduleRoutes(repository: ScheduleRepository, schedulerService: Sched
                 call.respond(HttpStatusCode.NoContent)
             }
 
+            post("/cancel") {
+                val id = call.parameters["id"]
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, "missing id")
+                schedulerService.cancel(id)   // cancels coroutine + writes DONE to DB
+                log.info("Schedule cancelled: id=$id")
+                call.respond(HttpStatusCode.NoContent)
+            }
+
             patch {
                 val id = call.parameters["id"]
                     ?: return@patch call.respond(HttpStatusCode.BadRequest, "missing id")

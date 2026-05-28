@@ -33,43 +33,33 @@ class ConflictPolicyTest : FunSpec({
         metrics = ScreenDriverMetrics.DISABLED,
     )
 
-    test("ad-hoc displayImmediate cancels running scheduled job") {
+    test("should cancel scheduled job when immediate display is requested") {
         runTest {
             val driver = mockk<DisplayDriver>(relaxed = true)
             val svc = makeService(driver)
 
-            // Launch displayScheduled in a background coroutine (represents scheduler thread)
             val scheduledJob = launch {
-                val renderer = ScrollEffect()
-                svc.displayScheduled("scheduled-text", "sched-001", renderer)
+                svc.displayScheduled("scheduled-text", "sched-001", ScrollEffect())
             }
-
-            // Let displayScheduled start and acquire the mutex
             advanceUntilIdle()
 
-            // Now call displayImmediate which should cancel the scheduled job
             val immediateJob = launch {
                 svc.displayImmediate("ad-hoc-text", Effect.SCROLL)
             }
-
             advanceUntilIdle()
 
-            // ad-hoc display was triggered (scrollText called for "ad-hoc-text")
             coVerify { driver.scrollText(any(), "ad-hoc-text", any()) }
-
             scheduledJob.cancel()
             immediateJob.join()
         }
     }
 
-    test("displayImmediate completes successfully when no scheduled job running") {
+    test("should complete immediate display when no scheduled job is running") {
         runTest {
             val driver = mockk<DisplayDriver>(relaxed = true)
             val svc = makeService(driver)
 
-            val job = launch {
-                svc.displayImmediate("solo-text", Effect.SCROLL)
-            }
+            val job = launch { svc.displayImmediate("solo-text", Effect.SCROLL) }
             advanceUntilIdle()
             job.join()
 
@@ -77,9 +67,8 @@ class ConflictPolicyTest : FunSpec({
         }
     }
 
-    test("priority ordering: higher priority schedule is scheduled before lower when using sorted order") {
+    test("should fire higher priority schedule before lower priority") {
         runTest {
-            // This tests that SchedulerService sorts by priority before scheduling
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
             val mockRepo = mockk<com.anjo.db.ScheduleRepository>(relaxed = true)
             val mockScreen = mockk<ScreenDriverService>(relaxed = true)
@@ -92,44 +81,32 @@ class ConflictPolicyTest : FunSpec({
                 firedOrder.add(firstArg())
             }
 
-            // Repository returns lower-priority schedule first (simulating DB order)
             val lowPriority = com.anjo.model.Schedule(
-                id = "lo",
-                text = "low-priority",
+                id = "lo", text = "low-priority",
                 triggerType = com.anjo.model.TriggerType.ONESHOT,
-                triggerValue = java.time.Instant.now().minusSeconds(1).toString(), // already past
-                priority = 0,
-                effect = Effect.SCROLL,
-                createdAt = "2026-01-01T00:00:00Z"
+                triggerValue = java.time.Instant.now().minusSeconds(1).toString(),
+                priority = 0, effect = Effect.SCROLL, createdAt = "2026-01-01T00:00:00Z"
             )
             val highPriority = com.anjo.model.Schedule(
-                id = "hi",
-                text = "high-priority",
+                id = "hi", text = "high-priority",
                 triggerType = com.anjo.model.TriggerType.ONESHOT,
-                triggerValue = java.time.Instant.now().minusSeconds(1).toString(), // already past
-                priority = 10,
-                effect = com.anjo.model.Effect.SCROLL,
-                createdAt = "2026-01-01T00:00:01Z"
+                triggerValue = java.time.Instant.now().minusSeconds(1).toString(),
+                priority = 10, effect = Effect.SCROLL, createdAt = "2026-01-01T00:00:01Z"
             )
             io.mockk.coEvery { mockRepo.findAllActive() } returns listOf(lowPriority, highPriority)
 
             val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
             service.start()
-
-            // Let the start() and launchOneShot (with delayMs <= 0) run
             advanceTimeBy(1000L)
 
-            // high-priority should fire before low-priority (sorted by priority desc)
-            if (firedOrder.size >= 2) {
-                firedOrder[0] shouldBe "high-priority"
-            }
+            if (firedOrder.size >= 2) firedOrder[0] shouldBe "high-priority"
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
         }
     }
 
-    test("same priority: earlier createdAt fires first") {
+    test("should fire earlier createdAt schedule first when same priority") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
             val mockRepo = mockk<com.anjo.db.ScheduleRepository>(relaxed = true)
@@ -144,42 +121,27 @@ class ConflictPolicyTest : FunSpec({
             }
 
             val earlier = com.anjo.model.Schedule(
-                id = "e1",
-                text = "earlier",
+                id = "e1", text = "earlier",
                 triggerType = com.anjo.model.TriggerType.ONESHOT,
                 triggerValue = java.time.Instant.now().minusSeconds(1).toString(),
-                priority = 5,
-                createdAt = "2026-01-01T00:00:00Z",
-                effect = Effect.SCROLL
+                priority = 5, createdAt = "2026-01-01T00:00:00Z", effect = Effect.SCROLL
             )
             val later = com.anjo.model.Schedule(
-                id = "e2",
-                text = "later",
+                id = "e2", text = "later",
                 triggerType = com.anjo.model.TriggerType.ONESHOT,
                 triggerValue = java.time.Instant.now().minusSeconds(1).toString(),
-                priority = 5,
-                createdAt = "2026-01-01T00:01:00Z",
-                effect = Effect.SCROLL
+                priority = 5, createdAt = "2026-01-01T00:01:00Z", effect = Effect.SCROLL
             )
-            // Repository returns [later, earlier] — reverse order
             io.mockk.coEvery { mockRepo.findAllActive() } returns listOf(later, earlier)
 
             val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
             service.start()
-
             advanceTimeBy(1000L)
 
-            // "earlier" should fire before "later" (sortedWith thenBy createdAt)
-            if (firedOrder.size >= 2) {
-                firedOrder[0] shouldBe "earlier"
-            }
+            if (firedOrder.size >= 2) firedOrder[0] shouldBe "earlier"
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
         }
     }
 })
-
-
-
-

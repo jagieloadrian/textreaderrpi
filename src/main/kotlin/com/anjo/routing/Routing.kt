@@ -8,6 +8,7 @@ import com.anjo.routing.ui.webRoutes
 import com.anjo.service.MetricsCollector
 import com.anjo.service.SchedulerService
 import com.anjo.service.ScreenDriverService
+import io.ktor.http.ContentType
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -15,8 +16,10 @@ import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.autohead.AutoHeadResponse
 import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.plugins.swagger.swaggerUI
+import io.ktor.server.routing.openapi.OpenApiDocSource
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import io.ktor.server.routing.routingRoot
 
 fun Application.configureRouting() {
     install(AutoHeadResponse)
@@ -41,6 +44,9 @@ fun Application.configureRouting() {
 
         swaggerUI(path = "openapi") {
             info = OpenApiInfo(title = "TextReaderRpi API", version = "1.0.0")
+            source = OpenApiDocSource.Routing(ContentType.Application.Json) {
+                routingRoot.descendants()
+            }
         }
     }
 }

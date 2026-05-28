@@ -3,71 +3,78 @@ ktor:
     modules:
       - com.anjo.ApplicationKt.module
   deployment:
-    port: 8080
+    port: ${PORT:8080}
 
 application:
   name: TextReaderRpi
 
 display:
-  type: "MAX7219"
+  type: "${DISPLAY_TYPE:MAX7219}"
   # Options: MAX7219, LCD, OLED
   
   max7219:
-    numDevices: 2
+    numDevices: ${MAX7219_NUM_DEVICES:2}
     brightness: true
     gpioPins:
-      spi_ce: 8
-      spi_mosi: 10
-      spi_miso: 9
-      spi_sck: 11
+      spi_ce: ${GPIO_SPI_CE:8}
+      spi_mosi: ${GPIO_SPI_MOSI:10}
+      spi_miso: ${GPIO_SPI_MISO:9}
+      spi_sck: ${GPIO_SPI_SCK:11}
   
   lcd:
     i2cAddress: 0x27
-    busNumber: 1
+    busNumber: ${I2C_BUS:1}
     rows: 2
     columns: 16
   
   oled:
     i2cAddress: 0x3C
-    busNumber: 1
+    busNumber: ${I2C_BUS:1}
     width: 128
     height: 64
 
 hardware:
-  spiTimeoutMs: 1000
-  gpioTimeoutMs: 500
+  spiTimeoutMs: ${SPI_TIMEOUT_MS:1000}
+  gpioTimeoutMs: ${GPIO_TIMEOUT_MS:500}
 
 retry:
-  maxAttempts: 5
-  initialDelayMs: 1000
-  maxDelayMs: 30000
-  factor: 2.0
+  maxAttempts: ${RETRY_MAX_ATTEMPTS:5}
+  initialDelayMs: ${RETRY_INITIAL_DELAY_MS:1000}
+  maxDelayMs: ${RETRY_MAX_DELAY_MS:30000}
+  factor: ${RETRY_FACTOR:2.0}
 
 metrics:
-  enabled: true
-  prefix: "textreaderrpi"
+  enabled: ${METRICS_ENABLED:true}
+  prefix: "${METRICS_PREFIX:textreaderrpi}"
 
 api:
-  maxTextLength: 128
-  queueSize: 10
-  rateLimitPerMinute: 60
-  metricsRateLimitPerMinute: 120
+  maxTextLength: ${API_MAX_TEXT_LENGTH:128}
+  queueSize: ${API_QUEUE_SIZE:10}
+  rateLimitPerMinute: ${API_RATE_LIMIT:60}
+  metricsRateLimitPerMinute: ${API_METRICS_RATE_LIMIT:120}
 
 database:
-  url: "jdbc:h2:file:./data/schedules;DB_CLOSE_DELAY=-1;AUTO_SERVER=FALSE"
-  driver: "org.h2.Driver"
-  user: "sa"
-  password: ""
-  poolSize: 5
+  # ── H2 (embedded, development / Raspberry Pi without external DB) ─────────
+  url: "${DATABASE_URL:jdbc:h2:file:./data/schedules;DB_CLOSE_DELAY=-1;AUTO_SERVER=FALSE}"
+  driver: "${DATABASE_DRIVER:org.h2.Driver}"
+  user: "${DATABASE_USER:sa}"
+  password: "${DATABASE_PASSWORD:}"
+  poolSize: ${DATABASE_POOL_SIZE:5}
+
+  # ── PostgreSQL (production) ───────────────────────────────────────────────
+  # DATABASE_URL=jdbc:postgresql://localhost:5432/textreader
+  # DATABASE_DRIVER=org.postgresql.Driver
+  # DATABASE_USER=textreader
+  # DATABASE_PASSWORD=secret
+  # DATABASE_POOL_SIZE=10
 
 resources:
-  screenDriverMaxSlots: 10
+  screenDriverMaxSlots: ${SCREEN_DRIVER_MAX_SLOTS:10}
 
 timing:
-  scrollSpeed: 16
-  refreshRate: 60
+  scrollSpeed: ${SCROLL_SPEED:16}
+  refreshRate: ${REFRESH_RATE:60}
 
 logging:
-  level: INFO
-  format: json
-
+  level: "${LOG_LEVEL:INFO}"
+  format: "${LOG_FORMAT:json}"

@@ -8,17 +8,16 @@ import io.kotest.matchers.shouldBe
 
 class RetryPolicyTest : FunSpec({
 
-    test("retryWithBackoff returns result on first success") {
+    test("should return result on first successful attempt") {
         var callCount = 0
         val result = retryWithBackoff(RetryConfig(maxAttempts = 3, initialDelayMs = 1)) {
-            callCount++
-            "success"
+            callCount++; "success"
         }
         result shouldBe "success"
         callCount shouldBe 1
     }
 
-    test("retryWithBackoff retries on transient failure and succeeds") {
+    test("should retry on transient failure and succeed") {
         var callCount = 0
         val result = retryWithBackoff(RetryConfig(maxAttempts = 3, initialDelayMs = 1)) {
             callCount++
@@ -29,29 +28,27 @@ class RetryPolicyTest : FunSpec({
         callCount shouldBe 2
     }
 
-    test("retryWithBackoff rethrows after maxAttempts exhausted") {
+    test("should rethrow exception after maxAttempts exhausted") {
         var callCount = 0
         shouldThrow<RuntimeException> {
             retryWithBackoff(RetryConfig(maxAttempts = 3, initialDelayMs = 1)) {
-                callCount++
-                throw RuntimeException("always fails")
+                callCount++; throw RuntimeException("always fails")
             }
         }
         callCount shouldBe 3
     }
 
-    test("retryWithBackoff makes maxAttempts calls before giving up") {
+    test("should make exactly maxAttempts calls before giving up") {
         val attempts = mutableListOf<Int>()
         shouldThrow<RuntimeException> {
             retryWithBackoff(RetryConfig(maxAttempts = 5, initialDelayMs = 1)) {
-                attempts.add(attempts.size + 1)
-                throw RuntimeException("persistent failure")
+                attempts.add(attempts.size + 1); throw RuntimeException("persistent failure")
             }
         }
         attempts.size shouldBeGreaterThanOrEqual 5
     }
 
-    test("RetryConfig uses sane defaults") {
+    test("should have sane default values for RetryConfig") {
         val config = RetryConfig()
         config.maxAttempts shouldBe 5
         config.initialDelayMs shouldBe 1000L

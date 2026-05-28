@@ -14,32 +14,22 @@ import kotlinx.coroutines.Dispatchers
 
 class DriverIntegrationTest : FunSpec({
 
-    test("switches between max7219, lcd and oled drivers") {
+    test("should switch between MAX7219 LCD and OLED drivers") {
         val context = mockk<Context>(relaxed = true)
-
         val max = FakeDriver("max")
         val lcd = FakeDriver("lcd")
         val oled = FakeDriver("oled")
 
         val selection = DisplaySelectionService(
-            ctx = context,
-            displayConfig = DisplayConfig(type = "MAX7219"),
+            ctx = context, displayConfig = DisplayConfig(type = "MAX7219"),
             driverFactory = { type, _, _ ->
-                when (type) {
-                    "MAX7219" -> max
-                    "LCD" -> lcd
-                    "OLED" -> oled
-                    else -> null
-                }
+                when (type) { "MAX7219" -> max; "LCD" -> lcd; "OLED" -> oled; else -> null }
             }
         )
-
         val service = ScreenDriverService(
-            driver = max,
-            ioDispatcher = Dispatchers.Unconfined,
+            driver = max, ioDispatcher = Dispatchers.Unconfined,
             retryConfig = RetryConfig(maxAttempts = 1, initialDelayMs = 1L),
-            displaySelectionService = selection,
-            metrics = ScreenDriverMetrics.DISABLED,
+            displaySelectionService = selection, metrics = ScreenDriverMetrics.DISABLED,
         )
 
         selection.getCurrentDisplayType() shouldBe "MAX7219"
@@ -54,52 +44,29 @@ class DriverIntegrationTest : FunSpec({
         selection.getPendingSwitches() shouldContainExactly listOf("LCD", "OLED")
     }
 
-    test("rejects unknown display type") {
+    test("should reject unknown display type") {
         val context = mockk<Context>(relaxed = true)
         val max = FakeDriver("max")
 
         val selection = DisplaySelectionService(
-            ctx = context,
-            displayConfig = DisplayConfig(type = "MAX7219"),
+            ctx = context, displayConfig = DisplayConfig(type = "MAX7219"),
             driverFactory = { type, _, _ -> if (type == "MAX7219") max else null }
         )
-
         val service = ScreenDriverService(
-            driver = max,
-            ioDispatcher = Dispatchers.Unconfined,
+            driver = max, ioDispatcher = Dispatchers.Unconfined,
             retryConfig = RetryConfig(maxAttempts = 1, initialDelayMs = 1L),
-            displaySelectionService = selection,
-            metrics = ScreenDriverMetrics.DISABLED,
+            displaySelectionService = selection, metrics = ScreenDriverMetrics.DISABLED,
         )
         service.queueDisplaySwitch("unknown") shouldBe false
         selection.getCurrentDisplayType() shouldBe "MAX7219"
     }
 })
 
-private class FakeDriver(
-    private val name: String,
-) : DisplayDriver {
+private class FakeDriver(private val name: String) : DisplayDriver {
     private var last: String? = null
-
-    override fun scrollText(scope: kotlinx.coroutines.CoroutineScope, text: String, speedMs: Long) {
-        last = text
-    }
-
-    override fun clear() {
-        last = null
-    }
-
-    override fun write(text: String) {
-        last = text
-    }
-
-    override fun status(): DisplayStatus = DisplayStatus(
-        isActive = false,
-        hardwareAvailable = true,
-        currentMessage = last,
-        error = null
-    )
-
+    override fun scrollText(scope: kotlinx.coroutines.CoroutineScope, text: String, speedMs: Long) { last = text }
+    override fun clear() { last = null }
+    override fun write(text: String) { last = text }
+    override fun status() = DisplayStatus(isActive = false, hardwareAvailable = true, currentMessage = last, error = null)
     override fun stop() = Unit
 }
-

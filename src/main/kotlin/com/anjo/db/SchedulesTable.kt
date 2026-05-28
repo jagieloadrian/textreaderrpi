@@ -1,6 +1,6 @@
 package com.anjo.db
 
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.v1.core.Table
 
 object SchedulesTable : Table("schedules") {
     val id = varchar("id", 36)

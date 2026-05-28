@@ -14,10 +14,14 @@ import io.ktor.server.request.path
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import kotlinx.serialization.SerializationException
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("ErrorHandling")
 
 fun Application.configureErrorHandling() {
     install(StatusPages) {
         status(HttpStatusCode.NotFound) { call, _ ->
+            log.debug("404 Not Found: ${call.request.path()}")
             if (call.prefersHtml()) {
                 call.respondText(ErrorPage(404, "Page not found").render(), ContentType.Text.Html)
             } else {
@@ -29,6 +33,7 @@ fun Application.configureErrorHandling() {
         }
 
         exception<RequestValidationException> { call, cause ->
+            log.warn("Validation failed at ${call.request.path()}: ${cause.reasons.joinToString()}")
             if (call.prefersHtml()) {
                 call.respondText(
                     ErrorPage(422, cause.reasons.firstOrNull() ?: "Validation failed").render(),
@@ -48,6 +53,7 @@ fun Application.configureErrorHandling() {
         }
 
         exception<SerializationException> { call, cause ->
+            log.warn("Deserialization error at ${call.request.path()}: ${cause.message?.substringBefore('\n')}")
             call.respond(
                 HttpStatusCode.BadRequest,
                 ErrorResponse(
@@ -60,12 +66,12 @@ fun Application.configureErrorHandling() {
         }
 
         exception<Throwable> { call, cause ->
-            // Ktor wraps SerializationException in various wrapper types depending on context
             val isDeserializationFailure = generateSequence(cause.cause) { it.cause }
                 .plus(cause)
                 .any { it is SerializationException || it is IllegalArgumentException }
 
             if (isDeserializationFailure && !call.prefersHtml()) {
+                log.warn("Deserialization failure (wrapped) at ${call.request.path()}: ${(cause.cause ?: cause).message?.substringBefore('\n')}")
                 call.respond(
                     HttpStatusCode.BadRequest,
                     ErrorResponse(
@@ -78,6 +84,7 @@ fun Application.configureErrorHandling() {
                 return@exception
             }
 
+            log.error("Unhandled exception at ${call.request.path()}", cause)
             if (call.prefersHtml()) {
                 call.respondText(ErrorPage(500, "An internal error occurred").render(), ContentType.Text.Html)
             } else {
@@ -99,4 +106,3 @@ private fun ApplicationCall.prefersHtml(): Boolean {
     val accept = request.headers["Accept"].orEmpty()
     return !request.path().startsWith("/api") && accept.contains("text/html")
 }
-

@@ -8,6 +8,7 @@ import com.anjo.driver.OledDisplay
 import com.pi4j.context.Context
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import org.slf4j.LoggerFactory
 
 class DisplaySelectionService(
     private val ctx: Context,
@@ -18,8 +19,8 @@ class DisplaySelectionService(
     private var currentType: String = "UNKNOWN"
     private val displayLock = ReentrantReadWriteLock()
     private val pendingSwitches = ConcurrentLinkedQueue<String>()
-    // Cache drivers by type to avoid re-registering Pi4J hardware IDs
     private val driverCache = mutableMapOf<String, DisplayDriver>()
+    private val log = LoggerFactory.getLogger(DisplaySelectionService::class.java)
 
     init {
         selectDisplayAtStartup(displayConfig.type)
@@ -31,8 +32,10 @@ class DisplaySelectionService(
         if (driver != null) {
             currentDriver = driver
             currentType = normalizedType
+            log.info("Display initialised: type=$normalizedType")
         } else {
             System.err.println("ERROR: Failed to initialize $normalizedType display")
+            log.error("Failed to initialize display driver: type=$normalizedType")
         }
     }
 
@@ -42,9 +45,11 @@ class DisplaySelectionService(
         return try {
             val driver = driverFactory(displayType, ctx, displayConfig) ?: return null
             driverCache[displayType] = driver
+            log.debug("Driver created and cached: type=$displayType")
             driver
         } catch (e: Exception) {
             System.err.println("Failed to create $displayType driver: ${e.message}")
+            log.error("Failed to create driver type=$displayType: ${e.message}", e)
             null
         }
     }
@@ -62,7 +67,10 @@ class DisplaySelectionService(
         displayLock.writeLock().lock()
         try {
             val normalizedType = normalizeDisplayType(displayType)
-            if (normalizedType == currentType) return true
+            if (normalizedType == currentType) {
+                log.debug("Driver switch skipped: already using $normalizedType")
+                return true
+            }
             val newDriver = createDriver(normalizedType)
 
             return if (newDriver != null) {
@@ -70,8 +78,10 @@ class DisplaySelectionService(
                 currentDriver = newDriver
                 currentType = normalizedType
                 pendingSwitches.offer(normalizedType)
+                log.info("Driver switched: $normalizedType")
                 true
             } else {
+                log.warn("Driver switch failed: could not create driver for $normalizedType")
                 false
             }
         } finally {
