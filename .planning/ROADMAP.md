@@ -329,8 +329,14 @@ Phase 5: Scheduling + Effects (3-5 weeks)
 | Effect rendering options (fade/blink/reverse/scroll variants) | ✅ Complete | SHOULD |
 | Queueing/conflict policy for schedules | ✅ Complete | MUST |
 | Timing-accurate behavior tests | ✅ Complete | MUST |
+| Cancel endpoint for running schedules | ✅ Complete | MUST |
+| Environment variable support (all config) | ✅ Complete | MUST |
+| Gradle-based Docker image build | ✅ Complete | SHOULD |
+| Dependency updates (Kotlin 2.3.21, Ktor 3.5.0, Exposed 1.3.0) | ✅ Complete | MUST |
 
-**Phase 5 Complete — 2026-05-28** ✅
+**Phase 5 Complete — 2026-05-28** ✅  
+**Plans:** 11 (05-01 → 05-11), all SUMMARY.md present  
+**Wave 4 (post-execution):** SchedulerService bug fix, cancel endpoint, UI Stop button, test restructuring, deps update, env vars, Gradle Docker
 
 ---
 
