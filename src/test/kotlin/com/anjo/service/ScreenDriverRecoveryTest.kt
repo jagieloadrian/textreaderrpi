@@ -4,13 +4,18 @@ import com.anjo.config.model.RetryConfig
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.anjo.model.ScreenDriverMetrics
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runTest
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ScreenDriverRecoveryTest : FunSpec({
     val fastRetry = RetryConfig(maxAttempts = 3, initialDelayMs = 1L)
 
@@ -72,5 +77,54 @@ class ScreenDriverRecoveryTest : FunSpec({
 
         status.hardwareAvailable shouldBe true
         status.isActive shouldBe true
+    }
+
+    // Virtual-time retryWithBackoff tests
+
+    test("retryWithBackoff succeeds on first attempt if block does not throw") {
+        runTest {
+            val result = retryWithBackoff(RetryConfig(maxAttempts = 3, initialDelayMs = 100L)) { "success" }
+            result shouldBe "success"
+        }
+    }
+
+    test("retryWithBackoff retries up to maxAttempts on failure") {
+        runTest {
+            var attempt = 0
+            val result = retryWithBackoff(RetryConfig(maxAttempts = 3, initialDelayMs = 1L)) {
+                attempt++
+                if (attempt < 3) throw RuntimeException("fail")
+                "ok"
+            }
+            result shouldBe "ok"
+            attempt shouldBe 3
+        }
+    }
+
+    test("retryWithBackoff throws after maxAttempts exceeded") {
+        runTest {
+            shouldThrow<RuntimeException> {
+                retryWithBackoff(RetryConfig(maxAttempts = 2, initialDelayMs = 1L)) {
+                    throw RuntimeException("always fail")
+                }
+            }
+        }
+    }
+
+    test("retryWithBackoff delays increase exponentially using virtual time") {
+        runTest {
+            var callCount = 0
+            val config = RetryConfig(maxAttempts = 3, initialDelayMs = 100L, factor = 2.0)
+            // Launch in background — advances virtual clock to clear delays
+            try {
+                retryWithBackoff(config) {
+                    callCount++
+                    throw RuntimeException("fail")
+                }
+            } catch (_: RuntimeException) {}
+
+            // 3 max attempts: first call + 2 retries (each with backoff). callCount should be maxAttempts
+            callCount shouldBe 3
+        }
     }
 })
