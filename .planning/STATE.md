@@ -1,7 +1,7 @@
 # Project State & Memory
 
 **Last Updated:** 2026-05-28  
-**Status:** Phase 5 FULLY COMPLETE (incl. post-execution fixes) — ready for `gsd-ship` + `gsd-complete-milestone`
+**Status:** ✅ v1.0 MILESTONE ARCHIVED — ready for `/gsd-new-milestone`
 
 ## Current State
 
@@ -132,11 +132,18 @@
 
 ---
 
-## Ready for Ship / Milestone Complete
+## Project Reference
 
-- ✅ All phases have PLAN.md + SUMMARY.md
-- ✅ Phase 5 VERIFICATION.md — PASSED
-- ✅ Git history contains all changes
-- ✅ Tests green
-- ✅ Docs current
-- **Next:** `/gsd-ship` → push branch + PR, then `/gsd-complete-milestone v1.0`
+See: `.planning/PROJECT.md` (updated 2026-05-28)
+
+**Core value:** Simple, reliable one-way display control from any browser on the home network.  
+**Current focus:** Planning v2.0 milestone — run `/gsd-new-milestone` to begin.
+
+## Milestone Archive
+
+- **v1.0 archived:** 2026-05-28
+- Roadmap archive: `.planning/milestones/v1.0-ROADMAP.md`
+- Requirements archive: `.planning/milestones/v1.0-REQUIREMENTS.md`
+- Phase archive: `.planning/milestones/v1.0-phases/`
+- MILESTONES.md: `.planning/MILESTONES.md`
+- Git tag: `v1.0`
