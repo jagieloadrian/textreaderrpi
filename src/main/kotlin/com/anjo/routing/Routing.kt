@@ -29,6 +29,7 @@ fun Application.configureRouting() {
     routing {
         staticResources("/static", "static")
         webRoutes(screenDriverService)
+        scheduleUIRoutes(scheduleRepository)
         metricsRoutes(metricsCollector, apiConfig.metricsRateLimitPerMinute)
 
         route("/api/v1") {
