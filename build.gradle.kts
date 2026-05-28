@@ -61,12 +61,21 @@ dependencies {
     implementation("com.pi4j:pi4j-plugin-pigpio:${pi4j_version}")
     implementation("com.pi4j:pi4j-plugin-mock:${pi4j_version}")
 
+    //DATABASE
+    implementation("org.jetbrains.exposed:exposed-core:0.61.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.61.0")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.61.0")
+    implementation("com.h2database:h2:2.3.232")
+    implementation("com.zaxxer:HikariCP:6.3.0")
+    implementation("com.cronutils:cron-utils:9.2.1")
+
     //TEST
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlin_version")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("io.mockk:mockk:1.14.3")
     testImplementation("io.kotest:kotest-runner-junit5-jvm:5.9.1")
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
 }
 
 jacoco {

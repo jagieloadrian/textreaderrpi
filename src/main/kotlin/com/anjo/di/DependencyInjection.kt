@@ -1,6 +1,8 @@
 package com.anjo.di
 
 import com.anjo.config.loader.ConfigLoader
+import com.anjo.db.DatabaseFactory
+import com.anjo.db.ScheduleRepository
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.anjo.service.DisplaySelectionService
@@ -18,6 +20,14 @@ import kotlinx.coroutines.Dispatchers
 fun Application.configureDI() {
     val appConfig = ConfigLoader.loadConfig(this)
     val pi4jContext = Pi4J.newAutoContext()
+
+    // Initialize database before any DB-dependent services
+    val dbUrl = environment.config.propertyOrNull("database.url")?.getString()
+        ?: "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1"
+    val dbDriver = environment.config.propertyOrNull("database.driver")?.getString()
+        ?: "org.h2.Driver"
+    val dbPoolSize = environment.config.propertyOrNull("database.poolSize")?.getString()?.toInt() ?: 5
+    DatabaseFactory.init(dbUrl, dbDriver, dbPoolSize)
 
     val displaySelectionService = DisplaySelectionService(
         ctx = pi4jContext,
@@ -37,6 +47,7 @@ fun Application.configureDI() {
 
     val readerInputService = ReaderInputService(screenDriverService)
     val metricsCollector = MetricsCollector(metricRegistry)
+    val scheduleRepository = ScheduleRepository()
 
     dependencies {
         provide { appConfig }
@@ -48,6 +59,7 @@ fun Application.configureDI() {
         provide { screenDriverService }
         provide { readerInputService }
         provide { metricsCollector }
+        provide { scheduleRepository }
     }
 }
 

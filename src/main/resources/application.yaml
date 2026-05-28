@@ -53,6 +53,11 @@ api:
   rateLimitPerMinute: 60
   metricsRateLimitPerMinute: 120
 
+database:
+  url: "jdbc:h2:file:./data/schedules;DB_CLOSE_DELAY=-1;AUTO_SERVER=FALSE"
+  driver: "org.h2.Driver"
+  poolSize: 5
+
 resources:
   screenDriverMaxSlots: 10
 
