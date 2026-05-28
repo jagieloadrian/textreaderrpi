@@ -19,6 +19,7 @@ import kotlinx.html.td
 import kotlinx.html.th
 import kotlinx.html.thead
 import kotlinx.html.tr
+
 fun FlowContent.schedulePage(schedules: List<Schedule>) {
     h2 { +"Schedule Manager" }
     div {
