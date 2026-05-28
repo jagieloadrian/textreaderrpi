@@ -34,7 +34,7 @@ fun Application.configureRouting() {
 
         route("/api/v1") {
             installApiRateLimiting(apiConfig.rateLimitPerMinute)
-            textRoutes(readerInputService)
+            textRoutes(readerInputService, screenDriverService)
             displayRoutes(screenDriverService)
             scheduleRoutes(scheduleRepository, schedulerService)
         }

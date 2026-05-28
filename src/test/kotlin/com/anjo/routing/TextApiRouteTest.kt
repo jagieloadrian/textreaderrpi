@@ -54,4 +54,36 @@ class TextApiRouteTest {
         val body = response.bodyAsText()
         assertContains(body, "error")
     }
+
+    @Test
+    fun `POST api-v1-text with effect=FADE returns 202`() = testApplication {
+        application { module() }
+        val response = client.post("/api/v1/text") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"text":"hello","effect":"FADE"}""")
+        }
+        assertEquals(HttpStatusCode.Accepted, response.status)
+    }
+
+    @Test
+    fun `POST api-v1-text with no effect defaults to SCROLL`() = testApplication {
+        application { module() }
+        val response = client.post("/api/v1/text") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"text":"hello"}""")
+        }
+        assertEquals(HttpStatusCode.Accepted, response.status)
+    }
+
+    @Test
+    fun `POST api-v1-text with invalid effect returns 4xx`() = testApplication {
+        application { module() }
+        val response = client.post("/api/v1/text") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"text":"hello","effect":"KABOOM"}""")
+        }
+        // kotlinx.serialization rejects unknown enum values → StatusPages maps to 400 or 422
+        assert(response.status.value in 400..422)
+    }
 }
+

@@ -3,16 +3,17 @@ package com.anjo.routing
 import com.anjo.model.TextRequest
 import com.anjo.model.TextResponse
 import com.anjo.service.ReaderInputService
+import com.anjo.service.ScreenDriverService
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 
-fun Route.textRoutes(readerInputService: ReaderInputService) {
+fun Route.textRoutes(readerInputService: ReaderInputService, screenDriverService: ScreenDriverService) {
     post("/text") {
         val request = call.receive<TextRequest>()
-        readerInputService.readInput(request.text)
+        screenDriverService.displayImmediate(request.text, request.effect)
 
         call.respond(
             HttpStatusCode.Accepted,
