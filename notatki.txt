@@ -1,3 +1,0 @@
-1. wprowadzić request validfation w pliku ScheduleRoutes.kt tak samo jak w RequestValidationConfig.kt
-2. poukładać w routing pliki, tj poodzielać ui od api
-3.
