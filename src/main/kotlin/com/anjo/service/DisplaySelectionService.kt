@@ -33,9 +33,25 @@ class DisplaySelectionService(
             currentDriver = driver
             currentType = normalizedType
             log.info("Display initialised: type=$normalizedType")
+            logCurrentData()
         } else {
             System.err.println("ERROR: Failed to initialize $normalizedType display")
             log.error("Failed to initialize display driver: type=$normalizedType")
+        }
+    }
+
+    private fun logCurrentData() {
+        ctx.providers().all.forEach { (string, provider) ->
+            log.info("Provider : $string with data type=${provider.describe().description()}")
+        }
+        ctx.platforms().all.forEach { (string, provider) ->
+            log.info("Platform : $string with data type=${provider.describe().description()}")
+        }
+        ctx.properties().all().forEach { (string, provider) ->
+            log.info("Property : $string with data type=${provider}")
+        }
+        ctx.registry().all().forEach { (string, registry) ->
+            log.info("Registry : $string with data type=${registry}")
         }
     }
 
@@ -79,6 +95,7 @@ class DisplaySelectionService(
                 currentType = normalizedType
                 pendingSwitches.offer(normalizedType)
                 log.info("Driver switched: $normalizedType")
+                logCurrentData()
                 true
             } else {
                 log.warn("Driver switch failed: could not create driver for $normalizedType")
