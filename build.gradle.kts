@@ -162,7 +162,7 @@ ktor {
         localImageName.set("textreaderrpi")
         imageTag.set("latest")
         imageTag.set("${project.version}")
-
+        jreVersion.set(JavaVersion.VERSION_25)
     }
 }
 
