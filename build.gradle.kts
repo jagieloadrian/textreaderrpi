@@ -142,10 +142,27 @@ ktor {
         archiveFileName.set("textreaderrpi.jar")
     }
 
+    jib {
+        from {
+            platforms {
+                platform {
+                    architecture = "arm64"
+                    os = "linux"
+                }
+                platform {
+                    architecture = "amd64"
+                    os = "linux"
+                }
+            }
+        }
+
+    }
+
     docker {
         localImageName.set("textreaderrpi")
         imageTag.set("latest")
         imageTag.set("${project.version}")
+
     }
 }
 
