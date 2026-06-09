@@ -3,11 +3,16 @@ package com.anjo.driver
 import com.anjo.utils.Font
 import com.pi4j.context.Context
 import com.pi4j.io.spi.Spi
+import com.pi4j.io.spi.SpiBus
+import com.pi4j.io.spi.SpiChipSelect
+import com.pi4j.io.spi.SpiMode
+import com.pi4j.plugin.raspberrypi.provider.spi.RpiSpiProviderImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class Max7219Matrix(
     private val ctx: Context,
@@ -32,8 +37,11 @@ class Max7219Matrix(
         val config = Spi.newConfigBuilder(ctx)
             .id("max7219")
             .name("MAX7219 SPI")
-            .bcm(0)
+            .bus(SpiBus.BUS_0)
+            .chipSelect(SpiChipSelect.CS_0)
             .baud(1_000_000)
+            .mode(SpiMode.MODE_0)
+            .provider(RpiSpiProviderImpl::class.java)
             .build()
 
         spi = ctx.create(config)
@@ -85,7 +93,7 @@ class Max7219Matrix(
             while (isActive && offset < maxOffset) {
                 render(bitmap, offset)
                 offset++
-                delay(speedMs)
+                delay(speedMs.milliseconds)
             }
         }
     }
