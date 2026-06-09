@@ -55,6 +55,7 @@ dependencies {
     implementation(ktorLibs.pi4j.core)
     implementation(ktorLibs.pi4j.ktx)
     implementation(ktorLibs.pi4j.plugin.gpiod)
+    implementation(ktorLibs.pi4j.plugin.rpi)
     implementation(ktorLibs.pi4j.plugin.mock)
 
     // Database
