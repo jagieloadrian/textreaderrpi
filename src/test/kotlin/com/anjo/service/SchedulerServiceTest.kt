@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import java.time.Instant
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SchedulerServiceTest : FunSpec({
@@ -44,7 +45,7 @@ class SchedulerServiceTest : FunSpec({
             service.schedule(schedule)
 
             coVerify(exactly = 0) { mockScreen.displayScheduled(any(), any(), any()) }
-            advanceTimeBy(60_001L)
+            advanceTimeBy(60_001L.milliseconds)
             coVerify(exactly = 1) { mockScreen.displayScheduled("hello", "s1", any()) }
 
             service.stop()
@@ -64,7 +65,7 @@ class SchedulerServiceTest : FunSpec({
                 effect = Effect.SCROLL
             )
             service.schedule(schedule)
-            advanceTimeBy(30_000L)
+            advanceTimeBy(30_000L.milliseconds)
             coVerify(exactly = 0) { mockScreen.displayScheduled("early", any(), any()) }
 
             service.stop()
@@ -83,7 +84,7 @@ class SchedulerServiceTest : FunSpec({
                 maxRuns = 3, effect = Effect.SCROLL
             )
             service.schedule(schedule)
-            advanceTimeBy(3 * 5 * 60_000L + 1L)
+            advanceTimeBy((3 * 5 * 60_000L + 1L).milliseconds)
             coVerify(exactly = 3) { mockScreen.displayScheduled("recurring", "s3", any()) }
 
             service.stop()
@@ -102,7 +103,7 @@ class SchedulerServiceTest : FunSpec({
                 maxRuns = 2, effect = Effect.SCROLL
             )
             service.schedule(schedule)
-            advanceTimeBy(10 * 60_000L + 1L)
+            advanceTimeBy((10 * 60_000L + 1L).milliseconds)
             coVerify(atMost = 2) { mockScreen.displayScheduled("bounded", "s4", any()) }
 
             service.stop()
@@ -159,7 +160,7 @@ class SchedulerServiceTest : FunSpec({
             )
             service.schedule(schedule)
             service.cancel("s-cxl")
-            advanceTimeBy(1L)
+            advanceTimeBy(1L.milliseconds)
 
             coVerify(exactly = 1) { mockRepo.updateStatus("s-cxl", "DONE") }
             coVerify(exactly = 0) { mockScreen.displayScheduled(any(), "s-cxl", any()) }
@@ -180,11 +181,33 @@ class SchedulerServiceTest : FunSpec({
                 effect = Effect.SCROLL
             )
             service.schedule(schedule)
-            advanceTimeBy(30_000L)
+            advanceTimeBy(30_000L.milliseconds)
             service.cancel("s5")
-            advanceTimeBy(2 * 60_000L)
+            advanceTimeBy((2 * 60_000L).milliseconds)
 
             coVerify(exactly = 0) { mockScreen.displayScheduled("cancelme", any(), any()) }
+
+            service.stop()
+            testScope.coroutineContext[Job]?.cancel()
+        }
+    }
+
+    test("should fire CRON schedule at next computed cron time") {
+        runTest {
+            val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
+            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+
+            val schedule = Schedule(
+                id = "s-cron", text = "cron-text",
+                triggerType = TriggerType.CRON,
+                triggerValue = "*/1 * * * *",
+                effect = Effect.SCROLL
+            )
+            service.schedule(schedule)
+
+            coVerify(exactly = 0) { mockScreen.displayScheduled(any(), any(), any()) }
+            advanceTimeBy(60_001L.milliseconds)
+            coVerify(atLeast = 1) { mockScreen.displayScheduled("cron-text", "s-cron", any()) }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
