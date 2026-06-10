@@ -55,6 +55,7 @@ class Max7219Matrix(
     }
 
     private fun testMode(spi: Spi) {
+        println("SPI otwarty - provider: " + spi.provider());
         println("✅ SPI otwarty pomyślnie")
 
         // Inicjalizacja
