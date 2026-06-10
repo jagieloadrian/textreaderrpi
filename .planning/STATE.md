@@ -152,9 +152,24 @@ last_updated: "2026-06-10T20:35:33.478Z"
 
 ---
 
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-06-10:
+
+| Category | REQ-ID | Item | Status |
+|----------|--------|------|--------|
+| implementation-gap | REQ-OBS-03 | GET /health/detail returns 404 — endpoint never implemented | v2.0 backlog |
+| implementation-bug | REQ-DISP-06 | HTML 404/500 error pages unreachable — Ktor SwaggerUI catch-all intercepts unknown GET paths | v2.0 backlog |
+| implementation-gap | REQ-OBS-01 | /metrics hardware group absent — only runtime+api groups returned | v2.0 backlog |
+| implementation-gap | REQ-CONFLICT-01 | SKIP_NEW conflict policy never built — only hardcoded CANCEL_ONGOING | v2.0 backlog |
+
+Audit score: 21/25 requirements, 4/5 phases verified, 14/15 wiring, 6/7 flows. Full report: `.planning/milestones/v1.0-v1.0-MILESTONE-AUDIT.md`
+
+---
+
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-28)
+See: `.planning/PROJECT.md` (updated 2026-06-10)
 
 **Core value:** Simple, reliable one-way display control from any browser on the home network.  
 **Current focus:** Planning v2.0 milestone — run `/gsd-new-milestone` to begin.

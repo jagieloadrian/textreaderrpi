@@ -52,6 +52,13 @@ Simple, reliable one-way display control from any browser on the home network.
 
 ### Active (v2.0 candidates)
 
+**Gap closures from v1.0 audit (prioritized):**
+- [ ] Implement `GET /health/detail` — KHealth extended payload (uptime, memory, display status, error counts) — REQ-OBS-03
+- [ ] Fix Ktor 3.5.0 SwaggerUI routing catch-all — HTML 404/500 error pages unreachable for browser GET routes — REQ-DISP-06
+- [ ] Add `/metrics` hardware group — display failures, recovery retries, resource slot utilization — REQ-OBS-01
+- [ ] Implement `SKIP_NEW` conflict policy — add `ConflictPolicy` enum, conditional logic in `displayImmediate()` — REQ-CONFLICT-01
+
+**New v2.0 scope:**
 - [ ] Multiple concurrent displays (multi-zone)
 - [ ] Remote access beyond home network (VPN/tunnel)
 - [ ] Display text history/audit log
@@ -109,4 +116,4 @@ Simple, reliable one-way display control from any browser on the home network.
 - `/gsd-new-milestone` — define v2.0 scope (questioning → research → requirements → roadmap)
 
 ---
-*Last updated: 2026-05-28 after v1.0 milestone archive*
+*Last updated: 2026-06-10 after v1.0 formal audit + milestone completion*

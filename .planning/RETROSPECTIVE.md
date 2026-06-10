@@ -51,6 +51,18 @@
 4. **Big-scope "notes" refactor commits obscure decisions** — Break broad rework (e.g., Flaxoos migration) into dedicated plans even if small
 5. **Hardware abstraction from day one pays compound dividends** — `OfflineDisplayDriver` enabled all service/route tests to run without Pi hardware throughout all 5 phases
 
+### Retroactive Audit Findings (2026-06-10)
+
+Run `/gsd-audit-milestone` and `/gsd-validate-phase 1-5` retroactively revealed:
+
+**Nyquist validation:** 4/5 phases compliant. Phase 2 non-compliant due to Ktor 3.5.0 SwaggerUI routing bug — `swaggerUI(path="openapi")` registers a catch-all GET handler that intercepts unregistered paths and returns 200, blocking the `StatusPages` HTML 404 handler. `xtest` regression gate added.
+
+**VERIFICATION.md false claims (Phase 4):** Phase 4 VERIFICATION.md claimed `GET /health/detail` returns 7 fields — actually returns 404. Requirement was marked complete at milestone close without verifying the actual code. **Lesson: never mark a VERIFICATION.md passed unless the actual endpoint/behavior is manually tested.**
+
+**Specification-vs-implementation drift (Phase 5):** `ConflictPolicy SKIP_NEW` was specified and claimed in Phase 5 VERIFICATION.md but never built. Only `CANCEL_ONGOING` (hardcoded) exists. **Lesson: requirements with variants need explicit test coverage per variant, not just for the default path.**
+
+**Phase 2 VERIFICATION.md gap:** No `02-VERIFICATION.md` exists — the phase was closed using wave summaries only. The 6 Phase 2 requirements show as "partial" in the 3-source cross-reference due to missing formal verification. Functional code is correct (confirmed by integration checker), but the audit gap is a documentation debt.
+
 ### Cost Observations
 
 - Model: GitHub Copilot (Claude-based) via JetBrains IDE
