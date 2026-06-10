@@ -10,7 +10,7 @@ data class DisplayStatus(
 )
 
 interface DisplayDriver {
-    fun scrollText(scope: CoroutineScope, text: String, speedMs: Long = 16)
+    fun scrollText(scope: CoroutineScope, text: String, speedMs: Long = 80)
     fun clear()
     fun write(text: String)
     fun status(): DisplayStatus

@@ -1,3 +1,11 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: ✅ v1.0 MILESTONE ARCHIVED — ready for `/gsd-new-milestone`
+last_updated: "2026-06-10T20:35:33.478Z"
+---
+
 # Project State & Memory
 
 **Last Updated:** 2026-05-28  
@@ -6,12 +14,14 @@
 ## Current State
 
 ### Project Context
+
 - **Name:** TextReaderRpi
 - **Vision:** Display text on a display connected to Raspberry Pi (using Pi4J) that can be updated via a web interface
 - **Users:** Home lab enthusiasts, DIY electronics hobbyists
 - **Timeline:** No hard deadline; iterative development
 
 ### Codebase Status
+
 - **Language:** Kotlin 2.3.21, JDK 25 toolchain
 - **Framework:** Ktor 3.5.0 (DI plugin + RequestValidation + StatusPages)
 - **ORM:** Exposed 1.3.0 (`org.jetbrains.exposed.v1.*` packages)
@@ -20,6 +30,7 @@
 - **Current package root:** `src/main/kotlin/com/anjo/...`
 
 ### Existing Features (all complete)
+
 - ✅ Typed YAML config with env var overrides (`${VAR:default}` for all 25 settings)
 - ✅ Request validation via Ktor `RequestValidation`
 - ✅ Centralized error mapping via Ktor `StatusPages`
@@ -40,6 +51,7 @@
 - ✅ systemd service file + install script
 
 ### Test Suite
+
 - **Framework:** Kotest FunSpec + MockK + kotlinx-coroutines-test
 - **Convention:** All test names follow `should ...` pattern
 - **Packages:** Test packages mirror production packages exactly
@@ -48,6 +60,7 @@
 - **Startup test:** `com.anjo.ApplicationTest` — 5 context startup tests
 
 ### DevOps
+
 - **Docker:** `./gradlew publishImageToLocalRegistry` (no Dockerfile in repo)
 - **Compose:** `.devops/containers/docker-compose.yml` — full env var mapping, no build section
 - **Host:** `.devops/host/` — systemd unit + install script
@@ -56,6 +69,7 @@
 ---
 
 ## Documentation Completed
+
 - ✅ `README.md` — full API tables, env vars, Gradle Docker workflow, code layout
 - ✅ `docs/deployment/production-guide.md` — 25 env vars table, PostgreSQL switching, Gradle tasks
 - ✅ `docs/operations/monitoring-alerting.md` — all endpoints, schedule API, cancel docs
@@ -68,22 +82,26 @@
 ## Phase 5 Status — FULLY COMPLETE (2026-05-28)
 
 ### Wave 1 — Refactoring ✅
+
 - 05-01: Health, retry, metrics cleanup
 - 05-02: Mutex, metrics config, comment removal
 - 05-03: Route + test package unification
 
 ### Wave 2 — Scheduling Engine ✅
+
 - 05-04: Schedule data model + Exposed/H2 DB
 - 05-05: SchedulerService coroutine engine + conflict policy
 - 05-06: Schedule HTTP CRUD API + validation
 - 05-07: Schedule UI page + DI wiring
 
 ### Wave 3 — Effects + Behavioral Tests ✅
+
 - 05-08: Effect renderer architecture + DisplayDriver extensions
 - 05-09: Effect field on POST /api/text + POST /api/schedule
 - 05-10: Timing-accurate behavior tests (virtual time)
 
 ### Wave 4 — Post-Execution Fixes ✅ (2026-05-28)
+
 - 05-11: SchedulerService bug fix, cancel endpoint, UI Stop button, test restructuring, deps update, env vars, Gradle Docker
 
 **Verification:** `.planning/phases/05-scheduling-effects/05-VERIFICATION.md` — status: PASSED (10/10 + 8/8)  
@@ -104,6 +122,7 @@
 ## Architecture Summary
 
 **Layers:**
+
 1. HTTP routes (`com/anjo/routing/*`)
 2. Service layer (`com/anjo/service/*`, `com/anjo/service/effect/*`)
 3. Driver abstraction + implementations (`com/anjo/driver/*`)
@@ -111,6 +130,7 @@
 5. DI/plugin setup (`com/anjo/di/*`) + config (`com/anjo/config/*`)
 
 **Data Flows:**
+
 - `POST /api/v1/text` → `TextRoutes` → `ScreenDriverService.displayImmediate(text, effect)` → `EffectRenderer.render()` → `DisplayDriver`
 - `POST /api/v1/schedule` → `ScheduleRoutes` → `ScheduleRepository.insert()` + `SchedulerService.schedule()`
 - `SchedulerService.fire()` → `EffectRendererFactory.create(effect)` → `ScreenDriverService.displayScheduled()`
