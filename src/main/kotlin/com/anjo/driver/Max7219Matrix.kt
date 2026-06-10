@@ -46,10 +46,30 @@ class Max7219Matrix(
 
         spi = ctx.create(config)
         try {
+            testMode(spi)
             initialize()
         } catch (e: Exception) {
             lastError = "Initialization failed: ${e.message}"
         }
+    }
+
+    private fun testMode(spi: Spi) {
+        println("✅ SPI otwarty pomyślnie")
+
+        // Inicjalizacja
+        spi.write(0x0C.toByte(), 0x01.toByte()) // Shutdown -> normal
+        spi.write(0x0B.toByte(), 0x07.toByte()) // Scan limit 8
+        spi.write(0x09.toByte(), 0x00.toByte()) // No decode
+        spi.write(0x0A.toByte(), 0x0A.toByte()) // Jasność
+
+
+        // === TEST POŁĄCZENIA ===
+        println("Test Mode ON - sprawdź matrycę!")
+        spi.write(0x0F.toByte(), 0x01.toByte()) // Wszystkie diody full
+        Thread.sleep(2000)
+        spi.write(0x0F.toByte(), 0x00.toByte()) // Wyłącz test
+
+        println("Test zakończony.")
     }
 
     private fun initialize() {
