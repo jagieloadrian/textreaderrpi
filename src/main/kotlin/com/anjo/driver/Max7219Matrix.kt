@@ -6,6 +6,7 @@ import com.pi4j.io.spi.Spi
 import com.pi4j.io.spi.SpiBus
 import com.pi4j.io.spi.SpiChipSelect
 import com.pi4j.io.spi.SpiMode
+import com.pi4j.plugin.linuxfs.provider.spi.LinuxFsSpiProviderImpl
 import com.pi4j.plugin.raspberrypi.provider.spi.RpiSpiProviderImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -41,7 +42,7 @@ class Max7219Matrix(
             .chipSelect(SpiChipSelect.CS_0)
             .baud(1_000_000)
             .mode(SpiMode.MODE_0)
-            .provider(RpiSpiProviderImpl::class.java)
+            .provider(LinuxFsSpiProviderImpl::class.java)
             .build()
 
         spi = ctx.create(config)
