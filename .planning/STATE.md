@@ -1,9 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: ✅ v1.0 MILESTONE ARCHIVED — ready for `/gsd-new-milestone`
-last_updated: "2026-06-10T20:35:33.478Z"
+milestone: v1.1
+milestone_name: Refactor + Fixes + UI + New Features
+status: planning
+last_updated: "2026-06-11T20:33:53.066Z"
+last_activity: 2026-06-11
+progress:
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State & Memory
@@ -182,3 +189,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-10)
 - Phase archive: `.planning/milestones/v1.0-phases/`
 - MILESTONES.md: `.planning/MILESTONES.md`
 - Git tag: `v1.0`
+
+## Current Position
+
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-11 — Milestone v1.1 started
