@@ -6,6 +6,7 @@ import com.anjo.model.Effect
 import com.anjo.model.Schedule
 import com.anjo.model.TriggerType
 import io.kotest.core.spec.style.FunSpec
+import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -27,6 +28,7 @@ class SchedulerServiceTest : FunSpec({
     val mockRenderer = mockk<EffectRenderer>(relaxed = true)
 
     beforeEach {
+        clearMocks(mockRepo, mockScreen, mockFactory, mockRenderer)
         coEvery { mockFactory.create(any()) } returns mockRenderer
         coEvery { mockRepo.findAllActive() } returns emptyList()
     }

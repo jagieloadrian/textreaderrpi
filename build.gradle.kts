@@ -85,6 +85,7 @@ jacoco {
 
 tasks.test {
     useJUnitPlatform()
+    jvmArgs("-Xmx768m")
     jacoco {
         excludes += setOf(
             $$"com.anjo.model.*$serializer*",

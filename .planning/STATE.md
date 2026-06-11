@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
-status: roadmap_approved
-last_updated: "2026-06-11T00:00:00.000Z"
-last_activity: 2026-06-11
+status: Roadmap defined — ready for `/gsd-plan-phase 6`
+last_updated: "2026-06-11T22:00:58.436Z"
+last_activity: 2026-06-11 — v1.1 roadmap created (Phases 6–12)
 progress:
   total_phases: 7
   completed_phases: 0
