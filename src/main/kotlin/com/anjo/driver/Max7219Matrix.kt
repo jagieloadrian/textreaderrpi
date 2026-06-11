@@ -3,11 +3,16 @@ package com.anjo.driver
 import com.anjo.utils.Font
 import com.pi4j.context.Context
 import com.pi4j.io.spi.Spi
+import com.pi4j.io.spi.SpiBus
+import com.pi4j.io.spi.SpiChipSelect
+import com.pi4j.io.spi.SpiMode
+import com.pi4j.plugin.linuxfs.provider.spi.LinuxFsSpiProviderImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class Max7219Matrix(
     private val ctx: Context,
@@ -32,8 +37,11 @@ class Max7219Matrix(
         val config = Spi.newConfigBuilder(ctx)
             .id("max7219")
             .name("MAX7219 SPI")
-            .bcm(0)
+            .bus(SpiBus.BUS_0)
+            .chipSelect(SpiChipSelect.CS_0)
             .baud(1_000_000)
+            .mode(SpiMode.MODE_0)
+            .provider(LinuxFsSpiProviderImpl::class.java)
             .build()
 
         spi = ctx.create(config)
@@ -77,16 +85,17 @@ class Max7219Matrix(
         lastMessage = text
 
         val bitmap = buildBitmap(text)
+        val visibleColumns = numDevices * 8
+        val maxOffset = bitmap.size - visibleColumns
 
         job = scope.launch {
-            val maxOffset = bitmap.size / 8 - (numDevices * 8)
             var offset = 0
-
-            while (isActive && offset < maxOffset) {
+            while (isActive && offset <= maxOffset) {
                 render(bitmap, offset)
                 offset++
-                delay(speedMs)
+                delay(speedMs.milliseconds)
             }
+            clear()
         }
     }
 
@@ -124,56 +133,43 @@ class Max7219Matrix(
     }
 
     private fun render(bitmap: ByteArray, offset: Int) {
-        val bitmapWidth = bitmap.size / 8
-        val baseOffset = offset * 8
+//        val visibleWidth = numDevices * 8  // 16
 
-        for (d in 0 until numDevices) {
-            val deviceOffset = baseOffset + (d * 8)
-            val rowBuf = buffer[d]
-
-            for (row in 0 until 8) {
-                var value = 0
-                for (col in 0 until 8) {
-                    value = (value shl 1) or bitmap.getSafe(deviceOffset + col, row, bitmapWidth)
-                }
-                rowBuf[row] = value.toByte()
-            }
-        }
-
-        flush(buffer)
-    }
-
-    private fun buildBitmap(text: String): ByteArray {
-        val columns = buildList {
-            for (c in text) {
-                for (col in getChar(c)) add(col.toInt())
-                add(0)
-            }
-        }
-        val bitmap = ByteArray(columns.size * 8)
-        var i = 0
-        for (col in columns) {
-            for (bit in 0 until 8) {
-                bitmap[i++] = ((col shr bit) and 1).toByte()
-            }
-        }
-        return bitmap
-    }
-
-    private fun flush(buf: Array<ByteArray>) {
-        val packet = ByteArray(numDevices * 2)
         for (row in 0 until 8) {
-            var i = 0
+            val packet = ByteArray(numDevices * 2)
+
             for (d in 0 until numDevices) {
-                packet[i++] = (row + 1).toByte()
-                packet[i++] = buf[d][row]
+                var columnByte = 0
+
+                for (col in 0 until 8) {
+                    val globalCol = offset + (d * 8) + col
+                    val bit = if (globalCol < bitmap.size) {
+                        bitmap[globalCol].toInt() and (1 shl row) != 0
+                    } else false
+
+                    columnByte = (columnByte shl 1) or (if (bit) 1 else 0)
+                }
+
+                packet[d * 2] = (row + 1).toByte()
+                packet[d * 2 + 1] = columnByte.toByte()
             }
+
             spi.write(packet)
         }
     }
 
-    private fun getChar(c: Char): ByteArray = Font.asciiFont[c] ?: Font.asciiFont[' ']!!
+    private fun buildBitmap(text: String): ByteArray {
+        val columns = mutableListOf<Byte>()
 
-    private fun ByteArray.getSafe(x: Int, row: Int, width: Int): Int =
-        if (x < width) this[(x * 8) + row].toInt() else 0
+        for (c in text) {
+            val glyph = Font.asciiFont[c] ?: Font.asciiFont[' ']!!
+            columns.addAll(glyph.toList())
+            columns.add(0)
+        }
+
+        repeat(16) { columns.add(0) }
+
+        return columns.toByteArray()
+    }
+
 }

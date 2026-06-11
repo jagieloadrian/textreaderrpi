@@ -54,7 +54,8 @@ dependencies {
     // Pi4J
     implementation(ktorLibs.pi4j.core)
     implementation(ktorLibs.pi4j.ktx)
-    implementation(ktorLibs.pi4j.plugin.pigpio)
+    implementation(ktorLibs.pi4j.plugin.gpiod)
+    implementation(ktorLibs.pi4j.plugin.linuxfs)
     implementation(ktorLibs.pi4j.plugin.mock)
 
     // Database
@@ -84,6 +85,7 @@ jacoco {
 
 tasks.test {
     useJUnitPlatform()
+    jvmArgs("-Xmx768m")
     jacoco {
         excludes += setOf(
             $$"com.anjo.model.*$serializer*",
@@ -142,10 +144,27 @@ ktor {
         archiveFileName.set("textreaderrpi.jar")
     }
 
+    jib {
+        from {
+            platforms {
+                platform {
+                    architecture = "arm64"
+                    os = "linux"
+                }
+                platform {
+                    architecture = "amd64"
+                    os = "linux"
+                }
+            }
+        }
+
+    }
+
     docker {
         localImageName.set("textreaderrpi")
         imageTag.set("latest")
         imageTag.set("${project.version}")
+        jreVersion.set(JavaVersion.VERSION_25)
     }
 }
 

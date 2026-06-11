@@ -2,7 +2,21 @@
 
 **Project Name:** TextReaderRpi  
 **Created:** 2025-01-25  
-**Status:** v1.0 — Milestone ARCHIVED ✅ | Preparing for v2.0
+**Status:** v1.1 — In Progress
+
+## Current Milestone: v1.1 Refactor + Fixes + UI + New Features
+
+**Goal:** Spłacić dług techniczny z v1.0, przeprowadzić pełny refactor aplikacji, naprawić bugi hardware (MAX7219), odświeżyć UI/UX oraz dodać nowe funkcjonalności (historia, multi-zone, scheduler rewrite, webhooks).
+
+**Target features:**
+- MAX7219 chain order fix + pełny refactor warstwy driverów
+- GET /health/detail, HTML error pages, /metrics hardware group, SKIP_NEW policy (gap closures)
+- Pełny refactor aplikacji (uproszczenie, czytelność, usunięcie workaroundów)
+- UI/UX refresh (layout, stylizacja, user experience)
+- Historia wyświetlanych tekstów
+- Przepisanie schedulera (coroutines, bez Flaxoos JDBC)
+- Multi-zone (wiele wyświetlaczy jednocześnie)
+- Webhooks / push notifications on schedule fire
 
 ## Vision
 
@@ -50,13 +64,29 @@ Simple, reliable one-way display control from any browser on the home network.
 - ✓ Full env var config (25 settings) — v1.0
 - ✓ Docker image build via Gradle — v1.0
 
-### Active (v2.0 candidates)
+### Active (v1.1)
 
-- [ ] Multiple concurrent displays (multi-zone)
-- [ ] Remote access beyond home network (VPN/tunnel)
-- [ ] Display text history/audit log
-- [ ] Webhook / push notification on schedule fire
-- [ ] Evaluate replacing Flaxoos JDBC scheduler with simpler coroutine approach
+**Gap closures from v1.0 audit:**
+- [ ] Implement `GET /health/detail` — KHealth extended payload (uptime, memory, display status, error counts) — REQ-OBS-03
+- [ ] Fix Ktor 3.5.0 SwaggerUI routing catch-all — HTML 404/500 error pages unreachable for browser GET routes — REQ-DISP-06
+- [ ] Add `/metrics` hardware group — display failures, recovery retries, resource slot utilization — REQ-OBS-01
+- [ ] Implement `SKIP_NEW` conflict policy — add `ConflictPolicy` enum, conditional logic in `displayImmediate()` — REQ-CONFLICT-01
+
+**Hardware fixes:**
+- [ ] MAX7219 chain order fix — scroll starts from wrong module (right before left)
+- [ ] Pełny refactor warstwy driverów (MAX7219, LCD, OLED, OfflineDriver)
+
+**Refactor:**
+- [ ] Uproszczenie i oczyszczenie całej aplikacji (usunięcie workaroundów, poprawa czytelności)
+
+**UI/UX:**
+- [ ] Odświeżenie wyglądu i user experience
+
+**New features:**
+- [ ] Historia wyświetlanych tekstów (audit log)
+- [ ] Przepisanie schedulera — coroutines zamiast Flaxoos JDBC
+- [ ] Multi-zone — wiele wyświetlaczy jednocześnie
+- [ ] Webhooks / push notifications on schedule fire
 
 ### Out of Scope
 
@@ -104,9 +134,26 @@ Simple, reliable one-way display control from any browser on the home network.
 - **Network:** Home network only (no auth, no TLS required)
 - **Memory:** <256MB JVM heap target
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ## Next Steps
 
-- `/gsd-new-milestone` — define v2.0 scope (questioning → research → requirements → roadmap)
+- `/gsd-plan-phase 6` — start planning Phase 6 (first phase of v1.1)
 
 ---
-*Last updated: 2026-05-28 after v1.0 milestone archive*
+*Last updated: 2026-06-11 — milestone v1.1 started*
