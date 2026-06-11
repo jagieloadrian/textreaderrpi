@@ -104,42 +104,40 @@
 
 ## Traceability
 
-*Wypełniane przez roadmapper po zatwierdzeniu roadmapy.*
-
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| HW-01 | — | Pending |
-| HW-02 | — | Pending |
-| SCHED-01 | — | Pending |
-| SCHED-02 | — | Pending |
-| SCHED-03 | — | Pending |
-| SCHED-04 | — | Pending |
-| OBS-01 | — | Pending |
-| OBS-02 | — | Pending |
-| OBS-03 | — | Pending |
-| HIST-01 | — | Pending |
-| HIST-02 | — | Pending |
-| HIST-03 | — | Pending |
-| HOOK-01 | — | Pending |
-| HOOK-02 | — | Pending |
-| HOOK-03 | — | Pending |
-| ZONE-01 | — | Pending |
-| ZONE-02 | — | Pending |
-| ZONE-03 | — | Pending |
-| ZONE-04 | — | Pending |
-| ZONE-05 | — | Pending |
-| ZONE-06 | — | Pending |
-| ZONE-07 | — | Pending |
-| ZONE-08 | — | Pending |
-| REF-01 | — | Pending |
-| REF-02 | — | Pending |
-| REF-03 | — | Pending |
-| REF-04 | — | Pending |
-| UI-01 | — | Pending |
-| UI-02 | — | Pending |
-| UI-03 | — | Pending |
-| UI-04 | — | Pending |
-| UI-05 | — | Pending |
-| UI-06 | — | Pending |
-| UI-07 | — | Pending |
-| UI-08 | — | Pending |
+| HW-01 | Phase 6 | Pending |
+| HW-02 | Phase 6 | Pending |
+| SCHED-01 | Phase 7 | Pending |
+| SCHED-02 | Phase 7 | Pending |
+| SCHED-03 | Phase 7 | Pending |
+| SCHED-04 | Phase 7 | Pending |
+| REF-01 | Phase 8 | Pending |
+| REF-02 | Phase 8 | Pending |
+| REF-03 | Phase 8 | Pending |
+| REF-04 | Phase 8 | Pending |
+| HIST-01 | Phase 9 | Pending |
+| HIST-02 | Phase 9 | Pending |
+| HIST-03 | Phase 9 | Pending |
+| HOOK-01 | Phase 10 | Pending |
+| HOOK-02 | Phase 10 | Pending |
+| HOOK-03 | Phase 10 | Pending |
+| ZONE-01 | Phase 11 | Pending |
+| ZONE-02 | Phase 11 | Pending |
+| ZONE-03 | Phase 11 | Pending |
+| ZONE-04 | Phase 11 | Pending |
+| ZONE-05 | Phase 11 | Pending |
+| ZONE-06 | Phase 11 | Pending |
+| ZONE-07 | Phase 11 | Pending |
+| ZONE-08 | Phase 11 | Pending |
+| OBS-01 | Phase 12 | Pending |
+| OBS-02 | Phase 12 | Pending |
+| OBS-03 | Phase 12 | Pending |
+| UI-01 | Phase 13 | Pending |
+| UI-02 | Phase 13 | Pending |
+| UI-03 | Phase 13 | Pending |
+| UI-04 | Phase 13 | Pending |
+| UI-05 | Phase 13 | Pending |
+| UI-06 | Phase 13 | Pending |
+| UI-07 | Phase 13 | Pending |
+| UI-08 | Phase 13 | Pending |

@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
-status: planning
-last_updated: "2026-06-11T20:33:53.066Z"
+status: roadmap_approved
+last_updated: "2026-06-11T00:00:00.000Z"
 last_activity: 2026-06-11
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -15,19 +15,32 @@ progress:
 
 # Project State & Memory
 
-**Last Updated:** 2026-05-28  
-**Status:** ✅ v1.0 MILESTONE ARCHIVED — ready for `/gsd-new-milestone`
+**Last Updated:** 2026-06-11  
+**Status:** Roadmap defined — ready for `/gsd-plan-phase 6`
 
-## Current State
+## Current Position
 
-### Project Context
+**Phase:** Phase 6 — MAX7219 Hardware Fix (not started)  
+**Plan:** —  
+**Status:** Roadmap approved, planning Phase 6 next  
+**Last activity:** 2026-06-11 — v1.1 roadmap created (Phases 6–12)
+
+Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
+`░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` 0% (0/7 phases)
+
+---
+
+## Project Context
 
 - **Name:** TextReaderRpi
 - **Vision:** Display text on a display connected to Raspberry Pi (using Pi4J) that can be updated via a web interface
+- **Core value:** Simple, reliable one-way display control from any browser on the home network
 - **Users:** Home lab enthusiasts, DIY electronics hobbyists
 - **Timeline:** No hard deadline; iterative development
 
-### Codebase Status
+---
+
+## Codebase Status
 
 - **Language:** Kotlin 2.3.21, JDK 25 toolchain
 - **Framework:** Ktor 3.5.0 (DI plugin + RequestValidation + StatusPages)
@@ -35,8 +48,11 @@ progress:
 - **Hardware:** Pi4J 4.0.0 + MAX7219 via SPI, LCD/OLED via I2C
 - **Database:** H2 (embedded default) or PostgreSQL (via env vars)
 - **Current package root:** `src/main/kotlin/com/anjo/...`
+- **Test suite:** 20 test classes, Kotest `should` convention, JaCoCo ≥70% gate
 
-### Existing Features (all complete)
+---
+
+## Existing Features (v1.0 complete)
 
 - ✅ Typed YAML config with env var overrides (`${VAR:default}` for all 25 settings)
 - ✅ Request validation via Ktor `RequestValidation`
@@ -57,72 +73,50 @@ progress:
 - ✅ Gradle-based Docker image build (Ktor plugin — no Dockerfile)
 - ✅ systemd service file + install script
 
-### Test Suite
+---
 
-- **Framework:** Kotest FunSpec + MockK + kotlinx-coroutines-test
-- **Convention:** All test names follow `should ...` pattern
-- **Packages:** Test packages mirror production packages exactly
-- **Count:** 20 test classes, all green
-- **Coverage:** JaCoCo ≥70% line coverage gate — PASSING
-- **Startup test:** `com.anjo.ApplicationTest` — 5 context startup tests
+## v1.1 Roadmap Summary
 
-### DevOps
-
-- **Docker:** `./gradlew publishImageToLocalRegistry` (no Dockerfile in repo)
-- **Compose:** `.devops/containers/docker-compose.yml` — full env var mapping, no build section
-- **Host:** `.devops/host/` — systemd unit + install script
-- **Env template:** `.env.example` at project root + `.devops/containers/.env.example`
+| Phase | Name | Requirements | Status |
+|-------|------|--------------|--------|
+| 6 | MAX7219 Hardware Fix | HW-01, HW-02 | Not started |
+| 7 | Scheduler Schema Stabilisation | SCHED-01, SCHED-02, SCHED-03, SCHED-04 | Not started |
+| 8 | Refactor + Dead Code Analysis | REF-01, REF-02, REF-03, REF-04 | Not started |
+| 9 | Display History + Audit Log | HIST-01, HIST-02, HIST-03 | Not started |
+| 10 | Webhooks | HOOK-01, HOOK-02, HOOK-03 | Not started |
+| 11 | Multi-Zone Displays | ZONE-01 through ZONE-08 | Not started |
+| 12 | Observability Gap Closures + UI/UX Refresh | OBS-01, OBS-02, OBS-03, UI-01 through UI-08 | Not started |
 
 ---
 
-## Documentation Completed
+## Accumulated Context
 
-- ✅ `README.md` — full API tables, env vars, Gradle Docker workflow, code layout
-- ✅ `docs/deployment/production-guide.md` — 25 env vars table, PostgreSQL switching, Gradle tasks
-- ✅ `docs/operations/monitoring-alerting.md` — all endpoints, schedule API, cancel docs
-- ✅ `.planning/codebase/` (7 docs: STACK, INTEGRATIONS, ARCHITECTURE, STRUCTURE, CONVENTIONS, TESTING, CONCERNS)
-- ✅ `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`
-- ✅ All phase artifacts (01–05) with PLAN.md, SUMMARY.md, VERIFICATION.md
+### Key Decisions (v1.1 planning)
 
----
+| Decision | Rationale |
+|----------|-----------|
+| Phase 6 first: fix MAX7219 before adding zones | Hardware bug amplifies across all multi-zone testing |
+| Phase 7: targeted schema fixes, NOT a scheduler rewrite | SchedulerService is already coroutine-based; Flaxoos stays for HTTP rate limiting |
+| Phase 8: DI smoke test is the first task | Silent DI failures block all refactor work safely |
+| Phase 9: history cap MAX_ROWS=1000 in HistoryRepository.insert() | Prevents SD card fill on long-running Pi |
+| Phase 10: webhooks fire in separate IOScope, withTimeout(5_000) | Does not block Dispatchers.Default (only 4 threads on Pi 4) |
+| Phase 11: single shared Pi4J context, unique string IDs per zone | Avoids Pi4J SPI registration collision crash on startup |
+| Phase 12: add headExtra to BaseLayout before any page-specific CSS | Prevents CSS cascade breaks in Ktor HTML DSL |
+| Stack additions: ktor-client-core/cio/content-negotiation 3.5.0 only | Zero version conflicts; no OkHttp, Quartz, JobRunr, Flyway, JS frameworks |
 
-## Phase 5 Status — FULLY COMPLETE (2026-05-28)
+### Critical Pitfalls to Watch
 
-### Wave 1 — Refactoring ✅
+- MAX7219 SPI packet direction: `d=0` controls the physically last module — fix `render()` to iterate `numDevices - 1 downTo 0`
+- ONESHOT duplicate fire: add `firedAt` column, set atomically with `status=DONE`, skip if `targetMs < now` on restart
+- Bad CRON spin: write `status=ERROR` in catch; exclude ERROR from `findAllActive()`
+- Pi4J multi-zone collision: each zone must use `Spi.newConfigBuilder().id("max7219-zone-N")`
+- Webhook IOScope: `scope.launch {}` + `withTimeout(5_000)`, never retry inline
+- H2 history growth: `MAX_ROWS=1000` cap with daily cleanup coroutine
 
-- 05-01: Health, retry, metrics cleanup
-- 05-02: Mutex, metrics config, comment removal
-- 05-03: Route + test package unification
+### Open Decisions for Phase 11
 
-### Wave 2 — Scheduling Engine ✅
-
-- 05-04: Schedule data model + Exposed/H2 DB
-- 05-05: SchedulerService coroutine engine + conflict policy
-- 05-06: Schedule HTTP CRUD API + validation
-- 05-07: Schedule UI page + DI wiring
-
-### Wave 3 — Effects + Behavioral Tests ✅
-
-- 05-08: Effect renderer architecture + DisplayDriver extensions
-- 05-09: Effect field on POST /api/text + POST /api/schedule
-- 05-10: Timing-accurate behavior tests (virtual time)
-
-### Wave 4 — Post-Execution Fixes ✅ (2026-05-28)
-
-- 05-11: SchedulerService bug fix, cancel endpoint, UI Stop button, test restructuring, deps update, env vars, Gradle Docker
-
-**Verification:** `.planning/phases/05-scheduling-effects/05-VERIFICATION.md` — status: PASSED (10/10 + 8/8)  
-**Plans:** 11 plans, all have SUMMARY.md  
-**Build:** `./gradlew test -x jacocoTestCoverageVerification → BUILD SUCCESSFUL`
-
----
-
-## Previous Phases (all complete)
-
-- **Phase 4** ✅ — Observability cleanup, KHealth, metrics endpoint, DevOps artifacts
-- **Phase 3** ✅ — Production ready: health, recovery, rate limiting, systemd, docs
-- **Phase 2** ✅ — Multi-display: LCD, OLED, display selection, HTML pages
-- **Phase 1** ✅ — MVP: text submission, MAX7219, validation, error handling
+- Pi4J single-context-unique-IDs approach needs hardware validation (two-zone spike recommended first)
+- H2 `AUTO_SERVER=TRUE` behavior in Docker on Pi should be tested early in Phase 9
 
 ---
 
@@ -142,44 +136,22 @@ progress:
 - `POST /api/v1/schedule` → `ScheduleRoutes` → `ScheduleRepository.insert()` + `SchedulerService.schedule()`
 - `SchedulerService.fire()` → `EffectRendererFactory.create(effect)` → `ScreenDriverService.displayScheduled()`
 
-**Database:** H2 (default) → file `./data/schedules.mv.db`; switch to PostgreSQL via env vars only
+**New v1.1 integration points:**
+
+- History recording → inside `ScreenDriverService.displayImmediate()` and `displayScheduled()`
+- Webhooks → inside `SchedulerService.fire()` via `scope.launch {}`
+- Multi-zone → single shared `Pi4J.newAutoContext()` with unique IDs per zone
 
 ---
 
-## Key Decisions Since Phase 5 Execution
+## DevOps
 
-| Decision | Rationale |
-|----------|-----------|
-| `cancel()` must NOT be called from `schedule()` | Prevents new schedules from being immediately marked DONE in DB |
-| Cancel endpoint separate from DELETE | Preserves schedule history; status → DONE without removal |
-| Gradle Docker plugin instead of Dockerfile | Single source of truth for image config; Ktor plugin handles Dockerfile generation |
-| H2 + PostgreSQL as `runtimeOnly` | Exposed is JDBC-agnostic; drivers loaded at runtime from classpath |
-| `should` test naming | Kotest convention; self-documenting test intent |
-| Test package mirrors production package | Easier navigation; `EffectRendererTest` in `com.anjo.service.effect` |
+- **Docker:** `./gradlew publishImageToLocalRegistry` (no Dockerfile in repo)
+- **Compose:** `.devops/containers/docker-compose.yml` — full env var mapping, no build section
+- **Host:** `.devops/host/` — systemd unit + install script
+- **Env template:** `.env.example` at project root + `.devops/containers/.env.example`
 
 ---
-
-## Deferred Items
-
-Items acknowledged and deferred at milestone close on 2026-06-10:
-
-| Category | REQ-ID | Item | Status |
-|----------|--------|------|--------|
-| implementation-gap | REQ-OBS-03 | GET /health/detail returns 404 — endpoint never implemented | v2.0 backlog |
-| implementation-bug | REQ-DISP-06 | HTML 404/500 error pages unreachable — Ktor SwaggerUI catch-all intercepts unknown GET paths | v2.0 backlog |
-| implementation-gap | REQ-OBS-01 | /metrics hardware group absent — only runtime+api groups returned | v2.0 backlog |
-| implementation-gap | REQ-CONFLICT-01 | SKIP_NEW conflict policy never built — only hardcoded CANCEL_ONGOING | v2.0 backlog |
-
-Audit score: 21/25 requirements, 4/5 phases verified, 14/15 wiring, 6/7 flows. Full report: `.planning/milestones/v1.0-v1.0-MILESTONE-AUDIT.md`
-
----
-
-## Project Reference
-
-See: `.planning/PROJECT.md` (updated 2026-06-10)
-
-**Core value:** Simple, reliable one-way display control from any browser on the home network.  
-**Current focus:** Planning v2.0 milestone — run `/gsd-new-milestone` to begin.
 
 ## Milestone Archive
 
@@ -189,10 +161,3 @@ See: `.planning/PROJECT.md` (updated 2026-06-10)
 - Phase archive: `.planning/milestones/v1.0-phases/`
 - MILESTONES.md: `.planning/MILESTONES.md`
 - Git tag: `v1.0`
-
-## Current Position
-
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-06-11 — Milestone v1.1 started
