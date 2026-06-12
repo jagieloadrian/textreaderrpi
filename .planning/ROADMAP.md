@@ -26,7 +26,7 @@
 
 ### v1.1 Refactor + Fixes + UI + New Features
 
-- [ ] **Phase 6: MAX7219 Hardware Fix** — Scroll direction corrected, driver layer refactored
+- [x] **Phase 6: MAX7219 Hardware Fix** — Scroll direction corrected, driver layer refactored (completed 2026-06-12)
 - [ ] **Phase 7: Scheduler Schema Stabilisation** — ConflictPolicy, firedAt, ERROR status, webhookUrl, zoneId columns added
 - [ ] **Phase 8: Refactor + Dead Code Analysis** — Application cleaned and simplified, DI smoke test in place
 - [ ] **Phase 9: Display History + Audit Log** — Every display event persisted and browsable
@@ -58,7 +58,7 @@
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 06-02-PLAN.md — Introduce AbstractDisplayDriver base class, refactor Max7219Matrix/LcdDisplay/OledDisplay to extend it
+- [x] 06-02-PLAN.md — Introduce AbstractDisplayDriver base class, refactor Max7219Matrix/LcdDisplay/OledDisplay to extend it
 
 ### Phase 7: Scheduler Schema Stabilisation
 

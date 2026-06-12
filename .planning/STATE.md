@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-12T20:38:15.695Z"
+last_updated: "2026-06-12T20:43:55.155Z"
 last_activity: 2026-06-12
 progress:
   total_phases: 8
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 13
 ---
 
 # Project State & Memory
@@ -20,11 +20,11 @@ progress:
 
 ## Current Position
 
-Phase: 06 (max7219-hardware-fix) — EXECUTING
-Plan: 2 of 2
-**Phase:** Phase 6 — MAX7219 Hardware Fix (in progress — Plan 01 complete)  
-**Plan:** Plan 01 complete — Plan 02 next  
-**Status:** Plan 01 complete: buildPacket extracted, render direction fixed, write guards removed  
+Phase: 06 (max7219-hardware-fix) — COMPLETE
+Plan: 2 of 2 (all plans complete)
+**Phase:** Phase 6 — MAX7219 Hardware Fix (COMPLETE — both plans done)  
+**Plan:** Plan 02 complete — AbstractDisplayDriver refactor, all 3 drivers extended  
+**Status:** HW-01 + HW-02 satisfied; AbstractDisplayDriver introduced; all driver tests pass; JaCoCo >= 70%  
 **Last activity:** 2026-06-12
 
 Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
@@ -81,7 +81,7 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 6 | MAX7219 Hardware Fix | HW-01, HW-02 | Not started |
+| 6 | MAX7219 Hardware Fix | HW-01, HW-02 | COMPLETE |
 | 7 | Scheduler Schema Stabilisation | SCHED-01, SCHED-02, SCHED-03, SCHED-04 | Not started |
 | 8 | Refactor + Dead Code Analysis | REF-01, REF-02, REF-03, REF-04 | Not started |
 | 9 | Display History + Audit Log | HIST-01, HIST-02, HIST-03 | Not started |
@@ -100,6 +100,9 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | buildPacket placed in companion object (not instance method) | Tests call Max7219Matrix.buildPacket(...) without Pi4J construction — pure JVM testable |
 | Per-row buildPacket(bitmap, offset, numDevices, row) signature | Called 8 times from render(); enables 2-byte per-row assertions in Kotest |
 | Size guards removed from write() and displayStatic() | buildPacket handles short bitmaps safely via else false bounds check |
+| isHardwareAvailable() as protected abstract hook in AbstractDisplayDriver | status() delegates to it polymorphically; drivers supply their own availability predicate |
+| Max7219Matrix.isHardwareAvailable() = lastError == null | SPI always creates handle; failure stored as lastError |
+| LcdDisplay/OledDisplay.isHardwareAvailable() = i2c != null && lastError == null | I2C handle is null when ctx.create() throws during init |
 | Phase 6 first: fix MAX7219 before adding zones | Hardware bug amplifies across all multi-zone testing |
 | Phase 7: targeted schema fixes, NOT a scheduler rewrite | SchedulerService is already coroutine-based; Flaxoos stays for HTTP rate limiting |
 | Phase 8: DI smoke test is the first task | Silent DI failures block all refactor work safely |

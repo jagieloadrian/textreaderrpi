@@ -9,7 +9,7 @@
 ## Hardware (HW)
 
 - [x] **HW-01**: Scroll wyświetla tekst od lewego modułu do prawego na łańcuchu MAX7219 (2× 8×8)
-- [ ] **HW-02**: Warstwa driverów (Max7219Matrix, LCD, OLED, Offline) jest zrefaktoryzowana — usunięte workaroundy, uproszczona logika, brak manualnych poprawek
+- [x] **HW-02**: Warstwa driverów (Max7219Matrix, LCD, OLED, Offline) jest zrefaktoryzowana — usunięte workaroundy, uproszczona logika, brak manualnych poprawek
 
 ---
 
@@ -107,7 +107,7 @@
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
 | HW-01 | Phase 6 | Complete (06-01) |
-| HW-02 | Phase 6 | Pending |
+| HW-02 | Phase 6 | Complete |
 | SCHED-01 | Phase 7 | Pending |
 | SCHED-02 | Phase 7 | Pending |
 | SCHED-03 | Phase 7 | Pending |
