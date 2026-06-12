@@ -3,7 +3,6 @@ package com.anjo.driver
 import com.pi4j.context.Context
 import com.pi4j.io.i2c.I2C
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -12,12 +11,9 @@ class LcdDisplay(
     private val ctx: Context,
     private val i2cAddress: Int = 0x27,
     private val busNumber: Int = 1,
-) : DisplayDriver {
+) : AbstractDisplayDriver() {
 
     private val i2c: I2C?
-    private var job: Job? = null
-    private var lastMessage: String? = null
-    private var lastError: String? = null
 
     private val maxLineLength = 16
     private val cursorLine1   = 0x80
@@ -132,18 +128,7 @@ class LcdDisplay(
         }
     }
 
-    override fun status(): DisplayStatus {
-        return DisplayStatus(
-            isActive = job?.isActive ?: false,
-            hardwareAvailable = i2c != null && lastError == null,
-            currentMessage = lastMessage,
-            error = lastError,
-        )
-    }
-
-    override fun stop() {
-        job?.cancel()
-    }
+    override fun isHardwareAvailable() = i2c != null && lastError == null
 
     override suspend fun setBrightness(level: Int) {
         // LCD 16x2 HD44780 backlight not software-controllable via I2C in this implementation

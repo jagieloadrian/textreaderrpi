@@ -8,7 +8,6 @@ import com.pi4j.io.spi.SpiChipSelect
 import com.pi4j.io.spi.SpiMode
 import com.pi4j.plugin.linuxfs.provider.spi.LinuxFsSpiProviderImpl
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -17,7 +16,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class Max7219Matrix(
     private val ctx: Context,
     private val numDevices: Int = 2,
-) : DisplayDriver {
+) : AbstractDisplayDriver() {
 
     companion object {
         private const val REG_DISPLAY_TEST = 0x0F
@@ -46,10 +45,7 @@ class Max7219Matrix(
     }
 
     private val spi: Spi
-    private var job: Job? = null
     private var buffer = Array(numDevices) { ByteArray(8) }
-    private var lastMessage: String? = null
-    private var lastError: String? = null
 
     init {
         val config = Spi.newConfigBuilder(ctx)
@@ -117,18 +113,7 @@ class Max7219Matrix(
         }
     }
 
-    override fun status(): DisplayStatus {
-        return DisplayStatus(
-            isActive = job?.isActive ?: false,
-            hardwareAvailable = lastError == null,
-            currentMessage = lastMessage,
-            error = lastError,
-        )
-    }
-
-    override fun stop() {
-        job?.cancel()
-    }
+    override fun isHardwareAvailable() = lastError == null
 
     override suspend fun setBrightness(level: Int) {
         sendCommand(REG_INTENSITY, level.coerceIn(0, 15))
