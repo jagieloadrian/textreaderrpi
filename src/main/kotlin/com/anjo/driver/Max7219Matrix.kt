@@ -111,6 +111,10 @@ class Max7219Matrix(
         val maxOffset = bitmap.size - visibleColumns
 
         job = scope.launch {
+            if (maxOffset < 0) {
+                render(bitmap, 0)   // text fits statically; display without scrolling
+                return@launch
+            }
             var offset = 0
             while (isActive && offset <= maxOffset) {
                 render(bitmap, offset)
