@@ -2,28 +2,30 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
-status: Roadmap defined — ready for `/gsd-plan-phase 6`
-last_updated: "2026-06-12T20:28:43.883Z"
-last_activity: 2026-06-12 — Phase 6 context gathered
+status: executing
+last_updated: "2026-06-12T20:38:15.695Z"
+last_activity: 2026-06-12
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
 # Project State & Memory
 
 **Last Updated:** 2026-06-11  
-**Status:** Roadmap defined — ready for `/gsd-plan-phase 6`
+**Status:** Executing Phase 06
 
 ## Current Position
 
-**Phase:** Phase 6 — MAX7219 Hardware Fix (not started)  
-**Plan:** —  
-**Status:** Roadmap approved, planning Phase 6 next  
-**Last activity:** 2026-06-12 — Phase 6 context gathered
+Phase: 06 (max7219-hardware-fix) — EXECUTING
+Plan: 2 of 2
+**Phase:** Phase 6 — MAX7219 Hardware Fix (in progress — Plan 01 complete)  
+**Plan:** Plan 01 complete — Plan 02 next  
+**Status:** Plan 01 complete: buildPacket extracted, render direction fixed, write guards removed  
+**Last activity:** 2026-06-12
 
 Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
 `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` 0% (0/7 phases)
@@ -95,6 +97,9 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 
 | Decision | Rationale |
 |----------|-----------|
+| buildPacket placed in companion object (not instance method) | Tests call Max7219Matrix.buildPacket(...) without Pi4J construction — pure JVM testable |
+| Per-row buildPacket(bitmap, offset, numDevices, row) signature | Called 8 times from render(); enables 2-byte per-row assertions in Kotest |
+| Size guards removed from write() and displayStatic() | buildPacket handles short bitmaps safely via else false bounds check |
 | Phase 6 first: fix MAX7219 before adding zones | Hardware bug amplifies across all multi-zone testing |
 | Phase 7: targeted schema fixes, NOT a scheduler rewrite | SchedulerService is already coroutine-based; Flaxoos stays for HTTP rate limiting |
 | Phase 8: DI smoke test is the first task | Silent DI failures block all refactor work safely |

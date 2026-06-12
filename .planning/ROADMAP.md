@@ -54,7 +54,7 @@
 **Plans**: 2 plansPlans:
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — Fix Max7219Matrix render direction (buildPacket extraction + physicalD fix + write guards removed) + 2 unit tests
+- [x] 06-01-PLAN.md — Fix Max7219Matrix render direction (buildPacket extraction + physicalD fix + write guards removed) + 2 unit tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -173,7 +173,7 @@
 | 3 | Production Ready | v1.0 | 5/5 | ✅ Complete | 2026-05-27 |
 | 4 | Cleanup + Observability | v1.0 | 5/5 | ✅ Complete | 2026-05-27 |
 | 5 | Scheduling + Effects | v1.0 | 11/11 | ✅ Complete | 2026-05-28 |
-| 6 | MAX7219 Hardware Fix | v1.1 | 0/2 | Not started | - |
+| 6 | MAX7219 Hardware Fix | v1.1 | 1/2 | In progress | - |
 | 7 | Scheduler Schema Stabilisation | v1.1 | 0/? | Not started | - |
 | 8 | Refactor + Dead Code Analysis | v1.1 | 0/? | Not started | - |
 | 9 | Display History + Audit Log | v1.1 | 0/? | Not started | - |
