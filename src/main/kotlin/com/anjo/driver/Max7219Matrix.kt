@@ -25,6 +25,24 @@ class Max7219Matrix(
         private const val REG_SCAN_LIMIT   = 0x0B
         private const val REG_INTENSITY    = 0x0A
         private const val REG_DECODE_MODE  = 0x09
+
+        internal fun buildPacket(bitmap: ByteArray, offset: Int, numDevices: Int, row: Int): ByteArray {
+            val packet = ByteArray(numDevices * 2)
+            for (d in 0 until numDevices) {
+                val physicalD = numDevices - 1 - d
+                var columnByte = 0
+                for (col in 0 until 8) {
+                    val globalCol = offset + (physicalD * 8) + col
+                    val bit = if (globalCol < bitmap.size) {
+                        bitmap[globalCol].toInt() and (1 shl row) != 0
+                    } else false
+                    columnByte = (columnByte shl 1) or (if (bit) 1 else 0)
+                }
+                packet[d * 2]     = (row + 1).toByte()
+                packet[d * 2 + 1] = columnByte.toByte()
+            }
+            return packet
+        }
     }
 
     private val spi: Spi
@@ -77,7 +95,7 @@ class Max7219Matrix(
         clear()
         lastMessage = text
         val bitmap = buildBitmap(text)
-        if (bitmap.size / 8 >= numDevices * 8) render(bitmap, 0)
+        render(bitmap, 0)
     }
 
     override fun scrollText(scope: CoroutineScope, text: String, speedMs: Long) {
@@ -120,7 +138,7 @@ class Max7219Matrix(
         stop()
         lastMessage = text
         val bitmap = buildBitmap(text)
-        if (bitmap.size / 8 >= numDevices) render(bitmap, 0)
+        render(bitmap, 0)
     }
 
     private fun sendCommand(register: Int, data: Int) {
@@ -133,28 +151,8 @@ class Max7219Matrix(
     }
 
     private fun render(bitmap: ByteArray, offset: Int) {
-//        val visibleWidth = numDevices * 8  // 16
-
         for (row in 0 until 8) {
-            val packet = ByteArray(numDevices * 2)
-
-            for (d in 0 until numDevices) {
-                var columnByte = 0
-
-                for (col in 0 until 8) {
-                    val globalCol = offset + (d * 8) + col
-                    val bit = if (globalCol < bitmap.size) {
-                        bitmap[globalCol].toInt() and (1 shl row) != 0
-                    } else false
-
-                    columnByte = (columnByte shl 1) or (if (bit) 1 else 0)
-                }
-
-                packet[d * 2] = (row + 1).toByte()
-                packet[d * 2 + 1] = columnByte.toByte()
-            }
-
-            spi.write(packet)
+            spi.write(buildPacket(bitmap, offset, numDevices, row))
         }
     }
 
