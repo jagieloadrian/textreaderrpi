@@ -76,6 +76,7 @@ class Max7219Matrix(
     }
 
     override fun clear() {
+        stop()                          // cancel scroll job first
         try {
             for (row in 1..8) sendCommand(row, 0x00)
             buffer = Array(numDevices) { ByteArray(8) }
