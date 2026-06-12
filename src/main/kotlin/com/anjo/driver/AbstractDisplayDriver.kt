@@ -4,9 +4,9 @@ import kotlinx.coroutines.Job
 
 abstract class AbstractDisplayDriver : DisplayDriver {
 
-    protected var job: Job? = null
-    protected var lastMessage: String? = null
-    protected var lastError: String? = null
+    @Volatile protected var job: Job? = null
+    @Volatile protected var lastMessage: String? = null
+    @Volatile protected var lastError: String? = null
 
     protected abstract fun isHardwareAvailable(): Boolean
 
