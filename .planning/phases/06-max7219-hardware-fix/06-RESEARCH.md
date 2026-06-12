@@ -508,17 +508,19 @@ Identical code found in all three hardware drivers, confirmed by reading source 
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Per-row `buildPacket` vs. full-frame `buildPacket`**
    - What we know: CONTEXT.md D-08 says "assert the exact 2-byte SPI packet" (per device per row = 2 bytes for numDevices=1 per row). The test description implies per-row.
    - What's unclear: The D-02 description says "render() calls buildPacket() then spi.write()" — this could mean one call per row OR one call per frame.
    - Recommendation: Per-row is more testable (2 bytes per assertion for numDevices=1) and matches the current `spi.write()` call pattern. Use per-row.
+   - **RESOLVED:** Use per-row `buildPacket(bitmap, offset, numDevices, row): ByteArray` — render() calls it 8 times (once per row). Plans and test vectors are written to this signature.
 
 2. **`OfflineDisplayDriver` status after AbstractDisplayDriver**
    - What we know: D-06 explicitly says it stays as an `object` with no inheritance.
    - What's unclear: The `OfflineDisplayDriver.status()` method returns hardcoded values already — no change needed.
    - Recommendation: Confirm no import or structural change is required. `object OfflineDisplayDriver : DisplayDriver` remains unchanged.
+   - **RESOLVED:** `OfflineDisplayDriver` is untouched — no import change, no structural change, no AbstractDisplayDriver inheritance.
 
 ---
 
