@@ -162,7 +162,8 @@ class Max7219Matrix(
             columns.add(0)
         }
 
-        repeat(16) { columns.add(0) }
+        val trailingPad = numDevices * 8   // one full display width of blank columns
+        repeat(trailingPad) { columns.add(0) }
 
         return columns.toByteArray()
     }
