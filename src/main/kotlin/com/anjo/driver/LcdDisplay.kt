@@ -51,14 +51,22 @@ class LcdDisplay(
         clear()
     }
 
+    private val BACKLIGHT = 0x08
+
     private fun writeI2C(byte: Int) {
         i2c?.write(byte.toByte())
     }
 
+    private fun writeNibble(nibble: Int, rs: Int) {
+        val data = (nibble and 0xF0) or BACKLIGHT or rs
+        writeI2C(data or 0x04)   // E high
+        writeI2C(data)            // E low
+    }
+
     private fun writeCommand(cmd: Int) {
         try {
-            writeI2C(cmd or 0x04)
-            writeI2C(cmd and 0xFB)
+            writeNibble(cmd and 0xF0, 0)           // high nibble, RS=0 (command)
+            writeNibble((cmd shl 4) and 0xF0, 0)  // low nibble,  RS=0
         } catch (e: Exception) {
             lastError = "Write command failed: ${e.message}"
         }
@@ -66,8 +74,8 @@ class LcdDisplay(
 
     private fun writeData(data: Int) {
         try {
-            writeI2C(data or 0x05)
-            writeI2C(data or 0x01)
+            writeNibble(data and 0xF0, 1)           // high nibble, RS=1 (data)
+            writeNibble((data shl 4) and 0xF0, 1)  // low nibble,  RS=1
         } catch (e: Exception) {
             lastError = "Write data failed: ${e.message}"
         }
