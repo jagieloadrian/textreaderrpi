@@ -1,6 +1,6 @@
 # TextReaderRpi - Development Roadmap
 
-**Last Updated:** 2026-06-11
+**Last Updated:** 2026-06-12
 
 ---
 
@@ -48,7 +48,10 @@
   2. A single LED probe on the first module confirms SPI packet direction before full chain is wired
   3. Max7219Matrix, LCD, OLED, and OfflineDriver contain no manual workarounds or commented-out hacks
   4. Driver layer unit tests pass with no skipped assertions related to byte ordering
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 06-01-PLAN.md — Fix Max7219Matrix render direction (buildPacket extraction + physicalD fix + write guards removed) + 2 unit tests
+- [ ] 06-02-PLAN.md — Introduce AbstractDisplayDriver base class, refactor Max7219Matrix/LcdDisplay/OledDisplay to extend it
 
 ### Phase 7: Scheduler Schema Stabilisation
 **Goal**: The scheduler database schema is extended with all columns needed by v1.1 features in one migration, and edge-case bugs are fixed
@@ -142,7 +145,7 @@
 | 3 | Production Ready | v1.0 | 5/5 | ✅ Complete | 2026-05-27 |
 | 4 | Cleanup + Observability | v1.0 | 5/5 | ✅ Complete | 2026-05-27 |
 | 5 | Scheduling + Effects | v1.0 | 11/11 | ✅ Complete | 2026-05-28 |
-| 6 | MAX7219 Hardware Fix | v1.1 | 0/? | Not started | - |
+| 6 | MAX7219 Hardware Fix | v1.1 | 0/2 | Not started | - |
 | 7 | Scheduler Schema Stabilisation | v1.1 | 0/? | Not started | - |
 | 8 | Refactor + Dead Code Analysis | v1.1 | 0/? | Not started | - |
 | 9 | Display History + Audit Log | v1.1 | 0/? | Not started | - |
