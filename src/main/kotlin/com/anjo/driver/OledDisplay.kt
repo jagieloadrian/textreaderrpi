@@ -1,5 +1,6 @@
 package com.anjo.driver
 
+import com.anjo.utils.Font
 import com.pi4j.context.Context
 import com.pi4j.io.i2c.I2C
 import kotlinx.coroutines.CoroutineScope
@@ -67,11 +68,15 @@ class OledDisplay(
         }
     }
 
-    private fun renderFrame(frame: String) {
-        sendCommand(0xB0)
-        sendCommand(0x00)
-        sendCommand(0x10)
-        frame.take(charsPerLine).forEach { sendData(it.code and 0xFF) }
+    private fun renderText(text: String) {
+        val columns = mutableListOf<Int>()
+        for (c in text) {
+            val glyph = Font.asciiFont[c] ?: Font.asciiFont[' '] ?: ByteArray(5)
+            glyph.forEach { columns.add(it.toInt() and 0xFF) }
+            columns.add(0) // inter-character gap
+        }
+        sendCommand(0xB0); sendCommand(0x00); sendCommand(0x10)
+        columns.take(width).forEach { sendData(it) }
     }
 
     override fun clear() {
@@ -90,7 +95,7 @@ class OledDisplay(
         try {
             clearHardware()
             lastMessage = text
-            renderFrame(text)
+            renderText(text)
         } catch (e: Exception) {
             lastError = "Write failed: ${e.message}"
         }
@@ -105,7 +110,7 @@ class OledDisplay(
                 val padded = " ".repeat(charsPerLine) + text + " ".repeat(charsPerLine)
                 var index = 0
                 while (isActive && index <= padded.length - charsPerLine) {
-                    renderFrame(padded.substring(index, index + charsPerLine))
+                    renderText(padded.substring(index, index + charsPerLine))
                     index++
                     delay(speedMs)
                 }
