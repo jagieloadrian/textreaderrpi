@@ -49,4 +49,20 @@ class Max7219MatrixTest : FunSpec({
         verify(exactly = 1) { driver.scrollText(scope, "sample", 10) }
         verify(exactly = 1) { driver.stop() }
     }
+
+    test("buildPacket should produce correct SPI bytes for 'A' row 0 on single device") {
+        val bitmap = byteArrayOf(126, 17, 17, 17, 126, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        val packet = Max7219Matrix.buildPacket(bitmap, offset = 0, numDevices = 1, row = 0)
+        packet.size shouldBe 2
+        packet[0] shouldBe 0x01.toByte()
+        packet[1] shouldBe 0x70.toByte()
+    }
+
+    test("buildPacket should assign lower bitmap columns to leftmost SPI slot for numDevices=2") {
+        val bitmap = byteArrayOf(126, 17, 17, 17, 126, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        val packet = Max7219Matrix.buildPacket(bitmap, offset = 0, numDevices = 2, row = 0)
+        packet.size shouldBe 4
+        packet[1] shouldBe 0x00.toByte()
+        packet[3] shouldBe 0x70.toByte()
+    }
 })
