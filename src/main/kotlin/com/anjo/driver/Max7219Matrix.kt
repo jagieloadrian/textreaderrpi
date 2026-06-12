@@ -44,25 +44,32 @@ class Max7219Matrix(
         }
     }
 
-    private val spi: Spi
+    private val spi: Spi?
     private var buffer = Array(numDevices) { ByteArray(8) }
 
     init {
-        val config = Spi.newConfigBuilder(ctx)
-            .id("max7219")
-            .name("MAX7219 SPI")
-            .bus(SpiBus.BUS_0)
-            .chipSelect(SpiChipSelect.CS_0)
-            .baud(1_000_000)
-            .mode(SpiMode.MODE_0)
-            .provider(LinuxFsSpiProviderImpl::class.java)
-            .build()
-
-        spi = ctx.create(config)
-        try {
-            initialize()
+        spi = try {
+            val config = Spi.newConfigBuilder(ctx)
+                .id("max7219")
+                .name("MAX7219 SPI")
+                .bus(SpiBus.BUS_0)
+                .chipSelect(SpiChipSelect.CS_0)
+                .baud(1_000_000)
+                .mode(SpiMode.MODE_0)
+                .provider(LinuxFsSpiProviderImpl::class.java)
+                .build()
+            ctx.create(config)
         } catch (e: Exception) {
-            lastError = "Initialization failed: ${e.message}"
+            lastError = "SPI initialization failed: ${e.message}"
+            null
+        }
+
+        if (spi != null) {
+            try {
+                initialize()
+            } catch (e: Exception) {
+                lastError = "Initialization failed: ${e.message}"
+            }
         }
     }
 
@@ -114,7 +121,7 @@ class Max7219Matrix(
         }
     }
 
-    override fun isHardwareAvailable() = lastError == null
+    override fun isHardwareAvailable() = spi != null && lastError == null
 
     override suspend fun setBrightness(level: Int) {
         sendCommand(REG_INTENSITY, level.coerceIn(0, 15))
@@ -133,12 +140,12 @@ class Max7219Matrix(
             packet[i * 2]     = register.toByte()
             packet[i * 2 + 1] = data.toByte()
         }
-        spi.write(packet)
+        spi?.write(packet)
     }
 
     private fun render(bitmap: ByteArray, offset: Int) {
         for (row in 0 until 8) {
-            spi.write(buildPacket(bitmap, offset, numDevices, row))
+            spi?.write(buildPacket(bitmap, offset, numDevices, row))
         }
     }
 
