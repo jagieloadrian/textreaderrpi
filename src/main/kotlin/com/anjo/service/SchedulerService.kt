@@ -66,11 +66,15 @@ class SchedulerService(
     }
 
     fun cancel(id: String) {
-        activeJobs.remove(id)?.cancel()
-        scope.launch {
-            try {
-                repository.updateStatus(id, "DONE")
-            } catch (_: Exception) {}
+        val removed = activeJobs.remove(id)?.also { it.cancel() }
+        if (removed != null) {
+            scope.launch {
+                try {
+                    repository.updateStatus(id, "DONE")
+                } catch (e: Exception) {
+                    log.warn("Failed to persist DONE for cancelled schedule $id: ${e.message}", e)
+                }
+            }
         }
     }
 
