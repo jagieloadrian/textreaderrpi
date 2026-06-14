@@ -27,7 +27,7 @@
 ### v1.1 Refactor + Fixes + UI + New Features
 
 - [x] **Phase 6: MAX7219 Hardware Fix** — Scroll direction corrected, driver layer refactored (completed 2026-06-12)
-- [ ] **Phase 7: Scheduler Schema Stabilisation** — ConflictPolicy, firedAt, ERROR status, webhookUrl, zoneId columns added
+- [x] **Phase 7: Scheduler Schema Stabilisation** — ConflictPolicy, firedAt, ERROR status, webhookUrl, zoneId columns added (completed 2026-06-14)
 - [ ] **Phase 8: Refactor + Dead Code Analysis** — Application cleaned and simplified, DI smoke test in place
 - [ ] **Phase 9: Display History + Audit Log** — Every display event persisted and browsable
 - [ ] **Phase 10: Webhooks** — HTTP POST notifications fired on schedule trigger
@@ -84,7 +84,7 @@
 
 **Wave 3** *(blocked on Waves 1+2)*
 
-- [ ] 07-03-PLAN.md — Test coverage: extend ScheduleRepositoryTest, SchedulerServiceTest, ConflictPolicyTest, ScheduleRoutesTest, TextApiRouteTest; full suite green + JaCoCo >= 70%
+- [x] 07-03-PLAN.md — Test coverage: extend ScheduleRepositoryTest, SchedulerServiceTest, ConflictPolicyTest, ScheduleRoutesTest, TextApiRouteTest; full suite green + JaCoCo >= 70%
 
 ### Phase 8: Refactor + Dead Code Analysis
 
