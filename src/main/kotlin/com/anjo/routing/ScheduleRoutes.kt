@@ -83,6 +83,16 @@ fun Route.scheduleRoutes(repository: ScheduleRepository, schedulerService: Sched
                 val id = call.parameters["id"]
                     ?: return@patch call.respond(HttpStatusCode.BadRequest, "missing id")
                 val body = call.receive<Schedule>()
+                if (body.triggerType == TriggerType.CRON) {
+                    try {
+                        cronParser.parse(body.triggerValue)
+                    } catch (e: Exception) {
+                        return@patch call.respond(
+                            HttpStatusCode.UnprocessableEntity,
+                            ErrorResponse(ErrorDetails.now("VAL_CRON", "invalid cron expression: ${e.message}"))
+                        )
+                    }
+                }
                 val updated = repository.update(id, body)
                     ?: return@patch call.respond(HttpStatusCode.NotFound)
                 if (updated.status.name == "ACTIVE") {
