@@ -85,5 +85,18 @@ class TextApiRouteTest : FunSpec({
             response.status.value shouldBeInRange (400..422)
         }
     }
+
+    // SCHED-01 / Claude's Discretion: SKIP_NEW deserializes and response shape has accepted field
+    test("should return 202 with accepted field when conflictPolicy is SKIP_NEW") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/text") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"hello","conflictPolicy":"SKIP_NEW"}""")
+            }
+            response.status shouldBe HttpStatusCode.Accepted
+            response.bodyAsText() shouldContain "accepted"
+        }
+    }
 })
 

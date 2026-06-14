@@ -2,14 +2,18 @@ package com.anjo.service
 
 import com.anjo.config.model.RetryConfig
 import com.anjo.driver.DisplayDriver
+import com.anjo.model.ConflictPolicy
 import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
 import com.anjo.service.effect.EffectRenderer
 import com.anjo.service.effect.ScrollEffect
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -25,12 +29,16 @@ class ConflictPolicyTest : FunSpec({
 
     val fastRetry = RetryConfig(maxAttempts = 1, initialDelayMs = 1L)
 
-    fun makeService(driver: DisplayDriver) = ScreenDriverService(
+    fun makeService(
+        driver: DisplayDriver,
+        effectFactory: EffectRendererFactory = EffectRendererFactory()
+    ) = ScreenDriverService(
         driver = driver,
         ioDispatcher = UnconfinedTestDispatcher(),
         retryConfig = fastRetry,
         displaySelectionService = null,
         metrics = ScreenDriverMetrics.DISABLED,
+        effectFactory = effectFactory,
     )
 
     test("should cancel scheduled job when immediate display is requested") {
@@ -142,6 +150,62 @@ class ConflictPolicyTest : FunSpec({
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
+        }
+    }
+
+    // SCHED-01 / D-04: SKIP_NEW drops new request when display mutex is locked (SCHED-01)
+    test("should return false and not render new text when SKIP_NEW and display is busy") {
+        runTest {
+            val driver = mockk<DisplayDriver>(relaxed = true)
+
+            // Blocking renderer — suspends at await() keeping displayMutex locked
+            val blockRender = CompletableDeferred<Unit>()
+            val blockingRenderer = mockk<EffectRenderer> {
+                coEvery { render(any(), any()) } coAnswers { blockRender.await() }
+            }
+            val blockingFactory = mockk<EffectRendererFactory> {
+                every { create(any()) } returns blockingRenderer
+            }
+            val svc = makeService(driver, blockingFactory)
+
+            // Launch a scheduled display that will hold the mutex open (blocks at render)
+            val busyJob = launch { svc.displayImmediate("busy-text", Effect.SCROLL, ConflictPolicy.INTERRUPT) }
+            advanceUntilIdle()  // runs busyJob until it suspends on blockRender.await() inside withLock
+
+            // Now the displayMutex IS locked; SKIP_NEW call should drop immediately
+            val result = svc.displayImmediate("new-text", Effect.SCROLL, ConflictPolicy.SKIP_NEW)
+
+            result shouldBe false
+            // The new text was NOT passed to the driver
+            coVerify(exactly = 0) { driver.scrollText(any(), "new-text", any()) }
+
+            // Cleanup: unblock the first display and wait for it to finish
+            blockRender.complete(Unit)
+            busyJob.join()
+        }
+    }
+
+    // INTERRUPT default: when display is busy, INTERRUPT cancels and renders new text (regression)
+    test("should cancel running display and render new text when INTERRUPT policy is used") {
+        runTest {
+            val driver = mockk<DisplayDriver>(relaxed = true)
+            val svc = makeService(driver)
+
+            // Launch a scheduled display first (with default INTERRUPT)
+            val scheduledJob = launch {
+                svc.displayScheduled("scheduled-text", "sched-001", ScrollEffect())
+            }
+            advanceUntilIdle()
+
+            // INTERRUPT cancels the first and renders the new text
+            val immediateJob = launch {
+                svc.displayImmediate("ad-hoc-text", Effect.SCROLL, ConflictPolicy.INTERRUPT)
+            }
+            advanceUntilIdle()
+
+            coVerify { driver.scrollText(any(), "ad-hoc-text", any()) }
+            scheduledJob.cancel()
+            immediateJob.join()
         }
     }
 })

@@ -130,4 +130,48 @@ class ScheduleRoutesTest : FunSpec({
             }
         }
     }
+
+    // SCHED-03 / Pitfall 3: invalid CRON persists row with status ERROR and returns 422
+    test("should persist ERROR row and return 422 for invalid CRON expression") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/schedule") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"bad cron schedule","triggerType":"CRON","triggerValue":"not a cron","effect":"SCROLL","priority":0}""")
+            }
+            response.status shouldBe HttpStatusCode.UnprocessableEntity
+            response.bodyAsText() shouldContain "invalid cron"
+
+            // The row MUST be persisted with status=ERROR (SCHED-03 — per Pitfall 3)
+            val listResponse = client.get("/api/v1/schedule")
+            listResponse.status shouldBe HttpStatusCode.OK
+            val listBody = listResponse.bodyAsText()
+            listBody shouldContain "ERROR"
+            listBody shouldContain "bad cron schedule"
+        }
+    }
+
+    // SCHED-04 / D-10: invalid webhookUrl returns 422 (rejected before persist)
+    test("should return 422 for schedule with invalid webhookUrl") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/schedule") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"webhook test","triggerType":"RECURRING","triggerValue":"5m","effect":"SCROLL","priority":0,"webhookUrl":"not-a-url"}""")
+            }
+            response.status shouldBe HttpStatusCode.UnprocessableEntity
+        }
+    }
+
+    // SCHED-04 / D-10: valid webhookUrl is accepted and returns 201
+    test("should return 201 for schedule with valid webhookUrl") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/schedule") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"webhook test","triggerType":"RECURRING","triggerValue":"5m","effect":"SCROLL","priority":0,"webhookUrl":"https://example.com/hook"}""")
+            }
+            response.status shouldBe HttpStatusCode.Created
+        }
+    }
 })
