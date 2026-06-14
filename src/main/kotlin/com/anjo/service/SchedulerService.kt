@@ -103,7 +103,7 @@ class SchedulerService(
             val delayMs = targetMs - now
             if (delayMs > 0) delay(delayMs)
             fire(schedule)
-            repository.updateStatus(schedule.id, "DONE")
+            repository.updateFiredAtAndDone(schedule.id, Instant.now().toString())
             activeJobs.remove(schedule.id)
         }
     }
