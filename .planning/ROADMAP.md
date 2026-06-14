@@ -72,7 +72,19 @@
   3. A schedule with an invalid CRON expression is written to the database with status `ERROR` and the scheduler loop continues processing other schedules normally
   4. A schedule row persists a `webhookUrl` field and a `zoneId` field that downstream phases can populate and read
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Wave 1**
+
+- [ ] 07-01-PLAN.md — Schema + migration foundation: ConflictPolicy enum, Schedule/TextRequest/SchedulesTable columns, ScheduleStatus.ERROR, Flyway wiring, ScheduleRepository (new columns + updateFiredAtAndDone + ONESHOT firedAt filter)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 07-02-PLAN.md — Behavioral fixes: SKIP_NEW conflict policy (Boolean returns + maxRuns rule), ONESHOT atomic firedAt update, CRON validation moved to route handler (persist ERROR + 422), webhookUrl validator, TextRoutes conflictPolicy wiring
+
+**Wave 3** *(blocked on Waves 1+2)*
+
+- [ ] 07-03-PLAN.md — Test coverage: extend ScheduleRepositoryTest, SchedulerServiceTest, ConflictPolicyTest, ScheduleRoutesTest, TextApiRouteTest; full suite green + JaCoCo >= 70%
 
 ### Phase 8: Refactor + Dead Code Analysis
 
@@ -174,7 +186,7 @@
 | 4 | Cleanup + Observability | v1.0 | 5/5 | ✅ Complete | 2026-05-27 |
 | 5 | Scheduling + Effects | v1.0 | 11/11 | ✅ Complete | 2026-05-28 |
 | 6 | MAX7219 Hardware Fix | v1.1 | 1/2 | In progress | - |
-| 7 | Scheduler Schema Stabilisation | v1.1 | 0/? | Not started | - |
+| 7 | Scheduler Schema Stabilisation | v1.1 | 0/3 | In progress | - |
 | 8 | Refactor + Dead Code Analysis | v1.1 | 0/? | Not started | - |
 | 9 | Display History + Audit Log | v1.1 | 0/? | Not started | - |
 | 10 | Webhooks | v1.1 | 0/? | Not started | - |
