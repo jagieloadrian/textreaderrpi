@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-14T19:48:44.637Z"
+last_updated: "2026-06-14T22:21:00Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 5
-  completed_plans: 3
-  percent: 13
+  completed_plans: 5
+  percent: 15
 ---
 
 # Project State & Memory
@@ -21,10 +21,10 @@ progress:
 ## Current Position
 
 Phase: 07 (scheduler-schema-stabilisation) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 **Phase:** 7
-**Plan:** 07-01 COMPLETE — schema/model foundation done
-**Status:** SCHED-01 through SCHED-04 model+DB contracts established; all tests green; JaCoCo >= 70%
+**Plan:** 07-02 COMPLETE — behavioral fixes done
+**Status:** SKIP_NEW guard, atomic firedAt, CRON-at-handler persisting ERROR, webhookUrl validation, TextRoutes accepted flag
 **Last activity:** 2026-06-14
 
 Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
@@ -114,6 +114,10 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | Flyway 9.22.3 added as migration layer (07-01) | baselineOnMigrate=true handles existing Pi installs; 9.x chosen for simpler community licensing |
 | ONESHOT firedAt filter scoped to triggerType=ONESHOT (07-01) | Avoids accidentally excluding RECURRING/CRON rows if firedAt ever set for those types |
 | updateFiredAtAndDone() uses single suspendTransaction{} (07-01) | Crash-safe atomic firedAt+status=DONE update prevents ONESHOT re-fire after Pi restart |
+| displayMutex.isLocked (not tryLock) for SKIP_NEW (07-02) | Snapshot read avoids deadlock; false negatives acceptable for drop-if-busy policy |
+| fire() returns Boolean propagated from displayScheduled (07-02) | launchRecurring conditionally increments runs only when display occurred (D-05) |
+| CRON validation moved to ScheduleRoutes POST handler (07-02) | Allows persist-with-ERROR before 422 response; ScheduleValidators returns Valid for CRON |
+| HTTP 202 with accepted=false for SKIP_NEW TextRoutes response (07-02) | Consistent with existing 202 Accepted; client reads accepted boolean to detect skip |
 
 ### Critical Pitfalls to Watch
 
