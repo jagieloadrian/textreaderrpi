@@ -18,6 +18,13 @@ object ScheduleValidators {
         if (webhookUrl != null && !webhookUrl.matches(Regex("^https?://.*"))) {
             return ValidationResult.Invalid("webhookUrl must be a valid http/https URL")
         }
+        val expiresAt = schedule.expiresAt
+        if (expiresAt != null) {
+            try { Instant.parse(expiresAt) }
+            catch (_: Exception) {
+                return ValidationResult.Invalid("expiresAt must be ISO-8601 instant (e.g. 2026-12-31T23:59:00Z)")
+            }
+        }
         return when (schedule.triggerType) {
             TriggerType.CRON -> ValidationResult.Valid  // CRON validation moved to ScheduleRoutes.kt
             TriggerType.RECURRING -> validateRecurring(schedule.triggerValue)

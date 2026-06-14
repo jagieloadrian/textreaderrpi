@@ -119,7 +119,15 @@ class SchedulerService(
             while (isActive) {
                 delay(intervalMs)
                 val expiresAt = schedule.expiresAt
-                if (expiresAt != null && Instant.now().isAfter(Instant.parse(expiresAt))) break
+                if (expiresAt != null) {
+                    val expiresInstant = try { Instant.parse(expiresAt) }
+                    catch (e: Exception) {
+                        log.error("Invalid expiresAt for schedule ${schedule.id}: $expiresAt", e)
+                        repository.updateStatus(schedule.id, "ERROR")
+                        break
+                    }
+                    if (Instant.now().isAfter(expiresInstant)) break
+                }
                 val maxRuns = schedule.maxRuns
                 if (maxRuns != null && runs >= maxRuns) break
                 val displayed = fire(schedule)
