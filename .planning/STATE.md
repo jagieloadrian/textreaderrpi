@@ -3,28 +3,28 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-14T19:31:24.071Z"
+last_updated: "2026-06-14T19:48:44.637Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 8
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
   percent: 13
 ---
 
 # Project State & Memory
 
 **Last Updated:** 2026-06-11  
-**Status:** Ready to execute
+**Status:** Executing Phase 07
 
 ## Current Position
 
-Phase: 06 (max7219-hardware-fix) — EXECUTING
-Plan: 1 of 2
+Phase: 07 (scheduler-schema-stabilisation) — EXECUTING
+Plan: 2 of 3
 **Phase:** 7
-**Plan:** Not started
-**Status:** HW-01 + HW-02 satisfied; AbstractDisplayDriver introduced; all driver tests pass; JaCoCo >= 70%  
+**Plan:** 07-01 COMPLETE — schema/model foundation done
+**Status:** SCHED-01 through SCHED-04 model+DB contracts established; all tests green; JaCoCo >= 70%
 **Last activity:** 2026-06-14
 
 Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
@@ -111,6 +111,9 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | Phase 11: single shared Pi4J context, unique string IDs per zone | Avoids Pi4J SPI registration collision crash on startup |
 | Phase 12: add headExtra to BaseLayout before any page-specific CSS | Prevents CSS cascade breaks in Ktor HTML DSL |
 | Stack additions: ktor-client-core/cio/content-negotiation 3.5.0 only | Zero version conflicts; no OkHttp, Quartz, JobRunr, Flyway, JS frameworks |
+| Flyway 9.22.3 added as migration layer (07-01) | baselineOnMigrate=true handles existing Pi installs; 9.x chosen for simpler community licensing |
+| ONESHOT firedAt filter scoped to triggerType=ONESHOT (07-01) | Avoids accidentally excluding RECURRING/CRON rows if firedAt ever set for those types |
+| updateFiredAtAndDone() uses single suspendTransaction{} (07-01) | Crash-safe atomic firedAt+status=DONE update prevents ONESHOT re-fire after Pi restart |
 
 ### Critical Pitfalls to Watch
 

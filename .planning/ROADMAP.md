@@ -76,7 +76,7 @@
 
 **Wave 1**
 
-- [ ] 07-01-PLAN.md — Schema + migration foundation: ConflictPolicy enum, Schedule/TextRequest/SchedulesTable columns, ScheduleStatus.ERROR, Flyway wiring, ScheduleRepository (new columns + updateFiredAtAndDone + ONESHOT firedAt filter)
+- [x] 07-01-PLAN.md — Schema + migration foundation: ConflictPolicy enum, Schedule/TextRequest/SchedulesTable columns, ScheduleStatus.ERROR, Flyway wiring, ScheduleRepository (new columns + updateFiredAtAndDone + ONESHOT firedAt filter)
 
 **Wave 2** *(blocked on Wave 1)*
 

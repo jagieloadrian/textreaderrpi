@@ -15,10 +15,10 @@
 
 ## Scheduler Fixes (SCHED)
 
-- [ ] **SCHED-01**: Użytkownik może wybrać `SKIP_NEW` jako `ConflictPolicy` — nowe żądanie wyświetlania jest pomijane gdy ekran jest zajęty
-- [ ] **SCHED-02**: ONESHOT harmonogram nie odpala się ponownie po restarcie Pi (kolumna `firedAt` ustawiana atomowo z `status=DONE`)
-- [ ] **SCHED-03**: Harmonogram z błędnym wyrażeniem CRON otrzymuje status `ERROR` i nie zapędza się w pętlę
-- [ ] **SCHED-04**: Harmonogram może mieć opcjonalny `webhookUrl` — URL do wywołania po wyświetleniu wiadomości
+- [x] **SCHED-01**: Użytkownik może wybrać `SKIP_NEW` jako `ConflictPolicy` — nowe żądanie wyświetlania jest pomijane gdy ekran jest zajęty
+- [x] **SCHED-02**: ONESHOT harmonogram nie odpala się ponownie po restarcie Pi (kolumna `firedAt` ustawiana atomowo z `status=DONE`)
+- [x] **SCHED-03**: Harmonogram z błędnym wyrażeniem CRON otrzymuje status `ERROR` i nie zapędza się w pętlę
+- [x] **SCHED-04**: Harmonogram może mieć opcjonalny `webhookUrl` — URL do wywołania po wyświetleniu wiadomości
 
 ---
 
@@ -108,10 +108,10 @@
 |--------|-------|--------|
 | HW-01 | Phase 6 | Complete (06-01) |
 | HW-02 | Phase 6 | Complete |
-| SCHED-01 | Phase 7 | Pending |
-| SCHED-02 | Phase 7 | Pending |
-| SCHED-03 | Phase 7 | Pending |
-| SCHED-04 | Phase 7 | Pending |
+| SCHED-01 | Phase 7 | Complete |
+| SCHED-02 | Phase 7 | Complete |
+| SCHED-03 | Phase 7 | Complete |
+| SCHED-04 | Phase 7 | Complete |
 | REF-01 | Phase 8 | Pending |
 | REF-02 | Phase 8 | Pending |
 | REF-03 | Phase 8 | Pending |
