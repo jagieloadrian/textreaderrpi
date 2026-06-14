@@ -2,10 +2,13 @@ package com.anjo.model
 
 import kotlinx.serialization.Serializable
 
+@Serializable
 enum class Effect { SCROLL, BLINK, REVERSE, FADE }
 
+@Serializable
 enum class ScheduleStatus { ACTIVE, PAUSED, EXPIRED, DONE, ERROR }
 
+@Serializable
 enum class TriggerType { ONESHOT, RECURRING, CRON }
 
 @Serializable
