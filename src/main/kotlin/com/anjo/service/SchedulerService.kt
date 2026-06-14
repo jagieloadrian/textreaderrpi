@@ -1,6 +1,7 @@
 package com.anjo.service
 
 import com.anjo.db.ScheduleRepository
+import com.anjo.model.ConflictPolicy
 import com.anjo.model.Schedule
 import com.anjo.model.TriggerType
 import com.cronutils.model.CronType
@@ -121,8 +122,8 @@ class SchedulerService(
                 if (expiresAt != null && Instant.now().isAfter(Instant.parse(expiresAt))) break
                 val maxRuns = schedule.maxRuns
                 if (maxRuns != null && runs >= maxRuns) break
-                fire(schedule)
-                runs++
+                val displayed = fire(schedule)
+                if (displayed) runs++
             }
             repository.updateStatus(schedule.id, "DONE")
             activeJobs.remove(schedule.id)
@@ -151,13 +152,15 @@ class SchedulerService(
         }
     }
 
-    private suspend fun fire(schedule: Schedule) {
-        try {
+    private suspend fun fire(schedule: Schedule): Boolean {
+        return try {
             log.info("Firing schedule id=${schedule.id} text='${schedule.text.take(30)}' effect=${schedule.effect}")
             val renderer = effectFactory.create(schedule.effect)
-            screenService.displayScheduled(schedule.text, schedule.id, renderer)
+            val policy = schedule.conflictPolicy ?: ConflictPolicy.INTERRUPT
+            screenService.displayScheduled(schedule.text, schedule.id, renderer, policy)
         } catch (e: Exception) {
             log.error("Failed to fire schedule ${schedule.id}: ${e.message}", e)
+            false
         }
     }
 

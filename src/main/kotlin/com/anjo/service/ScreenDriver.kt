@@ -4,6 +4,7 @@ import com.anjo.config.model.RetryConfig
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.anjo.service.effect.EffectRenderer
+import com.anjo.model.ConflictPolicy
 import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
 import com.codahale.metrics.Timer
@@ -36,7 +37,15 @@ class ScreenDriverService(
     @Volatile private var currentDisplayJob: Job? = null
 
     /** Called by ad-hoc POST /api/text — preempts any running scheduled display. */
-    suspend fun displayImmediate(text: String, effect: Effect = Effect.SCROLL) {
+    suspend fun displayImmediate(
+        text: String,
+        effect: Effect = Effect.SCROLL,
+        conflictPolicy: ConflictPolicy = ConflictPolicy.INTERRUPT
+    ): Boolean {
+        if (conflictPolicy == ConflictPolicy.SKIP_NEW && displayMutex.isLocked) {
+            log.info("SKIP_NEW: display busy, dropping ad-hoc request for text '${text.take(30)}'")
+            return false
+        }
         currentDisplayJob?.cancel()
         currentScheduledId = null
         metrics.acceptedMeter?.mark()
@@ -55,10 +64,20 @@ class ScreenDriverService(
             timerContext?.stop()
             checkAndPerformPendingSwitch()
         }
+        return true
     }
 
     /** Called by the scheduler — registers the job for cancellation via displayImmediate. */
-    suspend fun displayScheduled(text: String, scheduleId: String, renderer: EffectRenderer) {
+    suspend fun displayScheduled(
+        text: String,
+        scheduleId: String,
+        renderer: EffectRenderer,
+        conflictPolicy: ConflictPolicy = ConflictPolicy.INTERRUPT
+    ): Boolean {
+        if (conflictPolicy == ConflictPolicy.SKIP_NEW && displayMutex.isLocked) {
+            log.info("SKIP_NEW: display busy, dropping scheduled request id=$scheduleId")
+            return false
+        }
         currentScheduledId = scheduleId
         currentDisplayJob = currentCoroutineContext().job
         lastSentMessage.set(text)
@@ -77,10 +96,11 @@ class ScreenDriverService(
             }
             checkAndPerformPendingSwitch()
         }
+        return true
     }
 
     suspend fun readInput(input: String) {
-        displayImmediate(input)
+        displayImmediate(input)  // ignores Boolean return — readInput always uses INTERRUPT (default)
     }
 
     private suspend fun executeWithRecovery(input: String, renderer: EffectRenderer) {
