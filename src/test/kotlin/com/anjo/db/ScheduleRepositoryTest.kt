@@ -1,5 +1,6 @@
 package com.anjo.db
 
+import com.anjo.model.ConflictPolicy
 import com.anjo.model.Schedule
 import com.anjo.model.ScheduleStatus
 import com.anjo.model.TriggerType
@@ -14,6 +15,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import java.time.Instant
 
 class ScheduleRepositoryTest : FunSpec({
 
@@ -76,6 +78,86 @@ class ScheduleRepositoryTest : FunSpec({
             val inserted = repository.insert(testSchedule())
             repository.updateStatus(inserted.id, "DONE")
             repository.findById(inserted.id)?.status shouldBe ScheduleStatus.DONE
+        }
+    }
+
+    // SCHED-04: new column round-trip — conflictPolicy, webhookUrl, zoneId persist and read back
+    test("should round-trip conflictPolicy webhookUrl and zoneId fields") {
+        runTest {
+            val schedule = Schedule(
+                text = "webhook test",
+                triggerType = TriggerType.RECURRING,
+                triggerValue = "10m",
+                conflictPolicy = ConflictPolicy.SKIP_NEW,
+                webhookUrl = "https://example.com/hook",
+                zoneId = "zone-a"
+            )
+            val inserted = repository.insert(schedule)
+            val found = repository.findById(inserted.id)
+            found.shouldNotBeNull()
+            found.conflictPolicy shouldBe ConflictPolicy.SKIP_NEW
+            found.webhookUrl shouldBe "https://example.com/hook"
+            found.zoneId shouldBe "zone-a"
+        }
+    }
+
+    // SCHED-02: ONESHOT with non-null firedAt (set via updateFiredAtAndDone) excluded from findAllActive
+    test("should exclude ONESHOT row from findAllActive when firedAt is set") {
+        runTest {
+            val oneshotSchedule = Schedule(
+                text = "oneshot fired",
+                triggerType = TriggerType.ONESHOT,
+                triggerValue = Instant.now().plusSeconds(3600).toString()
+            )
+            val inserted = repository.insert(oneshotSchedule)
+            repository.updateFiredAtAndDone(inserted.id, Instant.now().toString())
+
+            val active = repository.findAllActive()
+            active.none { it.id == inserted.id } shouldBe true
+        }
+    }
+
+    // SCHED-02: ONESHOT with firedAt null and status ACTIVE is returned by findAllActive
+    test("should include ONESHOT row in findAllActive when firedAt is null") {
+        runTest {
+            val oneshotSchedule = Schedule(
+                text = "oneshot pending",
+                triggerType = TriggerType.ONESHOT,
+                triggerValue = Instant.now().plusSeconds(3600).toString()
+            )
+            val inserted = repository.insert(oneshotSchedule)
+
+            val active = repository.findAllActive()
+            active.any { it.id == inserted.id } shouldBe true
+        }
+    }
+
+    // SCHED-02: updateFiredAtAndDone sets firedAt and status=DONE atomically
+    test("should set firedAt and status DONE atomically via updateFiredAtAndDone") {
+        runTest {
+            val inserted = repository.insert(testSchedule())
+            val ts = Instant.now().toString()
+            repository.updateFiredAtAndDone(inserted.id, ts)
+
+            val found = repository.findById(inserted.id)
+            found.shouldNotBeNull()
+            found.firedAt shouldBe ts
+            found.status shouldBe ScheduleStatus.DONE
+        }
+    }
+
+    // Pitfall 5: RECURRING row with status ACTIVE stays in findAllActive (firedAt filter scoped to ONESHOT)
+    test("should include RECURRING row in findAllActive regardless of firedAt") {
+        runTest {
+            val recurringSchedule = Schedule(
+                text = "recurring active",
+                triggerType = TriggerType.RECURRING,
+                triggerValue = "5m"
+            )
+            val inserted = repository.insert(recurringSchedule)
+            // RECURRING rows are never excluded by the firedAt filter (scoped to ONESHOT only)
+            val active = repository.findAllActive()
+            active.any { it.id == inserted.id } shouldBe true
         }
     }
 })
