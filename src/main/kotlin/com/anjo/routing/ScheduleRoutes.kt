@@ -1,8 +1,15 @@
 package com.anjo.routing
 
 import com.anjo.db.ScheduleRepository
+import com.anjo.model.ErrorDetails
+import com.anjo.model.ErrorResponse
 import com.anjo.model.Schedule
+import com.anjo.model.ScheduleStatus
+import com.anjo.model.TriggerType
 import com.anjo.service.SchedulerService
+import com.cronutils.model.CronType
+import com.cronutils.model.definition.CronDefinitionBuilder
+import com.cronutils.parser.CronParser
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -15,6 +22,7 @@ import io.ktor.server.routing.route
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger("ScheduleRoutes")
+private val cronParser = CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX))
 
 fun Route.scheduleRoutes(repository: ScheduleRepository, schedulerService: SchedulerService) {
     route("/schedule") {
@@ -26,6 +34,19 @@ fun Route.scheduleRoutes(repository: ScheduleRepository, schedulerService: Sched
 
         post {
             val body = call.receive<Schedule>()
+            if (body.triggerType == TriggerType.CRON) {
+                try {
+                    cronParser.parse(body.triggerValue)
+                } catch (e: Exception) {
+                    val errorRow = body.copy(status = ScheduleStatus.ERROR)
+                    val persisted = repository.insert(errorRow)
+                    log.warn("Invalid CRON for schedule — persisted with ERROR id=${persisted.id}: ${e.message}")
+                    return@post call.respond(
+                        HttpStatusCode.UnprocessableEntity,
+                        ErrorResponse(ErrorDetails.now("VAL_CRON", "invalid cron expression: ${e.message}"))
+                    )
+                }
+            }
             val created = repository.insert(body)
             schedulerService.schedule(created)
             log.info("Schedule created: id=${created.id} trigger=${created.triggerType}:${created.triggerValue} effect=${created.effect} priority=${created.priority}")

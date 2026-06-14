@@ -15,11 +15,14 @@ private val log = LoggerFactory.getLogger("TextRoutes")
 fun Route.textRoutes(screenDriverService: ScreenDriverService) {
     post("/text") {
         val request = call.receive<TextRequest>()
-        log.info("Text received: length=${request.text.length} effect=${request.effect}")
-        screenDriverService.displayImmediate(request.text, request.effect)
+        log.info("Text received: length=${request.text.length} effect=${request.effect} conflictPolicy=${request.conflictPolicy}")
+        val accepted = screenDriverService.displayImmediate(request.text, request.effect, request.conflictPolicy)
         call.respond(
             HttpStatusCode.Accepted,
-            TextResponse(accepted = true, message = "Text queued for rendering")
+            TextResponse(
+                accepted = accepted,
+                message = if (accepted) "Text queued for rendering" else "Display busy, request skipped"
+            )
         )
     }
 }
