@@ -42,9 +42,32 @@ class ScreenDriverService(
         effect: Effect = Effect.SCROLL,
         conflictPolicy: ConflictPolicy = ConflictPolicy.INTERRUPT
     ): Boolean {
-        if (conflictPolicy == ConflictPolicy.SKIP_NEW && displayMutex.isLocked) {
-            log.info("SKIP_NEW: display busy, dropping ad-hoc request for text '${text.take(30)}'")
-            return false
+        if (conflictPolicy == ConflictPolicy.SKIP_NEW) {
+            if (!displayMutex.tryLock()) {
+                log.info("SKIP_NEW: display busy, dropping ad-hoc request for text '${text.take(30)}'")
+                return false
+            }
+            try {
+                currentDisplayJob?.cancel()
+                currentScheduledId = null
+                metrics.acceptedMeter?.mark()
+                lastSentMessage.set(text)
+                val timerContext: Timer.Context? = metrics.executionTimer?.time()
+                metrics.inFlightCounter?.inc()
+                try {
+                    executeWithRecovery(text, effectFactory.create(effect))
+                } catch (e: Exception) {
+                    metrics.failedMeter?.mark()
+                    log.error("Display operation failed after retries: ${e.message}", e)
+                } finally {
+                    metrics.inFlightCounter?.dec()
+                    timerContext?.stop()
+                }
+            } finally {
+                displayMutex.unlock()
+                checkAndPerformPendingSwitch()
+            }
+            return true
         }
         currentDisplayJob?.cancel()
         currentScheduledId = null
@@ -74,9 +97,31 @@ class ScreenDriverService(
         renderer: EffectRenderer,
         conflictPolicy: ConflictPolicy = ConflictPolicy.INTERRUPT
     ): Boolean {
-        if (conflictPolicy == ConflictPolicy.SKIP_NEW && displayMutex.isLocked) {
-            log.info("SKIP_NEW: display busy, dropping scheduled request id=$scheduleId")
-            return false
+        if (conflictPolicy == ConflictPolicy.SKIP_NEW) {
+            if (!displayMutex.tryLock()) {
+                log.info("SKIP_NEW: display busy, dropping scheduled request id=$scheduleId")
+                return false
+            }
+            currentScheduledId = scheduleId
+            currentDisplayJob = currentCoroutineContext().job
+            lastSentMessage.set(text)
+            var displaySucceeded = false
+            try {
+                executeWithRecovery(text, renderer)
+                displaySucceeded = true
+            } catch (_: CancellationException) {
+                // Scheduler handles re-queue; do not rethrow
+            } catch (e: Exception) {
+                log.error("Scheduled display failed for schedule $scheduleId: ${e.message}", e)
+            } finally {
+                displayMutex.unlock()
+                if (currentScheduledId == scheduleId) {
+                    currentScheduledId = null
+                    currentDisplayJob = null
+                }
+                checkAndPerformPendingSwitch()
+            }
+            return displaySucceeded
         }
         currentScheduledId = scheduleId
         currentDisplayJob = currentCoroutineContext().job
