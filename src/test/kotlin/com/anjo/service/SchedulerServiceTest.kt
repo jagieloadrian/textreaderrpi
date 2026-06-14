@@ -33,6 +33,7 @@ class SchedulerServiceTest : FunSpec({
         clearMocks(mockRepo, mockScreen, mockFactory, mockRenderer)
         coEvery { mockFactory.create(any()) } returns mockRenderer
         coEvery { mockRepo.findAllActive() } returns emptyList()
+        coEvery { mockScreen.displayScheduled(any(), any(), any(), any()) } returns true
     }
 
     test("should fire display after target delay for ONESHOT schedule") {
