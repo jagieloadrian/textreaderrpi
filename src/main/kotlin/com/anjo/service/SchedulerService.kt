@@ -80,6 +80,7 @@ class SchedulerService(
 
 
     private suspend fun tickLoop() {
+        var consecutiveErrors = 0
         while (scope.isActive) {
             try {
                 delay(60_000L)
@@ -87,10 +88,12 @@ class SchedulerService(
                     .sortedWith(compareByDescending<Schedule> { it.priority }.thenBy { it.createdAt ?: "" })
                     .filter { !activeJobs.containsKey(it.id) }
                 active.forEach { schedule(it) }
+                consecutiveErrors = 0
             } catch (_: CancellationException) {
                 break
             } catch (e: Exception) {
-                log.error("SchedulerService tick error: ${e.message}", e)
+                consecutiveErrors++
+                log.error("SchedulerService tick error ($consecutiveErrors consecutive): ${e.message}", e)
             }
         }
     }
