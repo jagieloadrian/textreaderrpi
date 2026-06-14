@@ -554,22 +554,25 @@ The existing API returns `HTTP 202 Accepted` with `TextResponse(accepted=true, .
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`displayScheduled()` return type for SKIP_NEW / maxRuns**
    - What we know: D-05 says skipped fires must not count against `maxRuns`
    - What's unclear: Whether `displayScheduled()` should return `Boolean` or use another mechanism (e.g., exception, AtomicBoolean on the service)
    - Recommendation: Return `Boolean` from `displayScheduled()` — minimal diff, testable, consistent with existing Kotlin idioms
+   - RESOLVED: `displayImmediate()` and `displayScheduled()` both return `Boolean`; callers skip `maxRuns` increment when `false` (07-02 Task 1)
 
 2. **`firedAt` filter scope in `findAllActive()`**
    - What we know: D-14 says `AND firedAt IS NULL` in WHERE clause
    - What's unclear: Whether this applies to ALL trigger types or only ONESHOT
    - Recommendation: Scope the filter to ONESHOT only (see Pitfall 5 code example) to avoid unintended future breakage
+   - RESOLVED: Filter scoped to `triggerType = 'ONESHOT' AND firedAt IS NULL` in `findAllActive()` (07-01 Task 3)
 
 3. **CRON validation in `ScheduleValidators` vs. route handler**
    - What we know: D-16 says "validate at POST /api/v1/schedule" and persist ERROR row
    - What's clarified by research: The existing `ScheduleValidators.validateCron()` prevents the request from reaching the route handler; it must be removed from there
    - Recommendation: Remove `validateCron` case from `ScheduleValidators.validateSchedule()`, add the try/catch inside `ScheduleRoutes.kt` post handler directly
+   - RESOLVED: `validateCron` case removed from `ScheduleValidators`; `try/catch` on `CronParser.parse()` added inside `ScheduleRoutes.kt` POST handler, persisting ERROR row before returning 422 (07-02 Task 3)
 
 ---
 
