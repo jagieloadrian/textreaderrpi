@@ -1,5 +1,6 @@
 package com.anjo.db
 
+import com.anjo.model.ConflictPolicy
 import com.anjo.model.Effect
 import com.anjo.model.Schedule
 import com.anjo.model.ScheduleStatus
@@ -29,7 +30,13 @@ class ScheduleRepository {
 
     suspend fun findAllActive(): List<Schedule> = suspendTransaction {
         SchedulesTable.selectAll()
-            .where { SchedulesTable.status eq "ACTIVE" }
+            .where {
+                (SchedulesTable.status eq "ACTIVE") and
+                not(
+                    (SchedulesTable.triggerType eq "ONESHOT") and
+                    (SchedulesTable.firedAt.isNotNull())
+                )
+            }
             .map { it.toSchedule() }
     }
 
@@ -48,6 +55,10 @@ class ScheduleRepository {
                 it[expiresAt] = schedule.expiresAt
                 it[SchedulesTable.createdAt] = createdAt
                 it[status] = schedule.status.name
+                it[conflictPolicy] = schedule.conflictPolicy?.name
+                it[firedAt] = schedule.firedAt
+                it[webhookUrl] = schedule.webhookUrl
+                it[zoneId] = schedule.zoneId
             }
         }
         return schedule.copy(id = newId, createdAt = createdAt)
@@ -64,6 +75,9 @@ class ScheduleRepository {
                 it[maxRuns] = schedule.maxRuns
                 it[expiresAt] = schedule.expiresAt
                 it[status] = schedule.status.name
+                it[conflictPolicy] = schedule.conflictPolicy?.name
+                it[webhookUrl] = schedule.webhookUrl
+                it[zoneId] = schedule.zoneId
             }
         }
         return if (updated > 0) findById(id) else null
@@ -73,6 +87,15 @@ class ScheduleRepository {
         suspendTransaction {
             SchedulesTable.update({ SchedulesTable.id eq id }) {
                 it[SchedulesTable.status] = status
+            }
+        }
+    }
+
+    suspend fun updateFiredAtAndDone(id: String, firedAt: String) {
+        suspendTransaction {
+            SchedulesTable.update({ SchedulesTable.id eq id }) {
+                it[SchedulesTable.firedAt] = firedAt
+                it[status] = "DONE"
             }
         }
     }
@@ -94,6 +117,10 @@ class ScheduleRepository {
         maxRuns = this[SchedulesTable.maxRuns],
         expiresAt = this[SchedulesTable.expiresAt],
         createdAt = this[SchedulesTable.createdAt],
-        status = ScheduleStatus.valueOf(this[SchedulesTable.status])
+        status = ScheduleStatus.valueOf(this[SchedulesTable.status]),
+        conflictPolicy = this[SchedulesTable.conflictPolicy]?.let { ConflictPolicy.valueOf(it) },
+        firedAt = this[SchedulesTable.firedAt],
+        webhookUrl = this[SchedulesTable.webhookUrl],
+        zoneId = this[SchedulesTable.zoneId]
     )
 }

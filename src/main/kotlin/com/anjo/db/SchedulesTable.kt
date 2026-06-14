@@ -13,6 +13,10 @@ object SchedulesTable : Table("schedules") {
     val expiresAt = varchar("expires_at", 32).nullable()
     val createdAt = varchar("created_at", 32)
     val status = varchar("status", 16).default("ACTIVE")
+    val conflictPolicy = varchar("conflict_policy", 16).nullable().default("INTERRUPT")
+    val firedAt = varchar("fired_at", 32).nullable()
+    val webhookUrl = varchar("webhook_url", 512).nullable()
+    val zoneId = varchar("zone_id", 64).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }
