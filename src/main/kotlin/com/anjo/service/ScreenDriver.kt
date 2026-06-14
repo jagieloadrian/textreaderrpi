@@ -81,9 +81,11 @@ class ScreenDriverService(
         currentScheduledId = scheduleId
         currentDisplayJob = currentCoroutineContext().job
         lastSentMessage.set(text)
+        var displaySucceeded = false
         try {
             displayMutex.withLock {
                 executeWithRecovery(text, renderer)
+                displaySucceeded = true
             }
         } catch (_: CancellationException) {
             // Scheduler handles re-queue; do not rethrow
@@ -96,7 +98,7 @@ class ScreenDriverService(
             }
             checkAndPerformPendingSwitch()
         }
-        return true
+        return displaySucceeded
     }
 
     suspend fun readInput(input: String) {
