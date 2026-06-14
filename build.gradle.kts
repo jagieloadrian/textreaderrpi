@@ -63,6 +63,7 @@ dependencies {
     implementation(ktorLibs.exposed.jdbc)
     implementation(ktorLibs.exposed.java.time)
     implementation(ktorLibs.hikaricp)
+    implementation(ktorLibs.flyway.core)
     implementation(ktorLibs.cron.utils)
     // JDBC drivers — loaded at runtime based on application.yaml driver setting
     runtimeOnly(ktorLibs.h2)
