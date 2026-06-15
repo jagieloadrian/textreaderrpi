@@ -144,10 +144,6 @@ class ScreenDriverService(
         return displaySucceeded
     }
 
-    suspend fun readInput(input: String) {
-        displayImmediate(input)
-    }
-
     private suspend fun executeWithRecovery(input: String, renderer: EffectRenderer) {
         withContext(ioDispatcher) {
             retryWithBackoff(retryConfig) {

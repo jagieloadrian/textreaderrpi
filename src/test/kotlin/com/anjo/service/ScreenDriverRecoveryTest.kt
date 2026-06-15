@@ -29,7 +29,7 @@ class ScreenDriverRecoveryTest : FunSpec({
 
     test("should succeed when driver works on first attempt") {
         val driver = mockk<DisplayDriver>(relaxed = true)
-        service(driver).readInput("hello")
+        service(driver).displayImmediate("hello")
         verify(exactly = 1) { driver.scrollText(any(), "hello", any()) }
     }
 
@@ -41,7 +41,7 @@ class ScreenDriverRecoveryTest : FunSpec({
             if (callCount < 2) throw RuntimeException("SPI timeout")
         }
         every { driver.status() } returns DisplayStatus(isActive = true, hardwareAvailable = true)
-        service(driver).readInput("test message")
+        service(driver).displayImmediate("test message")
         callCount shouldBe 2
     }
 
@@ -49,7 +49,7 @@ class ScreenDriverRecoveryTest : FunSpec({
         val driver = mockk<DisplayDriver>(relaxed = true)
         every { driver.scrollText(any(), any(), any()) } throws RuntimeException("hardware gone")
         every { driver.status() } returns DisplayStatus(isActive = false, hardwareAvailable = false)
-        service(driver).readInput("this will fail hardware")
+        service(driver).displayImmediate("this will fail hardware")
     }
 
     test("should release mutex after permanent driver failure") {
@@ -57,8 +57,8 @@ class ScreenDriverRecoveryTest : FunSpec({
         every { driver.scrollText(any(), any(), any()) } throws RuntimeException("permanent failure")
         every { driver.status() } returns DisplayStatus(isActive = false, hardwareAvailable = false)
         val svc = service(driver)
-        svc.readInput("first message")
-        svc.readInput("second message")
+        svc.displayImmediate("first message")
+        svc.displayImmediate("second message")
     }
 
     test("should reflect driver status") {

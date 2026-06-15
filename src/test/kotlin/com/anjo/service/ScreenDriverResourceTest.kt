@@ -29,7 +29,7 @@ class ScreenDriverResourceTest : FunSpec({
         val driver = mockk<DisplayDriver>(relaxed = true)
         val registry = MetricRegistry()
         val svc = service(driver, registry)
-        repeat(5) { svc.readInput("text $it") }
+        repeat(5) { svc.displayImmediate("text $it") }
         registry.counter("textreaderrpi.screenDriver.readInput.inFlight").count shouldBe 0L
         registry.meter("textreaderrpi.screenDriver.readInput.accepted").count shouldBe 5L
     }
@@ -40,7 +40,7 @@ class ScreenDriverResourceTest : FunSpec({
         every { driver.status() } returns DisplayStatus(isActive = false, hardwareAvailable = false)
         val registry = MetricRegistry()
         val svc = service(driver, registry)
-        svc.readInput("will fail")
+        svc.displayImmediate("will fail")
         registry.counter("textreaderrpi.screenDriver.readInput.inFlight").count shouldBe 0L
         registry.meter("textreaderrpi.screenDriver.readInput.failed").count shouldBe 1L
     }
@@ -49,7 +49,7 @@ class ScreenDriverResourceTest : FunSpec({
         val driver = mockk<DisplayDriver>(relaxed = true)
         val registry = MetricRegistry()
         val svc = service(driver, registry)
-        svc.readInput("measure me")
+        svc.displayImmediate("measure me")
         registry.timer("textreaderrpi.screenDriver.readInput.execution").count shouldBe 1L
     }
 })
