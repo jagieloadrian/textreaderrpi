@@ -4,14 +4,11 @@ import com.anjo.config.model.ApiConfig
 import com.anjo.config.model.ApplicationConfig
 import com.anjo.config.model.DatabaseConfig
 import com.anjo.config.model.DisplayConfig
-import com.anjo.config.model.HardwareConfig
 import com.anjo.config.model.LcdConfig
-import com.anjo.config.model.LoggingConfig
 import com.anjo.config.model.Max7219Config
 import com.anjo.config.model.MetricsConfig
 import com.anjo.config.model.OledConfig
 import com.anjo.config.model.RetryConfig
-import com.anjo.config.model.TimingConfig
 import io.ktor.server.application.Application
 
 object ConfigLoader {
@@ -44,26 +41,10 @@ object ConfigLoader {
             )
         )
 
-        val hardwareConfig = HardwareConfig(
-            spiTimeoutMs = config.propertyOrNull("hardware.spiTimeoutMs")?.getString()?.toLongOrNull() ?: 1000L,
-            gpioTimeoutMs = config.propertyOrNull("hardware.gpioTimeoutMs")?.getString()?.toLongOrNull() ?: 500L
-        )
-
         val apiConfig = ApiConfig(
             maxTextLength = config.propertyOrNull("api.maxTextLength")?.getString()?.toIntOrNull() ?: 128,
-            queueSize = config.propertyOrNull("api.queueSize")?.getString()?.toIntOrNull() ?: 10,
             rateLimitPerMinute = config.propertyOrNull("api.rateLimitPerMinute")?.getString()?.toIntOrNull() ?: 60,
             metricsRateLimitPerMinute = config.propertyOrNull("api.metricsRateLimitPerMinute")?.getString()?.toIntOrNull() ?: 120
-        )
-
-        val timingConfig = TimingConfig(
-            scrollSpeed = config.propertyOrNull("timing.scrollSpeed")?.getString()?.toLongOrNull() ?: 16L,
-            refreshRate = config.propertyOrNull("timing.refreshRate")?.getString()?.toIntOrNull() ?: 60
-        )
-
-        val loggingConfig = LoggingConfig(
-            level = config.propertyOrNull("logging.level")?.getString() ?: "INFO",
-            format = config.propertyOrNull("logging.format")?.getString() ?: "json"
         )
 
         val metricsConfig = MetricsConfig(
@@ -85,13 +66,10 @@ object ConfigLoader {
             password = config.propertyOrNull("database.password")?.getString() ?: "",
             poolSize = config.propertyOrNull("database.poolSize")?.getString()?.toIntOrNull() ?: 5
         )
-        
+
         return ApplicationConfig(
             display = displayConfig,
-            hardware = hardwareConfig,
             api = apiConfig,
-            timing = timingConfig,
-            logging = loggingConfig,
             metrics = metricsConfig,
             retryConfig = retryConfig,
             databaseConfig
@@ -107,4 +85,3 @@ object ConfigLoader {
         }
     }
 }
-

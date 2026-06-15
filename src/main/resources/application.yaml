@@ -49,7 +49,6 @@ metrics:
 
 api:
   maxTextLength: ${API_MAX_TEXT_LENGTH:128}
-  queueSize: ${API_QUEUE_SIZE:10}
   rateLimitPerMinute: ${API_RATE_LIMIT:60}
   metricsRateLimitPerMinute: ${API_METRICS_RATE_LIMIT:120}
 
