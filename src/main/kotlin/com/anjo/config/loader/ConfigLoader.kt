@@ -11,8 +11,11 @@ import com.anjo.config.model.OledConfig
 import com.anjo.config.model.RetryConfig
 import com.anjo.config.model.WebhooksConfig
 import io.ktor.server.application.Application
+import org.slf4j.LoggerFactory
 
 object ConfigLoader {
+    private val log = LoggerFactory.getLogger(ConfigLoader::class.java)
+
     fun loadConfig(application: Application): ApplicationConfig {
         val config = application.environment.config
 
@@ -20,7 +23,11 @@ object ConfigLoader {
             type = config.propertyOrNull("display.type")?.getString() ?: "MAX7219",
             max7219 = Max7219Config(
                 numDevices = config.propertyOrNull("display.max7219.numDevices")?.getString()?.toIntOrNull() ?: 2,
-                brightness = config.propertyOrNull("display.max7219.brightness")?.getString()?.toBooleanStrictOrNull() ?: true,
+                brightness = config.propertyOrNull("display.max7219.brightness")
+                    ?.getString()
+                    ?.toBooleanStrictOrNull()
+                    .also { if (it == null) log.warn("display.max7219.brightness value is not a strict boolean; defaulting to true") }
+                    ?: true,
                 gpioPins = mapOf(
                     "spi_ce" to (config.propertyOrNull("display.max7219.gpioPins.spi_ce")?.getString()?.toIntOrNull() ?: 8),
                     "spi_mosi" to (config.propertyOrNull("display.max7219.gpioPins.spi_mosi")?.getString()?.toIntOrNull() ?: 10),
