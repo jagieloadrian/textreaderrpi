@@ -98,7 +98,21 @@
   3. Removing any abstraction introduced during cleanup does not break existing API contract tests
   4. Line coverage gate of 70% continues to pass after refactoring
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+**Wave 1**
+
+- [ ] 08-01-PLAN.md — DI smoke test in ApplicationTest.kt resolving all 11 configureDI() bindings (green baseline, must precede all refactor work)
+
+**Wave 2** *(blocked on Wave 1; plans 02/03/04 run in parallel — disjoint files)*
+
+- [ ] 08-02-PLAN.md — Delete dead config (HardwareConfig/TimingConfig/LoggingConfig classes, ApplicationConfig fields, ApiConfig.queueSize, ConfigLoader wiring)
+- [ ] 08-03-PLAN.md — DisplaySelectionService cleanup (remove logCurrentData/pendingSwitches/accessors) + update DisplaySelectionServiceTest and DriverIntegrationTest
+- [ ] 08-04-PLAN.md — Rename ScreenDriver.kt to ScreenDriverService.kt + remove readInput(); Font.getChar() bounds fix wired into Max7219Matrix; new FontTest.kt
+
+**Wave 3** *(blocked on Waves 1+2)*
+
+- [ ] 08-05-PLAN.md — Build-warning dead-symbol sweep + unused-import cleanup (D-11/D-12/D-16) and JaCoCo >= 70% coverage gate (D-17)
 
 ### Phase 9: Display History + Audit Log
 
