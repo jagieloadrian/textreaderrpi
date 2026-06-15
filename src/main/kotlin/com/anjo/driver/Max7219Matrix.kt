@@ -16,6 +16,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class Max7219Matrix(
     private val ctx: Context,
     private val numDevices: Int = 2,
+    private val zoneId: Int = 0,
 ) : AbstractDisplayDriver() {
 
     companion object {
@@ -50,8 +51,8 @@ class Max7219Matrix(
     init {
         spi = try {
             val config = Spi.newConfigBuilder(ctx)
-                .id("max7219")
-                .name("MAX7219 SPI")
+                .id("max7219-zone-$zoneId")
+                .name("MAX7219 SPI Zone $zoneId")
                 .bus(SpiBus.BUS_0)
                 .chipSelect(SpiChipSelect.CS_0)
                 .baud(1_000_000)

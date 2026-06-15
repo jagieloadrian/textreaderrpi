@@ -103,7 +103,7 @@ class DisplaySelectionService(
             config: DisplayConfig,
         ): DisplayDriver? {
             return when (displayType) {
-                "MAX7219" -> Max7219Matrix(ctx, config.max7219.numDevices)
+                "MAX7219" -> Max7219Matrix(ctx, config.max7219.numDevices, zoneId = 0)
                 "LCD" -> LcdDisplay(ctx, config.lcd.i2cAddress, config.lcd.busNumber)
                 "OLED" -> OledDisplay(ctx, config.oled.i2cAddress, config.oled.busNumber, config.oled.width, config.oled.height)
 
