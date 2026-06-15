@@ -7,7 +7,8 @@
     "useResearch": true,
     "useAI": true,
     "parallelPhases": false,
-    "autoCommit": true
+    "autoCommit": true,
+    "_auto_chain_active": false
   },
   "team": {
     "size": "solo",
@@ -24,4 +25,3 @@
     "codeReview": "self"
   }
 }
-

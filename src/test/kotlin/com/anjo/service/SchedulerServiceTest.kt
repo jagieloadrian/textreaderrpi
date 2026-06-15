@@ -200,15 +200,11 @@ class SchedulerServiceTest : FunSpec({
         }
     }
 
-    // SCHED-03: ERROR-status schedule is excluded from findAllActive — scheduler never loads it (SCHED-03)
     test("should not schedule ERROR-status schedules returned by repository") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
             val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
 
-            // findAllActive only returns ACTIVE schedules (ERROR rows are filtered by repo).
-            // This test verifies that only the ACTIVE schedule fires; the absence of any
-            // ERROR-status schedule in the loaded set proves SCHED-03 (scheduler never loads ERROR).
             val activeSchedule = Schedule(
                 id = "active-1", text = "active text",
                 triggerType = TriggerType.RECURRING, triggerValue = "5m",
@@ -219,9 +215,7 @@ class SchedulerServiceTest : FunSpec({
             service.start()
             advanceTimeBy((5L * 60_001L).milliseconds)
 
-            // Only the ACTIVE schedule fires — no ERROR schedule is present in the loaded set
             coVerify(atLeast = 1) { mockScreen.displayScheduled("active text", "active-1", any(), any()) }
-            // No display was triggered for any other schedule id (ERROR rows excluded by repo)
             coVerify(exactly = 0) { mockScreen.displayScheduled(any(), match { it != "active-1" }, any(), any()) }
 
             service.stop()
@@ -229,18 +223,13 @@ class SchedulerServiceTest : FunSpec({
         }
     }
 
-    // SCHED-01 / D-05: SKIP_NEW skipped fires do NOT count toward maxRuns
     test("should not count SKIP_NEW skip toward maxRuns on RECURRING schedule") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
             val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
 
-            // Mock displayScheduled to always return true (display occurred) for all calls
             coEvery { mockScreen.displayScheduled(any(), any(), any(), any()) } returns true
 
-            // Schedule with maxRuns=2 and SKIP_NEW conflict policy.
-            // D-05: only successful displays (fire() returns true) count toward maxRuns.
-            // The mock returns true for all calls so the schedule completes in exactly maxRuns fires.
             val schedule = Schedule(
                 id = "sn-mr", text = "skip-new-test",
                 triggerType = TriggerType.RECURRING, triggerValue = "1m",
@@ -248,10 +237,8 @@ class SchedulerServiceTest : FunSpec({
                 conflictPolicy = ConflictPolicy.SKIP_NEW
             )
             service.schedule(schedule)
-            // Advance enough for maxRuns=2 fires at 1m intervals
             advanceTimeBy((3L * 60_001L).milliseconds)
 
-            // displayScheduled called at least 2 times (the maxRuns successful fires)
             coVerify(atLeast = 2) { mockScreen.displayScheduled("skip-new-test", "sn-mr", any(), any()) }
 
             service.stop()

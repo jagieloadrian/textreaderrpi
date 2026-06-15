@@ -110,7 +110,6 @@ class ScreenDriverService(
                 executeWithRecovery(text, renderer)
                 displaySucceeded = true
             } catch (_: CancellationException) {
-                // Scheduler handles re-queue; do not rethrow
             } catch (e: Exception) {
                 log.error("Scheduled display failed for schedule $scheduleId: ${e.message}", e)
             } finally {
@@ -133,7 +132,6 @@ class ScreenDriverService(
                 displaySucceeded = true
             }
         } catch (_: CancellationException) {
-            // Scheduler handles re-queue; do not rethrow
         } catch (e: Exception) {
             log.error("Scheduled display failed for schedule $scheduleId: ${e.message}", e)
         } finally {
@@ -147,7 +145,7 @@ class ScreenDriverService(
     }
 
     suspend fun readInput(input: String) {
-        displayImmediate(input)  // ignores Boolean return — readInput always uses INTERRUPT (default)
+        displayImmediate(input)
     }
 
     private suspend fun executeWithRecovery(input: String, renderer: EffectRenderer) {

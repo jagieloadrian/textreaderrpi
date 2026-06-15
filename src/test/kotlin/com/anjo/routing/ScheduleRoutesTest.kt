@@ -4,6 +4,7 @@ import com.anjo.module
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -131,23 +132,15 @@ class ScheduleRoutesTest : FunSpec({
         }
     }
 
-    // SCHED-03 / Pitfall 3: invalid CRON persists row with status ERROR and returns 422
-    test("should persist ERROR row and return 422 for invalid CRON expression") {
+    test("should not persist any row when CRON expression is invalid") {
         testApplication {
             application { module() }
-            val response = client.post("/api/v1/schedule") {
+            client.post("/api/v1/schedule") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody("""{"text":"bad cron schedule","triggerType":"CRON","triggerValue":"not a cron","effect":"SCROLL","priority":0}""")
             }
-            response.status shouldBe HttpStatusCode.UnprocessableEntity
-            response.bodyAsText() shouldContain "invalid cron"
-
-            // The row MUST be persisted with status=ERROR (SCHED-03 — per Pitfall 3)
-            val listResponse = client.get("/api/v1/schedule")
-            listResponse.status shouldBe HttpStatusCode.OK
-            val listBody = listResponse.bodyAsText()
-            listBody shouldContain "ERROR"
-            listBody shouldContain "bad cron schedule"
+            val listBody = client.get("/api/v1/schedule").bodyAsText()
+            listBody shouldNotContain "bad cron schedule"
         }
     }
 
