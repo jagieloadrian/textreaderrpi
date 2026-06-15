@@ -48,7 +48,10 @@ fun Application.configureDI() {
     val schedulerService = SchedulerService(scheduleRepository, screenDriverService, effectRendererFactory)
 
     monitor.subscribe(ApplicationStarted) { schedulerService.start() }
-    monitor.subscribe(ApplicationStopping) { schedulerService.stop() }
+    monitor.subscribe(ApplicationStopping) {
+        schedulerService.stop()
+        screenDriverService.stop()
+    }
 
     dependencies {
         provide { appConfig }

@@ -32,6 +32,7 @@ class HistoryRecordingTest : FunSpec({
             val screenService = deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>())
             val historyRepo = deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
             screenService.displayImmediate("rec-test", Effect.SCROLL, ConflictPolicy.INTERRUPT)
+            screenService.awaitCurrentJob()
             val (items, total) = historyRepo.findPaginated(1, 50)
             (total >= 1L) shouldBe true
             val record = items.find { it.text == "rec-test" }
@@ -67,6 +68,7 @@ class HistoryRecordingTest : FunSpec({
             val (_, beforeTotal) = historyRepo.findPaginated(1, 50)
             val rendered = screenService.displayImmediate("rendered", Effect.SCROLL, ConflictPolicy.INTERRUPT)
             rendered.shouldBeTrue()
+            screenService.awaitCurrentJob()
             val (_, afterTotal) = historyRepo.findPaginated(1, 50)
             afterTotal shouldBe beforeTotal + 1L
         }

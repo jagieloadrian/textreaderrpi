@@ -12,9 +12,13 @@ import com.anjo.model.ScreenDriverMetrics
 import com.codahale.metrics.Timer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -32,6 +36,7 @@ class ScreenDriverService(
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
 
+    private val displayScope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private val displayMutex = Mutex()
     private val pendingDisplayType = AtomicReference<String?>(null)
     private val lastSentMessage = AtomicReference<String?>(null)
@@ -49,11 +54,11 @@ class ScreenDriverService(
                 log.info("SKIP_NEW: display busy, dropping ad-hoc request for text '${text.take(30)}'")
                 return false
             }
-            try {
-                currentDisplayJob?.cancel()
-                currentScheduledId = null
-                metrics.acceptedMeter?.mark()
-                lastSentMessage.set(text)
+            currentDisplayJob?.cancel()
+            currentScheduledId = null
+            metrics.acceptedMeter?.mark()
+            lastSentMessage.set(text)
+            currentDisplayJob = displayScope.launch {
                 val timerContext: Timer.Context? = metrics.executionTimer?.time()
                 metrics.inFlightCounter?.inc()
                 try {
@@ -65,10 +70,9 @@ class ScreenDriverService(
                 } finally {
                     metrics.inFlightCounter?.dec()
                     timerContext?.stop()
+                    displayMutex.unlock()
+                    checkAndPerformPendingSwitch()
                 }
-            } finally {
-                displayMutex.unlock()
-                checkAndPerformPendingSwitch()
             }
             return true
         }
@@ -76,20 +80,22 @@ class ScreenDriverService(
         currentScheduledId = null
         metrics.acceptedMeter?.mark()
         lastSentMessage.set(text)
-        val timerContext: Timer.Context? = metrics.executionTimer?.time()
-        metrics.inFlightCounter?.inc()
-        try {
-            displayMutex.withLock {
-                executeWithRecovery(text, effectFactory.create(effect))
-                try { historyRepository?.insert(HistoryRecord(text = text, effect = effect.name, source = "IMMEDIATE")) } catch (e: Exception) { log.warn("History insert failed (non-fatal): ${e.message}", e) }
+        currentDisplayJob = displayScope.launch {
+            val timerContext: Timer.Context? = metrics.executionTimer?.time()
+            metrics.inFlightCounter?.inc()
+            try {
+                displayMutex.withLock {
+                    executeWithRecovery(text, effectFactory.create(effect))
+                    try { historyRepository?.insert(HistoryRecord(text = text, effect = effect.name, source = "IMMEDIATE")) } catch (e: Exception) { log.warn("History insert failed (non-fatal): ${e.message}", e) }
+                }
+            } catch (e: Exception) {
+                metrics.failedMeter?.mark()
+                log.error("Display operation failed after retries: ${e.message}", e)
+            } finally {
+                metrics.inFlightCounter?.dec()
+                timerContext?.stop()
+                checkAndPerformPendingSwitch()
             }
-        } catch (e: Exception) {
-            metrics.failedMeter?.mark()
-            log.error("Display operation failed after retries: ${e.message}", e)
-        } finally {
-            metrics.inFlightCounter?.dec()
-            timerContext?.stop()
-            checkAndPerformPendingSwitch()
         }
         return true
     }
@@ -148,6 +154,14 @@ class ScreenDriverService(
             checkAndPerformPendingSwitch()
         }
         return displaySucceeded
+    }
+
+    fun stop() {
+        displayScope.cancel()
+    }
+
+    internal suspend fun awaitCurrentJob() {
+        currentDisplayJob?.join()
     }
 
     private suspend fun executeWithRecovery(input: String, renderer: EffectRenderer) {

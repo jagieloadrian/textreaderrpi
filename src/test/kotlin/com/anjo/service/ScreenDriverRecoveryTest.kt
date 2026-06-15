@@ -41,7 +41,9 @@ class ScreenDriverRecoveryTest : FunSpec({
             if (callCount < 2) throw RuntimeException("SPI timeout")
         }
         every { driver.status() } returns DisplayStatus(isActive = true, hardwareAvailable = true)
-        service(driver).displayImmediate("test message")
+        val svc = service(driver)
+        svc.displayImmediate("test message")
+        svc.awaitCurrentJob()
         callCount shouldBe 2
     }
 
