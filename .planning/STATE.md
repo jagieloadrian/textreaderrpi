@@ -2,28 +2,28 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
-status: executing
-last_updated: "2026-06-16T00:40:00Z"
-last_activity: 2026-06-16
+status: verifying
+last_updated: "2026-06-15T22:49:07.286Z"
+last_activity: 2026-06-15
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
-  completed_plans: 14
-  percent: 53
+  completed_plans: 15
+  percent: 63
 ---
 
 # Project State & Memory
 
 **Last Updated:** 2026-06-16  
-**Status:** Executing Phase 10
+**Status:** Phase complete — ready for verification
 
 ## Current Position
 
 Phase: 10 (webhooks) — EXECUTING
 Plan: 2 of 2
 **Next:** Phase 10 Plan 02 (Webhooks — Scheduler Integration)
-**Last activity:** 2026-06-16
+**Last activity:** 2026-06-15
 
 Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
 `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` 0% (0/7 phases)
@@ -193,6 +193,7 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | Phase 09 P02 | 11 minutes | 2 tasks | 8 files |
 | Phase 09 P03 | 5 | 2 tasks | 7 files |
 | Phase 10 P01 | 22 minutes | 2 tasks | 10 files |
+| Phase 10-webhooks P02 | 4 minutes | 2 tasks | 4 files |
 
 ## Decisions
 
@@ -211,3 +212,6 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 - [Phase 10 P01]: Ktor ContentNegotiation client plugin sets Content-Type on body.contentType (OutgoingContent) not request.headers — MockEngine captures body.contentType correctly; test assertion uses capturedData[0].body.contentType
 - [Phase 10 P01]: WebhookServiceTest uses Kotest FunSpec native suspend + real delay(200ms) instead of runTest + advanceUntilIdle — withTimeout(5_000) virtual clock conflict with StandardTestDispatcher causes flaky timeouts
 - [Phase 10 P01]: header(HttpHeaders.ContentType, ContentType.Application.Json) required in WebhookService.post block to signal ContentNegotiation which serializer to invoke for setBody(WebhookPayload)
+- [Phase ?]: webhookService named nullable param (Pitfall 4): existing positional call sites compile unchanged
+- [Phase ?]: webhookService?.send() inside fire() try block: contained failure never fails display (D-16)
+- [Phase ?]: HttpClient+WebhookService as DI singletons proven by ApplicationTest smoke assertion (D-10)

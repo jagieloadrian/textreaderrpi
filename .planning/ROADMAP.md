@@ -30,7 +30,7 @@
 - [x] **Phase 7: Scheduler Schema Stabilisation** — ConflictPolicy, firedAt, ERROR status, webhookUrl, zoneId columns added (completed 2026-06-14)
 - [x] **Phase 8: Refactor + Dead Code Analysis** — Application cleaned and simplified, DI smoke test in place (completed 2026-06-15)
 - [x] **Phase 9: Display History + Audit Log** — Every display event persisted and browsable (completed 2026-06-15)
-- [ ] **Phase 10: Webhooks** — HTTP POST notifications fired on schedule trigger
+- [x] **Phase 10: Webhooks** — HTTP POST notifications fired on schedule trigger (completed 2026-06-15)
 - [ ] **Phase 11: Multi-Zone Displays** — Multiple local and network displays managed and routable
 - [ ] **Phase 12: Observability Gap Closures** — v1.0 audit gaps closed (health/detail, metrics hardware, HTML error pages)
 - [ ] **Phase 13: UI/UX Refresh** — Material 3 style, side nav, all new pages deployed
@@ -156,7 +156,7 @@
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 10-02-PLAN.md — Wire WebhookService into SchedulerService.fire() + DI; integration & DI smoke tests
+- [x] 10-02-PLAN.md — Wire WebhookService into SchedulerService.fire() + DI; integration & DI smoke tests
 
 ### Phase 11: Multi-Zone Displays
 

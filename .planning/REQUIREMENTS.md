@@ -40,9 +40,9 @@
 
 ## Webhooks (HOOK)
 
-- [ ] **HOOK-01**: Po wystrzeleniu harmonogramu, HTTP POST wysyłany jest do `webhookUrl` harmonogramu (fire-and-forget, timeout 5s)
-- [ ] **HOOK-02**: Webhook payload zawiera: tekst, efekt, schedule ID, zone ID, timestamp
-- [ ] **HOOK-03**: Globalny fallback `webhookUrl` konfigurowalny przez env var (`WEBHOOK_DEFAULT_URL`)
+- [x] **HOOK-01**: Po wystrzeleniu harmonogramu, HTTP POST wysyłany jest do `webhookUrl` harmonogramu (fire-and-forget, timeout 5s)
+- [x] **HOOK-02**: Webhook payload zawiera: tekst, efekt, schedule ID, zone ID, timestamp
+- [x] **HOOK-03**: Globalny fallback `webhookUrl` konfigurowalny przez env var (`WEBHOOK_DEFAULT_URL`)
 
 ---
 
@@ -119,9 +119,9 @@
 | HIST-01 | Phase 9 | Complete |
 | HIST-02 | Phase 9 | Complete |
 | HIST-03 | Phase 9 | Complete |
-| HOOK-01 | Phase 10 | Pending |
-| HOOK-02 | Phase 10 | Pending |
-| HOOK-03 | Phase 10 | Pending |
+| HOOK-01 | Phase 10 | Complete |
+| HOOK-02 | Phase 10 | Complete |
+| HOOK-03 | Phase 10 | Complete |
 | ZONE-01 | Phase 11 | Pending |
 | ZONE-02 | Phase 11 | Pending |
 | ZONE-03 | Phase 11 | Pending |
