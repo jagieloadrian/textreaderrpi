@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 
 fun Application.configureDI() {
     val appConfig = ConfigLoader.loadConfig(this)
+    DatabaseFactory.init(appConfig.databaseConfig)
     val pi4jContext = Pi4J.newAutoContext()
 
     val displaySelectionService = DisplaySelectionService(
@@ -45,8 +46,6 @@ fun Application.configureDI() {
     val scheduleRepository = ScheduleRepository()
     val effectRendererFactory = EffectRendererFactory()
     val schedulerService = SchedulerService(scheduleRepository, screenDriverService, effectRendererFactory)
-
-    DatabaseFactory.init(appConfig.databaseConfig)
 
     monitor.subscribe(ApplicationStarted) { schedulerService.start() }
     monitor.subscribe(ApplicationStopping) { schedulerService.stop() }
