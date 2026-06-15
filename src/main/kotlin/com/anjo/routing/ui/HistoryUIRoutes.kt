@@ -8,12 +8,14 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 
+private const val MAX_UI_SIZE = 1000L
+
 fun Route.historyUIRoutes(historyRepository: HistoryRepository) {
     get("/history") {
         val page = call.request.queryParameters["page"]?.toIntOrNull()?.coerceAtLeast(1) ?: 1
         val rawSize = call.request.queryParameters["size"] ?: "20"
         val sizeAll = rawSize.lowercase() == "all"
-        val size = if (sizeAll) Int.MAX_VALUE else rawSize.toIntOrNull()?.coerceAtLeast(1) ?: 20
+        val size = if (sizeAll) MAX_UI_SIZE.toInt() else rawSize.toIntOrNull()?.coerceAtLeast(1) ?: 20
         val effect = call.request.queryParameters["effect"].orEmpty()
         val source = call.request.queryParameters["source"].orEmpty()
         val expandAll = call.request.queryParameters["expand"] == "all"
@@ -21,7 +23,7 @@ fun Route.historyUIRoutes(historyRepository: HistoryRepository) {
         val sourceFilter = source.takeIf { it.isNotEmpty() && it != "ALL" }
         val (items, total) = if (sizeAll) {
             val (_, t) = historyRepository.findPaginated(1, 1, effectFilter, sourceFilter)
-            historyRepository.findPaginated(1, t.toInt().coerceAtLeast(1), effectFilter, sourceFilter)
+            historyRepository.findPaginated(1, t.coerceAtMost(MAX_UI_SIZE).toInt().coerceAtLeast(1), effectFilter, sourceFilter)
         } else {
             historyRepository.findPaginated(page, size, effectFilter, sourceFilter)
         }
