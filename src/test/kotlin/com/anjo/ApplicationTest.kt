@@ -10,6 +10,7 @@ import com.anjo.service.EffectRendererFactory
 import com.anjo.service.MetricsCollector
 import com.anjo.service.SchedulerService
 import com.anjo.service.ScreenDriverService
+import com.anjo.service.WebhookService
 import com.codahale.metrics.MetricRegistry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -82,6 +83,7 @@ class ApplicationTest : FunSpec({
             deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>()) shouldNotBeNull {}
             deps.getBlocking<EffectRendererFactory>(DependencyKey<EffectRendererFactory>()) shouldNotBeNull {}
             deps.getBlocking<SchedulerService>(DependencyKey<SchedulerService>()) shouldNotBeNull {}
+            deps.getBlocking<WebhookService>(DependencyKey<WebhookService>()) shouldNotBeNull {}
         }
     }
 })

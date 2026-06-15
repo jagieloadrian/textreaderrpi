@@ -28,9 +28,10 @@ class SchedulerServiceTest : FunSpec({
     val mockScreen = mockk<ScreenDriverService>(relaxed = true)
     val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
     val mockRenderer = mockk<EffectRenderer>(relaxed = true)
+    val mockWebhook = mockk<WebhookService>(relaxed = true)
 
     beforeEach {
-        clearMocks(mockRepo, mockScreen, mockFactory, mockRenderer)
+        clearMocks(mockRepo, mockScreen, mockFactory, mockRenderer, mockWebhook)
         coEvery { mockFactory.create(any()) } returns mockRenderer
         coEvery { mockRepo.findAllActive() } returns emptyList()
         coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any()) } returns true
@@ -259,6 +260,49 @@ class SchedulerServiceTest : FunSpec({
             service.schedule(schedule)
             advanceTimeBy((10 * 60_000L + 1L).milliseconds)
             coVerify(atMost = 2) { mockScreen.displayScheduled("bounded", "s4", any(), any(), any()) }
+
+            service.stop()
+            testScope.coroutineContext[Job]?.cancel()
+        }
+    }
+
+    test("should send webhook after schedule fires successfully") {
+        runTest {
+            val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
+            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope, webhookService = mockWebhook)
+
+            val schedule = Schedule(
+                id = "wh-ok", text = "hook-text",
+                triggerType = TriggerType.ONESHOT,
+                triggerValue = Instant.now().plusMillis(60_000L).toString(),
+                effect = Effect.SCROLL,
+                webhookUrl = "http://localhost:9999/hook"
+            )
+            service.schedule(schedule)
+            advanceTimeBy(60_001L.milliseconds)
+            coVerify(exactly = 1) { mockWebhook.send(schedule, any()) }
+
+            service.stop()
+            testScope.coroutineContext[Job]?.cancel()
+        }
+    }
+
+    test("should not send webhook when display is skipped or fails") {
+        runTest {
+            val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
+            coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any()) } returns false
+            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope, webhookService = mockWebhook)
+
+            val schedule = Schedule(
+                id = "wh-skip", text = "skip-text",
+                triggerType = TriggerType.ONESHOT,
+                triggerValue = Instant.now().plusMillis(60_000L).toString(),
+                effect = Effect.SCROLL,
+                webhookUrl = "http://localhost:9999/hook"
+            )
+            service.schedule(schedule)
+            advanceTimeBy(60_001L.milliseconds)
+            coVerify(exactly = 0) { mockWebhook.send(any(), any()) }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
