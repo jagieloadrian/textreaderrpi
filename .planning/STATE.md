@@ -3,28 +3,28 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-15T08:16:59.788Z"
+last_updated: "2026-06-15T08:49:16.883Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 8
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 10
+  completed_plans: 6
   percent: 25
 ---
 
 # Project State & Memory
 
 **Last Updated:** 2026-06-11  
-**Status:** Ready to execute
+**Status:** Executing Phase 08
 
 ## Current Position
 
-Phase: 07 (scheduler-schema-stabilisation) — EXECUTING
-Plan: 3 of 3
-**Phase:** 7
-**Plan:** 07-02 COMPLETE — behavioral fixes done
-**Status:** SKIP_NEW guard, atomic firedAt, CRON-at-handler persisting ERROR, webhookUrl validation, TextRoutes accepted flag
+Phase: 08 (refactor-dead-code-analysis) — EXECUTING
+Plan: 2 of 5
+**Phase:** 8
+**Plan:** 08-01 COMPLETE — DI binding-resolution smoke test added
+**Status:** All 11 configureDI() bindings verified green; safe to proceed with dead-code removal
 **Last activity:** 2026-06-15
 
 Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
@@ -118,6 +118,9 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | fire() returns Boolean propagated from displayScheduled (07-02) | launchRecurring conditionally increments runs only when display occurred (D-05) |
 | CRON validation moved to ScheduleRoutes POST handler (07-02) | Allows persist-with-ERROR before 422 response; ScheduleValidators returns Valid for CRON |
 | HTTP 202 with accepted=false for SKIP_NEW TextRoutes response (07-02) | Consistent with existing 202 Accepted; client reads accepted boolean to detect skip |
+| DI smoke test requires client.get() trigger before getBlocking() (08-01) | testApplication defers module execution until first HTTP interaction; accessing dependencies before startup yields MissingDependencyException |
+| getBlocking() import explicit: io.ktor.server.plugins.di.getBlocking (08-01) | Top-level extension function — not auto-imported by package membership |
+| CoroutineDispatcher (not CloseableCoroutineDispatcher) for Dispatchers.IO key (08-01) | Ktor DI infers declared type CoroutineDispatcher; runtime type is CloseableCoroutineDispatcher but key must match declared type |
 
 ### Critical Pitfalls to Watch
 

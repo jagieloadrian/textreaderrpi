@@ -102,7 +102,7 @@
 
 **Wave 1**
 
-- [ ] 08-01-PLAN.md — DI smoke test in ApplicationTest.kt resolving all 11 configureDI() bindings (green baseline, must precede all refactor work)
+- [x] 08-01-PLAN.md — DI smoke test in ApplicationTest.kt resolving all 11 configureDI() bindings (green baseline, must precede all refactor work)
 
 **Wave 2** *(blocked on Wave 1; plans 02/03/04 run in parallel — disjoint files)*
 
