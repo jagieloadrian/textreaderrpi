@@ -11,8 +11,13 @@ import com.anjo.model.ScreenDriverMetrics
 import com.anjo.service.EffectRendererFactory
 import com.anjo.service.SchedulerService
 import com.anjo.service.ScreenDriverService
+import com.anjo.service.WebhookService
 import com.codahale.metrics.MetricRegistry
 import com.pi4j.Pi4J
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopping
@@ -45,7 +50,13 @@ fun Application.configureDI() {
     val metricsCollector = MetricsCollector(metricRegistry)
     val scheduleRepository = ScheduleRepository()
     val effectRendererFactory = EffectRendererFactory()
-    val schedulerService = SchedulerService(scheduleRepository, screenDriverService, effectRendererFactory)
+    val httpClient = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json()
+        }
+    }
+    val webhookService = WebhookService(httpClient, appConfig.webhooks)
+    val schedulerService = SchedulerService(scheduleRepository, screenDriverService, effectRendererFactory, webhookService = webhookService)
 
     monitor.subscribe(ApplicationStarted) { schedulerService.start() }
     monitor.subscribe(ApplicationStopping) {
@@ -65,6 +76,8 @@ fun Application.configureDI() {
         provide { scheduleRepository }
         provide { historyRepository }
         provide { effectRendererFactory }
+        provide { httpClient }
+        provide { webhookService }
         provide { schedulerService }
     }
 }

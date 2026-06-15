@@ -25,7 +25,8 @@ class SchedulerService(
     private val repository: ScheduleRepository,
     private val screenService: ScreenDriverService,
     private val effectFactory: EffectRendererFactory,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
+    private val webhookService: WebhookService? = null
 ) {
     private val log = LoggerFactory.getLogger(SchedulerService::class.java)
     private val activeJobs = ConcurrentHashMap<String, Job>()
@@ -172,7 +173,11 @@ class SchedulerService(
             log.info("Firing schedule id=${schedule.id} text='${schedule.text.take(30)}' effect=${schedule.effect}")
             val renderer = effectFactory.create(schedule.effect)
             val policy = schedule.conflictPolicy ?: ConflictPolicy.INTERRUPT
-            screenService.displayScheduled(schedule.text, schedule.id, renderer, schedule.effect, policy)
+            val displayed = screenService.displayScheduled(schedule.text, schedule.id, renderer, schedule.effect, policy)
+            if (displayed) {
+                webhookService?.send(schedule, Instant.now())
+            }
+            displayed
         } catch (e: Exception) {
             log.error("Failed to fire schedule ${schedule.id}: ${e.message}", e)
             false
