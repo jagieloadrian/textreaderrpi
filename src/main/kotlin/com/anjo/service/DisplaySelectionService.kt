@@ -32,7 +32,6 @@ class DisplaySelectionService(
             currentType = normalizedType
             log.info("Display initialised: type=$normalizedType")
         } else {
-            System.err.println("ERROR: Failed to initialize $normalizedType display")
             log.error("Failed to initialize display driver: type=$normalizedType")
         }
     }
@@ -45,7 +44,6 @@ class DisplaySelectionService(
             log.debug("Driver created and cached: type=$displayType")
             driver
         } catch (e: Exception) {
-            System.err.println("Failed to create $displayType driver: ${e.message}")
             log.error("Failed to create driver type=$displayType: ${e.message}", e)
             null
         }
@@ -97,6 +95,8 @@ class DisplaySelectionService(
     private fun normalizeDisplayType(displayType: String): String = displayType.uppercase()
 
     companion object {
+        private val factoryLog = LoggerFactory.getLogger(DisplaySelectionService::class.java)
+
         private fun defaultDriverFactory(
             displayType: String,
             ctx: Context,
@@ -108,7 +108,7 @@ class DisplaySelectionService(
                 "OLED" -> OledDisplay(ctx, config.oled.i2cAddress, config.oled.busNumber, config.oled.width, config.oled.height)
 
                 else -> {
-                    System.err.println("Unknown display type: $displayType")
+                    factoryLog.warn("Unknown display type requested: $displayType")
                     null
                 }
             }
