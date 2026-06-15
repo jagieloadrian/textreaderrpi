@@ -1,10 +1,11 @@
 ---
 phase: 8
 slug: refactor-dead-code-analysis
-status: ready
+status: verified
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-06-15
+audited: 2026-06-15
 ---
 
 # Phase 8 — Validation Strategy
@@ -38,16 +39,16 @@ created: 2026-06-15
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 8-01-01 | 01 | 1 | REF-03 | T-8-01 / Pitfall 1 | DI smoke test resolves all 11 bindings via `getBlocking`; no method calls on resolved instances (no Pi4J/hardware side effects) | integration (testApplication + H2) | `./gradlew test --tests "com.anjo.ApplicationTest"` | ✅ (test appended to existing ApplicationTest.kt) | ⬜ pending |
-| 8-02-01 | 02 | 2 | REF-01 | T-8-02 / Pitfall 5,6 | No hidden consumer of `.hardware`/`.timing`/`.logging`/`.queueSize`; both constructor call sites edited together so build cannot ship a broken config | build + regression | `./gradlew test` | ✅ (edits existing config/loader files; deletes 3 class files) | ⬜ pending |
-| 8-03-01 | 03 | 2 | REF-01 | T-8-03 / Pitfall 2 | Deleting `pendingSwitches.offer(...)` does not alter `selectDisplay()` control flow; success branch pinned by acceptance criterion | compile verification | `./gradlew compileKotlin` | ✅ (edits existing DisplaySelectionService.kt) | ⬜ pending |
-| 8-03-02 | 03 | 2 | REF-04 | T-8-03 / — | Pending-switch assertions removed without weakening retained real-behavior assertions; coverage held by remaining `selectDisplay`/`currentDriver` paths | regression | `./gradlew test --tests "com.anjo.service.DisplaySelectionServiceTest" --tests "com.anjo.driver.DriverIntegrationTest"` | ✅ (edits existing test files) | ⬜ pending |
-| 8-04-01 | 04 | 2 | REF-01, REF-02 | T-8-04 / Pitfall 4 | File rename + `readInput()` removal compiles after `clean` (incremental cache cleared); metric key strings untouched | regression (clean build) | `./gradlew clean test --tests "com.anjo.service.ScreenDriverRecoveryTest" --tests "com.anjo.service.ScreenDriverResourceTest"` | ✅ (git mv of existing file; edits existing test files) | ⬜ pending |
-| 8-04-02 | 04 | 2 | REF-02, REF-04 | T-8-04 / Pitfall 3 (V5 Input Validation) | `Font.getChar()` returns 5-byte blank row for unmapped char (bounds guard); Max7219Matrix renders unmapped char without force-unwrap NPE | unit (TDD) | `./gradlew test --tests "com.anjo.utils.FontTest" --tests "com.anjo.driver.Max7219MatrixTest"` | ✅ W0 (FontTest.kt write-test-first via `tdd="true"` — see Wave 0 Requirements) | ⬜ pending |
-| 8-05-01 | 05 | 3 | REF-01, REF-02 | T-8-05 / — | Build-warning sweep removes only grep-confirmed zero-caller symbols across src/main AND src/test; public API surface excluded | build verification | `./gradlew build` | ✅ (re-inspects Phase-8-touched files; edits only if warnings) | ⬜ pending |
-| 8-05-02 | 05 | 3 | REF-04 | T-8-05 / — | JaCoCo ≥70% line-coverage gate passes on cleaned codebase; backfill tests added for any below-gate Phase-8-touched class | coverage gate | `./gradlew test jacocoTestCoverageVerification` | ✅ (gate already configured in build.gradle.kts) | ⬜ pending |
+| 8-01-01 | 01 | 1 | REF-03 | T-8-01 / Pitfall 1 | DI smoke test resolves all 11 bindings via `getBlocking`; no method calls on resolved instances (no Pi4J/hardware side effects) | integration (testApplication + H2) | `./gradlew test --tests "com.anjo.ApplicationTest"` | ✅ (test appended to existing ApplicationTest.kt) | ✅ green |
+| 8-02-01 | 02 | 2 | REF-01 | T-8-02 / Pitfall 5,6 | No hidden consumer of `.hardware`/`.timing`/`.logging`/`.queueSize`; both constructor call sites edited together so build cannot ship a broken config | build + regression | `./gradlew test` | ✅ (edits existing config/loader files; deletes 3 class files) | ✅ green |
+| 8-03-01 | 03 | 2 | REF-01 | T-8-03 / Pitfall 2 | Deleting `pendingSwitches.offer(...)` does not alter `selectDisplay()` control flow; success branch pinned by acceptance criterion | compile verification | `./gradlew compileKotlin` | ✅ (edits existing DisplaySelectionService.kt) | ✅ green |
+| 8-03-02 | 03 | 2 | REF-04 | T-8-03 / — | Pending-switch assertions removed without weakening retained real-behavior assertions; coverage held by remaining `selectDisplay`/`currentDriver` paths | regression | `./gradlew test --tests "com.anjo.service.DisplaySelectionServiceTest" --tests "com.anjo.driver.DriverIntegrationTest"` | ✅ (edits existing test files) | ✅ green |
+| 8-04-01 | 04 | 2 | REF-01, REF-02 | T-8-04 / Pitfall 4 | File rename + `readInput()` removal compiles after `clean` (incremental cache cleared); metric key strings untouched | regression (clean build) | `./gradlew clean test --tests "com.anjo.service.ScreenDriverRecoveryTest" --tests "com.anjo.service.ScreenDriverResourceTest"` | ✅ (git mv of existing file; edits existing test files) | ✅ green |
+| 8-04-02 | 04 | 2 | REF-02, REF-04 | T-8-04 / Pitfall 3 (V5 Input Validation) | `Font.getChar()` returns 5-byte blank row for unmapped char (bounds guard); Max7219Matrix renders unmapped char without force-unwrap NPE | unit (TDD) | `./gradlew test --tests "com.anjo.utils.FontTest" --tests "com.anjo.driver.Max7219MatrixTest"` | ✅ W0 (FontTest.kt write-test-first via `tdd="true"` — see Wave 0 Requirements) | ✅ green |
+| 8-05-01 | 05 | 3 | REF-01, REF-02 | T-8-05 / — | Build-warning sweep removes only grep-confirmed zero-caller symbols across src/main AND src/test; public API surface excluded | build verification | `./gradlew build` | ✅ (re-inspects Phase-8-touched files; edits only if warnings) | ✅ green |
+| 8-05-02 | 05 | 3 | REF-04 | T-8-05 / — | JaCoCo ≥70% line-coverage gate passes on cleaned codebase; backfill tests added for any below-gate Phase-8-touched class | coverage gate | `./gradlew test jacocoTestCoverageVerification` | ✅ (gate already configured in build.gradle.kts) | ✅ green |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: ✅ green · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
 
@@ -79,3 +80,17 @@ created: 2026-06-15
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-06-15
+
+---
+
+## Validation Audit 2026-06-15
+
+| Metric | Count |
+|--------|-------|
+| Tasks audited | 8 |
+| COVERED | 8 |
+| PARTIAL | 0 |
+| MISSING | 0 |
+| Test suites green | 21 |
+| Total tests | 132 |
+| JaCoCo line coverage | 80.7% |
