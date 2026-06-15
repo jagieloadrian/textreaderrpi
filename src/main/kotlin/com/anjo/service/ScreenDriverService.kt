@@ -39,7 +39,6 @@ class ScreenDriverService(
     @Volatile private var currentScheduledId: String? = null
     @Volatile private var currentDisplayJob: Job? = null
 
-    /** Called by ad-hoc POST /api/text — preempts any running scheduled display. */
     suspend fun displayImmediate(
         text: String,
         effect: Effect = Effect.SCROLL,
@@ -95,7 +94,6 @@ class ScreenDriverService(
         return true
     }
 
-    /** Called by the scheduler — registers the job for cancellation via displayImmediate. */
     suspend fun displayScheduled(
         text: String,
         scheduleId: String,
