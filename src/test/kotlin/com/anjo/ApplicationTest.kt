@@ -1,10 +1,25 @@
 package com.anjo
 
+import com.anjo.config.model.ApiConfig
+import com.anjo.config.model.ApplicationConfig
+import com.anjo.config.model.DisplayConfig
+import com.anjo.db.ScheduleRepository
+import com.anjo.service.DisplaySelectionService
+import com.anjo.service.EffectRendererFactory
+import com.anjo.service.MetricsCollector
+import com.anjo.service.SchedulerService
+import com.anjo.service.ScreenDriverService
+import com.codahale.metrics.MetricRegistry
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.plugins.di.DependencyKey
+import io.ktor.server.plugins.di.dependencies
+import io.ktor.server.plugins.di.getBlocking
 import io.ktor.server.testing.testApplication
+import kotlinx.coroutines.CoroutineDispatcher
 
 class ApplicationTest : FunSpec({
 
@@ -48,5 +63,23 @@ class ApplicationTest : FunSpec({
             response.status shouldBe HttpStatusCode.OK
         }
     }
-})
 
+    test("should resolve all configureDI bindings without error") {
+        testApplication {
+            application { module() }
+            client.get("/health")
+            val deps = application.dependencies
+            deps.getBlocking<ApplicationConfig>(DependencyKey<ApplicationConfig>()) shouldNotBeNull {}
+            deps.getBlocking<ApiConfig>(DependencyKey<ApiConfig>()) shouldNotBeNull {}
+            deps.getBlocking<DisplayConfig>(DependencyKey<DisplayConfig>()) shouldNotBeNull {}
+            deps.getBlocking<CoroutineDispatcher>(DependencyKey<CoroutineDispatcher>()) shouldNotBeNull {}
+            deps.getBlocking<MetricRegistry>(DependencyKey<MetricRegistry>()) shouldNotBeNull {}
+            deps.getBlocking<DisplaySelectionService>(DependencyKey<DisplaySelectionService>()) shouldNotBeNull {}
+            deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>()) shouldNotBeNull {}
+            deps.getBlocking<MetricsCollector>(DependencyKey<MetricsCollector>()) shouldNotBeNull {}
+            deps.getBlocking<ScheduleRepository>(DependencyKey<ScheduleRepository>()) shouldNotBeNull {}
+            deps.getBlocking<EffectRendererFactory>(DependencyKey<EffectRendererFactory>()) shouldNotBeNull {}
+            deps.getBlocking<SchedulerService>(DependencyKey<SchedulerService>()) shouldNotBeNull {}
+        }
+    }
+})
