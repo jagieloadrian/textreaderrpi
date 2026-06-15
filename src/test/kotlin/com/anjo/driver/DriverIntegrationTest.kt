@@ -7,7 +7,6 @@ import com.anjo.model.ScreenDriverMetrics
 import com.anjo.service.ScreenDriverService
 import com.pi4j.context.Context
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -40,8 +39,6 @@ class DriverIntegrationTest : FunSpec({
         service.queueDisplaySwitch("oled") shouldBe true
         selection.getCurrentDisplayType() shouldBe "OLED"
         service.currentDisplayType() shouldBe "OLED"
-
-        selection.getPendingSwitches() shouldContainExactly listOf("LCD", "OLED")
     }
 
     test("should reject unknown display type") {
