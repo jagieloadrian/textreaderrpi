@@ -144,7 +144,6 @@ class ScheduleRoutesTest : FunSpec({
         }
     }
 
-    // SCHED-04 / D-10: invalid webhookUrl returns 422 (rejected before persist)
     test("should return 422 for schedule with invalid webhookUrl") {
         testApplication {
             application { module() }
@@ -156,7 +155,6 @@ class ScheduleRoutesTest : FunSpec({
         }
     }
 
-    // SCHED-04 / D-10: valid webhookUrl is accepted and returns 201
     test("should return 201 for schedule with valid webhookUrl") {
         testApplication {
             application { module() }

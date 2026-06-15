@@ -81,7 +81,6 @@ class ScheduleRepositoryTest : FunSpec({
         }
     }
 
-    // SCHED-04: new column round-trip — conflictPolicy, webhookUrl, zoneId persist and read back
     test("should round-trip conflictPolicy webhookUrl and zoneId fields") {
         runTest {
             val schedule = Schedule(
@@ -101,7 +100,6 @@ class ScheduleRepositoryTest : FunSpec({
         }
     }
 
-    // SCHED-02: ONESHOT with non-null firedAt (set via updateFiredAtAndDone) excluded from findAllActive
     test("should exclude ONESHOT row from findAllActive when firedAt is set") {
         runTest {
             val oneshotSchedule = Schedule(
@@ -117,7 +115,6 @@ class ScheduleRepositoryTest : FunSpec({
         }
     }
 
-    // SCHED-02: ONESHOT with firedAt null and status ACTIVE is returned by findAllActive
     test("should include ONESHOT row in findAllActive when firedAt is null") {
         runTest {
             val oneshotSchedule = Schedule(
@@ -132,7 +129,6 @@ class ScheduleRepositoryTest : FunSpec({
         }
     }
 
-    // SCHED-02: updateFiredAtAndDone sets firedAt and status=DONE atomically
     test("should set firedAt and status DONE atomically via updateFiredAtAndDone") {
         runTest {
             val inserted = repository.insert(testSchedule())
@@ -146,7 +142,6 @@ class ScheduleRepositoryTest : FunSpec({
         }
     }
 
-    // Pitfall 5: RECURRING row with status ACTIVE stays in findAllActive (firedAt filter scoped to ONESHOT)
     test("should include RECURRING row in findAllActive regardless of firedAt") {
         runTest {
             val recurringSchedule = Schedule(
@@ -155,7 +150,6 @@ class ScheduleRepositoryTest : FunSpec({
                 triggerValue = "5m"
             )
             val inserted = repository.insert(recurringSchedule)
-            // RECURRING rows are never excluded by the firedAt filter (scoped to ONESHOT only)
             val active = repository.findAllActive()
             active.any { it.id == inserted.id } shouldBe true
         }

@@ -86,7 +86,6 @@ class TextApiRouteTest : FunSpec({
         }
     }
 
-    // SCHED-01 / Claude's Discretion: SKIP_NEW deserializes and response shape has accepted field
     test("should return 202 with accepted field when conflictPolicy is SKIP_NEW") {
         testApplication {
             application { module() }

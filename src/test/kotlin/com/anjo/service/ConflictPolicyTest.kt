@@ -153,12 +153,10 @@ class ConflictPolicyTest : FunSpec({
         }
     }
 
-    // SCHED-01 / D-04: SKIP_NEW drops new request when display mutex is locked (SCHED-01)
     test("should return false and not render new text when SKIP_NEW and display is busy") {
         runTest {
             val driver = mockk<DisplayDriver>(relaxed = true)
 
-            // Blocking renderer — suspends at await() keeping displayMutex locked
             val blockRender = CompletableDeferred<Unit>()
             val blockingRenderer = mockk<EffectRenderer> {
                 coEvery { render(any(), any()) } coAnswers { blockRender.await() }
@@ -168,36 +166,29 @@ class ConflictPolicyTest : FunSpec({
             }
             val svc = makeService(driver, blockingFactory)
 
-            // Launch a scheduled display that will hold the mutex open (blocks at render)
             val busyJob = launch { svc.displayImmediate("busy-text", Effect.SCROLL, ConflictPolicy.INTERRUPT) }
-            advanceUntilIdle()  // runs busyJob until it suspends on blockRender.await() inside withLock
+            advanceUntilIdle()
 
-            // Now the displayMutex IS locked; SKIP_NEW call should drop immediately
             val result = svc.displayImmediate("new-text", Effect.SCROLL, ConflictPolicy.SKIP_NEW)
 
             result shouldBe false
-            // The new text was NOT passed to the driver
             coVerify(exactly = 0) { driver.scrollText(any(), "new-text", any()) }
 
-            // Cleanup: unblock the first display and wait for it to finish
             blockRender.complete(Unit)
             busyJob.join()
         }
     }
 
-    // INTERRUPT default: when display is busy, INTERRUPT cancels and renders new text (regression)
     test("should cancel running display and render new text when INTERRUPT policy is used") {
         runTest {
             val driver = mockk<DisplayDriver>(relaxed = true)
             val svc = makeService(driver)
 
-            // Launch a scheduled display first (with default INTERRUPT)
             val scheduledJob = launch {
                 svc.displayScheduled("scheduled-text", "sched-001", ScrollEffect())
             }
             advanceUntilIdle()
 
-            // INTERRUPT cancels the first and renders the new text
             val immediateJob = launch {
                 svc.displayImmediate("ad-hoc-text", Effect.SCROLL, ConflictPolicy.INTERRUPT)
             }
