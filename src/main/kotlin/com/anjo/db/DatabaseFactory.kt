@@ -31,6 +31,7 @@ object DatabaseFactory {
             .migrate()
         transaction {
             SchemaUtils.create(SchedulesTable)
+            SchemaUtils.create(HistoryTable)
         }
     }
 }
