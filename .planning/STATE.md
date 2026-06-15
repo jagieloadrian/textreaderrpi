@@ -3,28 +3,28 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-15T14:03:21.544Z"
+last_updated: "2026-06-15T14:13:00Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
-  percent: 38
+  total_plans: 13
+  completed_plans: 11
+  percent: 42
 ---
 
 # Project State & Memory
 
 **Last Updated:** 2026-06-15  
-**Status:** Ready to execute
+**Status:** Executing Phase 09
 
 ## Current Position
 
-Phase: 08 (refactor-dead-code-analysis) — COMPLETE
-Plan: 5 of 5 — ALL COMPLETE
+Phase: 09 (display-history-audit-log) — EXECUTING
+Plan: 2 of 3
 **Phase:** 9
-**Plan:** Not started
-**Status:** REF-01, REF-02, REF-03, REF-04 all satisfied; Phase 08 fully complete
+**Plan:** 09-01 COMPLETE (DB foundation)
+**Status:** HIST-01, HIST-02 satisfied by 09-01; 09-02 and 09-03 pending
 **Last activity:** 2026-06-15
 
 Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
@@ -122,6 +122,9 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | getBlocking() import explicit: io.ktor.server.plugins.di.getBlocking (08-01) | Top-level extension function — not auto-imported by package membership |
 | CoroutineDispatcher (not CloseableCoroutineDispatcher) for Dispatchers.IO key (08-01) | Ktor DI infers declared type CoroutineDispatcher; runtime type is CloseableCoroutineDispatcher but key must match declared type |
 | Removed queueSize from both application.yaml files alongside Kotlin field removal (08-02) | Acceptance grep covers src/main and src/test including YAML resources; inert YAML keys cleaned up to satisfy zero-match criteria |
+| HistoryTable.displaySource (not .source) for Kotlin property name (09-01) | Exposed Table inherits ColumnSet.source; naming collision causes compile error requiring override; renamed to displaySource while DB column stays "source" |
+| Exposed 1.3.0 uses .limit(n).offset(start: Long) not .limit(n, offset) (09-01) | API changed in 1.3.0; separate chained calls required for pagination offset |
+| MAX_ROWS = 1000L as Long constant in HistoryRepository (09-01) | selectAll().count() returns Long in Exposed 1.3.0; Long constant avoids widening comparison |
 
 ### Critical Pitfalls to Watch
 
@@ -188,6 +191,7 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | Phase 08 P03 | 12 minutes | 2 tasks | 3 files |
 | Phase 08 P04 | 7 minutes | 2 tasks | 6 files |
 | Phase 08 P05 | 5 minutes | 2 tasks | 0 files (sweep only) |
+| Phase 09 P01 | 5 minutes | 2 tasks | 6 files |
 
 ## Decisions
 

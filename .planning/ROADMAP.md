@@ -130,7 +130,7 @@
 
 **Wave 1**
 
-- [ ] 09-01-PLAN.md — DB foundation: HistoryRecord model + HistoryTable + HistoryRepository (insert with 1000-row cap + paginated/filtered query) + V3 migration + DatabaseFactory wiring + HistoryRepositoryTest
+- [x] 09-01-PLAN.md — DB foundation: HistoryRecord model + HistoryTable + HistoryRepository (insert with 1000-row cap + paginated/filtered query) + V3 migration + DatabaseFactory wiring + HistoryRepositoryTest
 
 **Wave 2** *(blocked on Wave 1; plans 02/03 run in parallel — disjoint files)*
 
@@ -211,7 +211,7 @@
 | 6 | MAX7219 Hardware Fix | v1.1 | 1/2 | In progress | - |
 | 7 | Scheduler Schema Stabilisation | v1.1 | 2/3 | In progress | - |
 | 8 | Refactor + Dead Code Analysis | v1.1 | 5/5 | ✅ Complete | 2026-06-15 |
-| 9 | Display History + Audit Log | v1.1 | 0/3 | Not started | - |
+| 9 | Display History + Audit Log | v1.1 | 1/3 | In progress | - |
 | 10 | Webhooks | v1.1 | 0/? | Not started | - |
 | 11 | Multi-Zone Displays | v1.1 | 0/? | Not started | - |
 | 12 | Observability Gap Closures | v1.1 | 0/? | Not started | - |
