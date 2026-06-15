@@ -62,6 +62,7 @@ fun Application.configureDI() {
     monitor.subscribe(ApplicationStopping) {
         schedulerService.stop()
         screenDriverService.stop()
+        httpClient.close()
     }
 
     dependencies {
