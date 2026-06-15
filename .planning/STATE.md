@@ -205,3 +205,4 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 - [Phase 09 P03]: historyRoutes placed in com.anjo.routing package (same as Routing.kt) — no cross-package import needed
 - [Phase 09 P03]: HistoryUIRoutes size=all handled by two findPaginated calls to avoid passing Int.MAX_VALUE as SQL LIMIT
 - [Phase 09 P03]: details open rendered via attributes["open"] = "" (presence form per HTML5 spec, not attributes["open"] = "open")
+- [Post-09 perf]: displayImmediate made fire-and-forget via CoroutineScope(SupervisorJob + ioDispatcher) — HTTP returns 202 immediately, scroll runs in background. displayScheduled stays blocking (SchedulerService needs return value for maxRuns). awaitCurrentJob() added (internal) for tests asserting on render-dependent state.
