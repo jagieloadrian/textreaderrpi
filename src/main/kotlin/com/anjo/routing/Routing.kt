@@ -4,6 +4,7 @@ import com.anjo.config.model.ApiConfig
 import com.anjo.db.HistoryRepository
 import com.anjo.db.ScheduleRepository
 import com.anjo.di.installApiRateLimiting
+import com.anjo.routing.ui.historyUIRoutes
 import com.anjo.routing.ui.scheduleUIRoutes
 import com.anjo.routing.ui.webRoutes
 import com.anjo.service.MetricsCollector
@@ -35,6 +36,7 @@ fun Application.configureRouting() {
         staticResources("/static", "static")
         webRoutes(screenDriverService)
         scheduleUIRoutes(scheduleRepository)
+        historyUIRoutes(historyRepository)
         metricsRoutes(metricsCollector, apiConfig.metricsRateLimitPerMinute)
 
         route("/api/v1") {

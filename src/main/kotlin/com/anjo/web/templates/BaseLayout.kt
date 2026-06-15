@@ -36,6 +36,7 @@ object BaseLayout {
                         ul {
                             li { a(href = "/") { attributes["aria-current"] = if (activePath == "/") "page" else ""; +"Home" } }
                             li { a(href = "/schedule") { attributes["aria-current"] = if (activePath == "/schedule") "page" else ""; +"Schedule" } }
+                            li { a(href = "/history") { attributes["aria-current"] = if (activePath == "/history") "page" else ""; +"History" } }
                             li { a(href = "/settings/display") { attributes["aria-current"] = if (activePath == "/settings/display") "page" else ""; +"Settings" } }
                             li { a(href = "/status") { attributes["aria-current"] = if (activePath == "/status") "page" else ""; +"Status" } }
                         }
