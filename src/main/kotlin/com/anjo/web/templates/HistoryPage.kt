@@ -1,6 +1,7 @@
 package com.anjo.web.templates
 
 import com.anjo.model.HistoryRecord
+import java.net.URLEncoder
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
@@ -22,6 +23,8 @@ import kotlinx.html.span
 import kotlinx.html.strong
 import kotlinx.html.summary
 import kotlinx.html.ul
+
+private fun String.urlEncode(): String = URLEncoder.encode(this, "UTF-8")
 
 fun FlowContent.historyPage(
     items: List<HistoryRecord>,
@@ -74,8 +77,8 @@ fun FlowContent.historyPage(
             }
         }
         button { type = ButtonType.submit; +"Apply Filters" }
-        a(href = "?expand=all&effect=$effect&source=$source&size=$rawSize") { +"Expand all" }
-        a(href = "?effect=$effect&source=$source&size=$rawSize") { +"Collapse all" }
+        a(href = "?expand=all&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}") { +"Expand all" }
+        a(href = "?effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}") { +"Collapse all" }
     }
 
     if (items.isEmpty()) {
@@ -112,7 +115,7 @@ fun FlowContent.historyPage(
                 ul {
                     for (p in 1..pageCount) {
                         li {
-                            a(href = "?page=$p&effect=$effect&source=$source&size=$rawSize${if (expandAll) "&expand=all" else ""}") {
+                            a(href = "?page=$p&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}${if (expandAll) "&expand=all" else ""}") {
                                 if (p == page) attributes["aria-current"] = "page"
                                 +"$p"
                             }
