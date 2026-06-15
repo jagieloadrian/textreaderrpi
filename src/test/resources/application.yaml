@@ -53,3 +53,5 @@ timing:
 logging:
   level: INFO
   format: json
+webhooks:
+  defaultUrl: ""

@@ -17,6 +17,12 @@ kotlin {
 }
 
 dependencies {
+    // Ktor client
+    implementation(ktorLibs.ktor.client.core)
+    implementation(ktorLibs.ktor.client.cio)
+    implementation(ktorLibs.ktor.client.content.negotiation)
+    testImplementation(ktorLibs.ktor.client.mock)
+
     // Core Ktor
     implementation(ktorLibs.ktor.server.core)
     implementation(ktorLibs.ktor.server.di)

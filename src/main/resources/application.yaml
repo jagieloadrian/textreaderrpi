@@ -77,3 +77,6 @@ timing:
 logging:
   level: "${LOG_LEVEL:INFO}"
   format: "${LOG_FORMAT:json}"
+
+webhooks:
+  defaultUrl: "${WEBHOOK_DEFAULT_URL:}"

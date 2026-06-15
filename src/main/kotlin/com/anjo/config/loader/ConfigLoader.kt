@@ -9,6 +9,7 @@ import com.anjo.config.model.Max7219Config
 import com.anjo.config.model.MetricsConfig
 import com.anjo.config.model.OledConfig
 import com.anjo.config.model.RetryConfig
+import com.anjo.config.model.WebhooksConfig
 import io.ktor.server.application.Application
 
 object ConfigLoader {
@@ -67,12 +68,17 @@ object ConfigLoader {
             poolSize = config.propertyOrNull("database.poolSize")?.getString()?.toIntOrNull() ?: 5
         )
 
+        val webhooksConfig = WebhooksConfig(
+            defaultUrl = config.propertyOrNull("webhooks.defaultUrl")?.getString()?.takeIf { it.isNotBlank() }
+        )
+
         return ApplicationConfig(
             display = displayConfig,
             api = apiConfig,
             metrics = metricsConfig,
             retryConfig = retryConfig,
-            databaseConfig
+            databaseConfig = databaseConfig,
+            webhooks = webhooksConfig
         )
     }
 

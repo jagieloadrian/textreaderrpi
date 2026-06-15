@@ -5,5 +5,6 @@ data class ApplicationConfig(
     val api: ApiConfig,
     val metrics: MetricsConfig,
     val retryConfig: RetryConfig,
-    val databaseConfig: DatabaseConfig
+    val databaseConfig: DatabaseConfig,
+    val webhooks: WebhooksConfig
 )
