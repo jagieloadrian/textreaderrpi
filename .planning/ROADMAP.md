@@ -149,7 +149,7 @@
   3. Setting `WEBHOOK_DEFAULT_URL` environment variable causes all schedules without an explicit `webhookUrl` to POST to that fallback URL
   4. Webhook delivery status is visible in the history record for the corresponding display event
 
-**Plans**: 2 plans
+**Plans**: 3 plans
 **Wave 1**
 
 - [x] 10-01-PLAN.md — Ktor client stack + WebhooksConfig + WebhookPayload + WebhookService (unit-tested)
@@ -157,6 +157,10 @@
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 10-02-PLAN.md — Wire WebhookService into SchedulerService.fire() + DI; integration & DI smoke tests
+
+**Wave 3** *(gap closure — SC-4; blocked on Wave 2)*
+
+- [ ] 10-03-PLAN.md — Record webhook dispatch status (sent/skipped) in display history: V4 migration + webhookStatus through HistoryTable/Record/Repository + fire() status + /history JSON & HTML
 
 ### Phase 11: Multi-Zone Displays
 
