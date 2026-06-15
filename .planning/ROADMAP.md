@@ -106,7 +106,7 @@
 
 **Wave 2** *(blocked on Wave 1; plans 02/03/04 run in parallel — disjoint files)*
 
-- [ ] 08-02-PLAN.md — Delete dead config (HardwareConfig/TimingConfig/LoggingConfig classes, ApplicationConfig fields, ApiConfig.queueSize, ConfigLoader wiring)
+- [x] 08-02-PLAN.md — Delete dead config (HardwareConfig/TimingConfig/LoggingConfig classes, ApplicationConfig fields, ApiConfig.queueSize, ConfigLoader wiring)
 - [ ] 08-03-PLAN.md — DisplaySelectionService cleanup (remove logCurrentData/pendingSwitches/accessors) + update DisplaySelectionServiceTest and DriverIntegrationTest
 - [ ] 08-04-PLAN.md — Rename ScreenDriver.kt to ScreenDriverService.kt + remove readInput(); Font.getChar() bounds fix wired into Max7219Matrix; new FontTest.kt
 

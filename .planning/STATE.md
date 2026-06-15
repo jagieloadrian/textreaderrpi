@@ -3,28 +3,28 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-15T08:49:16.883Z"
+last_updated: "2026-06-15T08:57:13.202Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 10
-  completed_plans: 6
+  completed_plans: 7
   percent: 25
 ---
 
 # Project State & Memory
 
-**Last Updated:** 2026-06-11  
+**Last Updated:** 2026-06-15  
 **Status:** Executing Phase 08
 
 ## Current Position
 
 Phase: 08 (refactor-dead-code-analysis) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 **Phase:** 8
-**Plan:** 08-01 COMPLETE — DI binding-resolution smoke test added
-**Status:** All 11 configureDI() bindings verified green; safe to proceed with dead-code removal
+**Plan:** 08-02 COMPLETE — Dead config classes deleted; ApplicationConfig and ApiConfig slimmed; full test suite green
+**Status:** HardwareConfig, TimingConfig, LoggingConfig deleted; queueSize removed; ConfigLoader wiring cleaned up
 **Last activity:** 2026-06-15
 
 Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
@@ -121,6 +121,7 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | DI smoke test requires client.get() trigger before getBlocking() (08-01) | testApplication defers module execution until first HTTP interaction; accessing dependencies before startup yields MissingDependencyException |
 | getBlocking() import explicit: io.ktor.server.plugins.di.getBlocking (08-01) | Top-level extension function — not auto-imported by package membership |
 | CoroutineDispatcher (not CloseableCoroutineDispatcher) for Dispatchers.IO key (08-01) | Ktor DI infers declared type CoroutineDispatcher; runtime type is CloseableCoroutineDispatcher but key must match declared type |
+| Removed queueSize from both application.yaml files alongside Kotlin field removal (08-02) | Acceptance grep covers src/main and src/test including YAML resources; inert YAML keys cleaned up to satisfy zero-match criteria |
 
 ### Critical Pitfalls to Watch
 
