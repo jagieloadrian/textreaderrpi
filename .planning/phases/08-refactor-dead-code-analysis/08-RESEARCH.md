@@ -405,7 +405,7 @@ fun getChar(char: Char): ByteArray = asciiFont[char] ?: ByteArray(NUM_COLS) { 0 
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Font.kt byte array width**
    - What we know: existing font entries use 5-byte `ByteArray`. CONTEXT.md says "return `ByteArray(8) { 0 }` (8 blank rows)". 8 rows is the MAX7219 display height, 5 columns is the glyph width.
