@@ -21,12 +21,7 @@ fun Route.historyUIRoutes(historyRepository: HistoryRepository) {
         val expandAll = call.request.queryParameters["expand"] == "all"
         val effectFilter = effect.takeIf { it.isNotEmpty() && it != "ALL" }
         val sourceFilter = source.takeIf { it.isNotEmpty() && it != "ALL" }
-        val (items, total) = if (sizeAll) {
-            val (_, t) = historyRepository.findPaginated(1, 1, effectFilter, sourceFilter)
-            historyRepository.findPaginated(1, t.coerceAtMost(MAX_UI_SIZE).toInt().coerceAtLeast(1), effectFilter, sourceFilter)
-        } else {
-            historyRepository.findPaginated(page, size, effectFilter, sourceFilter)
-        }
+        val (items, total) = historyRepository.findPaginated(page, size, effectFilter, sourceFilter)
         val html = BaseLayout.render(pageTitle = "History — TextReaderRpi", activePath = "/history") {
             historyPage(items, page, rawSize, total, expandAll, effect, source)
         }
