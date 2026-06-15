@@ -126,7 +126,16 @@
   3. The `/history` HTML page renders a table or card list of events with working filter controls for zone and effect
   4. The history table never exceeds 1 000 rows; oldest rows are pruned automatically when the cap is reached
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Wave 1**
+
+- [ ] 09-01-PLAN.md — DB foundation: HistoryRecord model + HistoryTable + HistoryRepository (insert with 1000-row cap + paginated/filtered query) + V3 migration + DatabaseFactory wiring + HistoryRepositoryTest
+
+**Wave 2** *(blocked on Wave 1; plans 02/03 run in parallel — disjoint files)*
+
+- [ ] 09-02-PLAN.md — Recording integration: ScreenDriverService history insert in both display paths (nullable param, swallow failures), displayScheduled effect param + SchedulerService call site, DI registration, ApplicationTest DI smoke, HistoryRecordingTest
+- [ ] 09-03-PLAN.md — API + UI: GET /api/v1/history JSON + GET /history HTML (details/summary cards, filters, ?expand=all, numbered pagination), BaseLayout History nav link, Routing wiring, HistoryRoutesTest + HistoryUIRoutesTest
 
 ### Phase 10: Webhooks
 
@@ -202,7 +211,7 @@
 | 6 | MAX7219 Hardware Fix | v1.1 | 1/2 | In progress | - |
 | 7 | Scheduler Schema Stabilisation | v1.1 | 2/3 | In progress | - |
 | 8 | Refactor + Dead Code Analysis | v1.1 | 5/5 | ✅ Complete | 2026-06-15 |
-| 9 | Display History + Audit Log | v1.1 | 0/? | Not started | - |
+| 9 | Display History + Audit Log | v1.1 | 0/3 | Not started | - |
 | 10 | Webhooks | v1.1 | 0/? | Not started | - |
 | 11 | Multi-Zone Displays | v1.1 | 0/? | Not started | - |
 | 12 | Observability Gap Closures | v1.1 | 0/? | Not started | - |
