@@ -19,7 +19,7 @@ object ConfigLoader {
             type = config.propertyOrNull("display.type")?.getString() ?: "MAX7219",
             max7219 = Max7219Config(
                 numDevices = config.propertyOrNull("display.max7219.numDevices")?.getString()?.toIntOrNull() ?: 2,
-                brightness = config.propertyOrNull("display.max7219.brightness")?.getString()?.toBoolean() ?: true,
+                brightness = config.propertyOrNull("display.max7219.brightness")?.getString()?.toBooleanStrictOrNull() ?: true,
                 gpioPins = mapOf(
                     "spi_ce" to (config.propertyOrNull("display.max7219.gpioPins.spi_ce")?.getString()?.toIntOrNull() ?: 8),
                     "spi_mosi" to (config.propertyOrNull("display.max7219.gpioPins.spi_mosi")?.getString()?.toIntOrNull() ?: 10),
@@ -48,7 +48,7 @@ object ConfigLoader {
         )
 
         val metricsConfig = MetricsConfig(
-            enabled = config.propertyOrNull("metrics.enabled")?.getString()?.toBoolean() ?: true,
+            enabled = config.propertyOrNull("metrics.enabled")?.getString()?.toBooleanStrictOrNull() ?: true,
             prefix = config.propertyOrNull("metrics.prefix")?.getString() ?: "textreaderrpi",
         )
 
