@@ -21,11 +21,16 @@ object DatabaseFactory {
         val dataSource = HikariDataSource(config)
         Database.connect(dataSource)
         // Flyway must run before SchemaUtils.create() to handle versioned migrations.
-        // baselineOnMigrate=true: existing Pi installs (schedules table but no flyway history)
-        // are baselined at V1 on first run, then V2 is applied — V1 is never re-run on existing data.
+        // baselineOnMigrate is enabled ONLY when the schedules table already exists (pre-Flyway Pi
+        // installs). On a fresh database the table does not exist yet, so all migrations run from V1.
+        // Without this guard, baselineOnMigrate on a fresh DB baselines to V1 (skipping it), then V2
+        // runs ALTER TABLE on a table that does not exist, causing a migration failure.
+        val hasExistingTable = dataSource.connection.use { conn ->
+            conn.metaData.getTables(null, null, "schedules", null).next()
+        }
         Flyway.configure()
             .dataSource(dataSource)
-            .baselineOnMigrate(true)
+            .baselineOnMigrate(hasExistingTable)
             .baselineVersion("1")
             .load()
             .migrate()
