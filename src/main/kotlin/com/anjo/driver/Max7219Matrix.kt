@@ -157,7 +157,7 @@ class Max7219Matrix(
         val columns = mutableListOf<Byte>()
 
         for (c in text) {
-            val glyph = Font.asciiFont[c] ?: Font.asciiFont[' ']!!
+            val glyph = Font.getChar(c)
             columns.addAll(glyph.toList())
             columns.add(0)
         }

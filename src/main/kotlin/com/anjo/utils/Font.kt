@@ -95,4 +95,5 @@ object Font {
         'ż' to byteArrayOf(68,100,84,76,68)
     )
 
+    fun getChar(char: Char): ByteArray = asciiFont[char] ?: ByteArray(5) { 0 }
 }
