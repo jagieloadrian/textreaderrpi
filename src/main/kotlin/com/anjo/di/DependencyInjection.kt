@@ -2,6 +2,7 @@ package com.anjo.di
 
 import com.anjo.config.loader.ConfigLoader
 import com.anjo.db.DatabaseFactory
+import com.anjo.db.HistoryRepository
 import com.anjo.db.ScheduleRepository
 import com.anjo.driver.OfflineDisplayDriver
 import com.anjo.service.DisplaySelectionService
@@ -29,6 +30,7 @@ fun Application.configureDI() {
 
     val metricRegistry = MetricRegistry()
     val screenDriverMetrics = ScreenDriverMetrics.from(metricRegistry, appConfig.metrics)
+    val historyRepository = HistoryRepository()
 
     val screenDriverService = ScreenDriverService(
         driver = displaySelectionService.currentDriver() ?: OfflineDisplayDriver,
@@ -36,6 +38,7 @@ fun Application.configureDI() {
         retryConfig = appConfig.retryConfig,
         displaySelectionService = displaySelectionService,
         metrics = screenDriverMetrics,
+        historyRepository = historyRepository,
     )
 
     val metricsCollector = MetricsCollector(metricRegistry)
@@ -58,6 +61,7 @@ fun Application.configureDI() {
         provide { screenDriverService }
         provide { metricsCollector }
         provide { scheduleRepository }
+        provide { historyRepository }
         provide { effectRendererFactory }
         provide { schedulerService }
     }

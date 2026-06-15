@@ -3,6 +3,7 @@ package com.anjo
 import com.anjo.config.model.ApiConfig
 import com.anjo.config.model.ApplicationConfig
 import com.anjo.config.model.DisplayConfig
+import com.anjo.db.HistoryRepository
 import com.anjo.db.ScheduleRepository
 import com.anjo.service.DisplaySelectionService
 import com.anjo.service.EffectRendererFactory
@@ -78,6 +79,7 @@ class ApplicationTest : FunSpec({
             deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>()) shouldNotBeNull {}
             deps.getBlocking<MetricsCollector>(DependencyKey<MetricsCollector>()) shouldNotBeNull {}
             deps.getBlocking<ScheduleRepository>(DependencyKey<ScheduleRepository>()) shouldNotBeNull {}
+            deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>()) shouldNotBeNull {}
             deps.getBlocking<EffectRendererFactory>(DependencyKey<EffectRendererFactory>()) shouldNotBeNull {}
             deps.getBlocking<SchedulerService>(DependencyKey<SchedulerService>()) shouldNotBeNull {}
         }
