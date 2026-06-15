@@ -15,9 +15,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -54,48 +54,10 @@ class ScreenDriverService(
                 log.info("SKIP_NEW: display busy, dropping ad-hoc request for text '${text.take(30)}'")
                 return false
             }
-            currentDisplayJob?.cancel()
-            currentScheduledId = null
-            metrics.acceptedMeter?.mark()
-            lastSentMessage.set(text)
-            currentDisplayJob = displayScope.launch {
-                val timerContext: Timer.Context? = metrics.executionTimer?.time()
-                metrics.inFlightCounter?.inc()
-                try {
-                    executeWithRecovery(text, effectFactory.create(effect))
-                    try { historyRepository?.insert(HistoryRecord(text = text, effect = effect.name, source = "IMMEDIATE")) } catch (e: Exception) { log.warn("History insert failed (non-fatal): ${e.message}", e) }
-                } catch (e: Exception) {
-                    metrics.failedMeter?.mark()
-                    log.error("Display operation failed after retries: ${e.message}", e)
-                } finally {
-                    metrics.inFlightCounter?.dec()
-                    timerContext?.stop()
-                    displayMutex.unlock()
-                    checkAndPerformPendingSwitch()
-                }
-            }
-            return true
         }
-        currentDisplayJob?.cancel()
-        currentScheduledId = null
-        metrics.acceptedMeter?.mark()
-        lastSentMessage.set(text)
+        prepareImmediate(text)
         currentDisplayJob = displayScope.launch {
-            val timerContext: Timer.Context? = metrics.executionTimer?.time()
-            metrics.inFlightCounter?.inc()
-            try {
-                displayMutex.withLock {
-                    executeWithRecovery(text, effectFactory.create(effect))
-                    try { historyRepository?.insert(HistoryRecord(text = text, effect = effect.name, source = "IMMEDIATE")) } catch (e: Exception) { log.warn("History insert failed (non-fatal): ${e.message}", e) }
-                }
-            } catch (e: Exception) {
-                metrics.failedMeter?.mark()
-                log.error("Display operation failed after retries: ${e.message}", e)
-            } finally {
-                metrics.inFlightCounter?.dec()
-                timerContext?.stop()
-                checkAndPerformPendingSwitch()
-            }
+            renderImmediate(text, effect, alreadyLocked = conflictPolicy == ConflictPolicy.SKIP_NEW)
         }
         return true
     }
@@ -112,41 +74,77 @@ class ScreenDriverService(
                 log.info("SKIP_NEW: display busy, dropping scheduled request id=$scheduleId")
                 return false
             }
-            currentScheduledId = scheduleId
-            currentDisplayJob = currentCoroutineContext().job
-            lastSentMessage.set(text)
-            var displaySucceeded = false
-            try {
-                executeWithRecovery(text, renderer)
-                displaySucceeded = true
-                try { historyRepository?.insert(HistoryRecord(text = text, effect = effect.name, source = "SCHEDULED", scheduleId = scheduleId)) } catch (e: Exception) { log.warn("History insert failed (non-fatal): ${e.message}", e) }
-            } catch (_: CancellationException) {
-            } catch (e: Exception) {
-                log.error("Scheduled display failed for schedule $scheduleId: ${e.message}", e)
-            } finally {
-                displayMutex.unlock()
-                if (currentScheduledId == scheduleId) {
-                    currentScheduledId = null
-                    currentDisplayJob = null
-                }
-                checkAndPerformPendingSwitch()
-            }
-            return displaySucceeded
         }
         currentScheduledId = scheduleId
         currentDisplayJob = currentCoroutineContext().job
         lastSentMessage.set(text)
+        return runScheduledRender(text, scheduleId, renderer, effect, alreadyLocked = conflictPolicy == ConflictPolicy.SKIP_NEW)
+    }
+
+    fun stop() {
+        displayScope.cancel()
+    }
+
+    internal suspend fun awaitCurrentJob() {
+        currentDisplayJob?.join()
+    }
+
+    private fun prepareImmediate(text: String) {
+        currentDisplayJob?.cancel()
+        currentScheduledId = null
+        metrics.acceptedMeter?.mark()
+        lastSentMessage.set(text)
+    }
+
+    private suspend fun renderImmediate(text: String, effect: Effect, alreadyLocked: Boolean) {
+        val timerContext: Timer.Context? = metrics.executionTimer?.time()
+        metrics.inFlightCounter?.inc()
+        try {
+            if (alreadyLocked) {
+                executeWithRecovery(text, effectFactory.create(effect))
+                tryInsertHistory(text, effect.name, "IMMEDIATE")
+            } else {
+                displayMutex.withLock {
+                    executeWithRecovery(text, effectFactory.create(effect))
+                    tryInsertHistory(text, effect.name, "IMMEDIATE")
+                }
+            }
+        } catch (e: Exception) {
+            metrics.failedMeter?.mark()
+            log.error("Display operation failed after retries: ${e.message}", e)
+        } finally {
+            metrics.inFlightCounter?.dec()
+            timerContext?.stop()
+            if (alreadyLocked) displayMutex.unlock()
+            checkAndPerformPendingSwitch()
+        }
+    }
+
+    private suspend fun runScheduledRender(
+        text: String,
+        scheduleId: String,
+        renderer: EffectRenderer,
+        effect: Effect,
+        alreadyLocked: Boolean,
+    ): Boolean {
         var displaySucceeded = false
         try {
-            displayMutex.withLock {
+            if (alreadyLocked) {
                 executeWithRecovery(text, renderer)
                 displaySucceeded = true
-                try { historyRepository?.insert(HistoryRecord(text = text, effect = effect.name, source = "SCHEDULED", scheduleId = scheduleId)) } catch (e: Exception) { log.warn("History insert failed (non-fatal): ${e.message}", e) }
+                tryInsertHistory(text, effect.name, "SCHEDULED", scheduleId)
+            } else {
+                displayMutex.withLock {
+                    executeWithRecovery(text, renderer)
+                    displaySucceeded = true
+                    tryInsertHistory(text, effect.name, "SCHEDULED", scheduleId)
+                }
             }
         } catch (_: CancellationException) {
         } catch (e: Exception) {
             log.error("Scheduled display failed for schedule $scheduleId: ${e.message}", e)
         } finally {
+            if (alreadyLocked) displayMutex.unlock()
             if (currentScheduledId == scheduleId) {
                 currentScheduledId = null
                 currentDisplayJob = null
@@ -156,12 +154,17 @@ class ScreenDriverService(
         return displaySucceeded
     }
 
-    fun stop() {
-        displayScope.cancel()
-    }
-
-    internal suspend fun awaitCurrentJob() {
-        currentDisplayJob?.join()
+    private suspend fun tryInsertHistory(
+        text: String,
+        effect: String,
+        source: String,
+        scheduleId: String? = null,
+    ) {
+        try {
+            historyRepository?.insert(HistoryRecord(text = text, effect = effect, source = source, scheduleId = scheduleId))
+        } catch (e: Exception) {
+            log.warn("History insert failed (non-fatal): ${e.message}", e)
+        }
     }
 
     private suspend fun executeWithRecovery(input: String, renderer: EffectRenderer) {
@@ -184,7 +187,6 @@ class ScreenDriverService(
     fun queueDisplaySwitch(displayType: String): Boolean {
         val normalizedType = displayType.uppercase()
         val selectionService = displaySelectionService ?: return false
-
         if (displayMutex.tryLock()) {
             try {
                 val switched = selectionService.selectDisplay(normalizedType)
@@ -202,10 +204,6 @@ class ScreenDriverService(
         val nextType = pendingDisplayType.getAndSet(null) ?: return
         val selectionService = displaySelectionService ?: return
         val switched = selectionService.selectDisplay(nextType)
-        if (switched) {
-            selectionService.currentDriver()?.let { newDriver ->
-                driver = newDriver
-            }
-        }
+        if (switched) selectionService.currentDriver()?.let { driver = it }
     }
 }
