@@ -165,18 +165,17 @@ class ScreenDriverService(
         val normalizedType = displayType.uppercase()
         val selectionService = displaySelectionService ?: return false
 
-        if (displayMutex.isLocked) {
-            pendingDisplayType.set(normalizedType)
-            return true
-        }
-
-        val switched = selectionService.selectDisplay(normalizedType)
-        if (switched) {
-            selectionService.currentDriver()?.let { newDriver ->
-                driver = newDriver
+        if (displayMutex.tryLock()) {
+            try {
+                val switched = selectionService.selectDisplay(normalizedType)
+                if (switched) selectionService.currentDriver()?.let { driver = it }
+                return switched
+            } finally {
+                displayMutex.unlock()
             }
         }
-        return switched
+        pendingDisplayType.set(normalizedType)
+        return true
     }
 
     private fun checkAndPerformPendingSwitch() {
