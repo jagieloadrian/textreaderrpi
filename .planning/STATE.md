@@ -3,26 +3,27 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-15T22:14:20.138Z"
-last_activity: 2026-06-15
+last_updated: "2026-06-16T00:40:00Z"
+last_activity: 2026-06-16
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 13
-  completed_plans: 13
-  percent: 50
+  total_plans: 15
+  completed_plans: 14
+  percent: 53
 ---
 
 # Project State & Memory
 
-**Last Updated:** 2026-06-15  
-**Status:** Ready to execute
+**Last Updated:** 2026-06-16  
+**Status:** Executing Phase 10
 
 ## Current Position
 
-Phase: 09 (display-history-audit-log) — COMPLETE ✅
-**Next:** Phase 10 (Webhooks)
-**Last activity:** 2026-06-15
+Phase: 10 (webhooks) — EXECUTING
+Plan: 2 of 2
+**Next:** Phase 10 Plan 02 (Webhooks — Scheduler Integration)
+**Last activity:** 2026-06-16
 
 Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
 `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` 0% (0/7 phases)
@@ -191,6 +192,7 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | Phase 09 P01 | 5 minutes | 2 tasks | 6 files |
 | Phase 09 P02 | 11 minutes | 2 tasks | 8 files |
 | Phase 09 P03 | 5 | 2 tasks | 7 files |
+| Phase 10 P01 | 22 minutes | 2 tasks | 10 files |
 
 ## Decisions
 
@@ -206,3 +208,6 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 - [Phase 09 P03]: HistoryUIRoutes size=all handled by two findPaginated calls to avoid passing Int.MAX_VALUE as SQL LIMIT
 - [Phase 09 P03]: details open rendered via attributes["open"] = "" (presence form per HTML5 spec, not attributes["open"] = "open")
 - [Post-09 perf]: displayImmediate made fire-and-forget via CoroutineScope(SupervisorJob + ioDispatcher) — HTTP returns 202 immediately, scroll runs in background. displayScheduled stays blocking (SchedulerService needs return value for maxRuns). awaitCurrentJob() added (internal) for tests asserting on render-dependent state.
+- [Phase 10 P01]: Ktor ContentNegotiation client plugin sets Content-Type on body.contentType (OutgoingContent) not request.headers — MockEngine captures body.contentType correctly; test assertion uses capturedData[0].body.contentType
+- [Phase 10 P01]: WebhookServiceTest uses Kotest FunSpec native suspend + real delay(200ms) instead of runTest + advanceUntilIdle — withTimeout(5_000) virtual clock conflict with StandardTestDispatcher causes flaky timeouts
+- [Phase 10 P01]: header(HttpHeaders.ContentType, ContentType.Application.Json) required in WebhookService.post block to signal ContentNegotiation which serializer to invoke for setBody(WebhookPayload)
