@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-15T09:02:49.479Z"
+last_updated: "2026-06-15T09:09:19Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
-  percent: 25
+  completed_plans: 10
+  percent: 28
 ---
 
 # Project State & Memory
@@ -21,10 +21,10 @@ progress:
 ## Current Position
 
 Phase: 08 (refactor-dead-code-analysis) — EXECUTING
-Plan: 3 of 5
+Plan: 5 of 5
 **Phase:** 8
-**Plan:** 08-02 COMPLETE — Dead config classes deleted; ApplicationConfig and ApiConfig slimmed; full test suite green
-**Status:** HardwareConfig, TimingConfig, LoggingConfig deleted; queueSize removed; ConfigLoader wiring cleaned up
+**Plan:** 08-04 COMPLETE — ScreenDriver.kt renamed to ScreenDriverService.kt; readInput() removed; Font.getChar() bounds fallback added; Max7219Matrix force-unwrap eliminated; FontTest added
+**Status:** REF-01, REF-02, REF-04 satisfied; full suite green with JaCoCo gate passing
 **Last activity:** 2026-06-15
 
 Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
@@ -186,7 +186,11 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
 | Phase 08 P03 | 12 minutes | 2 tasks | 3 files |
+| Phase 08 P04 | 7 minutes | 2 tasks | 6 files |
 
 ## Decisions
 
 - [Phase ?]: Removed pre-existing inline comment in createDriver() per no-comments project rule
+- [Phase 08 P04]: ByteArray(5) fallback width in Font.getChar() matches existing 5-byte glyph entries — 8 in CONTEXT.md refers to display height not glyph width
+- [Phase 08 P04]: Metric key strings textreaderrpi.screenDriver.readInput.* left unchanged in ScreenDriverMetrics — independent of method name
+- [Phase 08 P04]: TDD RED committed at compile-error phase to document intent before GREEN implementation

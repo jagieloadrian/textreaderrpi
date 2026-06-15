@@ -62,7 +62,7 @@
 ## Refactor (REF)
 
 - [x] **REF-01**: Analiza i usunięcie martwego kodu — nieużywane konfiguracje wyświetlaczy, unreferenced classes, stale constants, martwe ścieżki kodu
-- [ ] **REF-02**: Całościowe uproszczenie i oczyszczenie aplikacji — abstrakcje dozwolone tam gdzie mają sens, code smell usunięty
+- [x] **REF-02**: Całościowe uproszczenie i oczyszczenie aplikacji — abstrakcje dozwolone tam gdzie mają sens, code smell usunięty
 - [ ] **REF-03**: DI smoke test weryfikuje że wszystkie providery w `configureDI()` są poprawnie podłączone (musi istnieć przed jakimkolwiek refactorem DI)
 - [x] **REF-04**: Nowe ścieżki kodu pokryte testami (Kotest `should` convention, pokrycie ≥70%)
 
@@ -113,7 +113,7 @@
 | SCHED-03 | Phase 7 | Complete |
 | SCHED-04 | Phase 7 | Complete |
 | REF-01 | Phase 8 | Complete |
-| REF-02 | Phase 8 | Pending |
+| REF-02 | Phase 8 | Complete |
 | REF-03 | Phase 8 | Pending |
 | REF-04 | Phase 8 | Complete |
 | HIST-01 | Phase 9 | Pending |
