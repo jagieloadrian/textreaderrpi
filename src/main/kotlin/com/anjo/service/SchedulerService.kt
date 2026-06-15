@@ -172,7 +172,7 @@ class SchedulerService(
             log.info("Firing schedule id=${schedule.id} text='${schedule.text.take(30)}' effect=${schedule.effect}")
             val renderer = effectFactory.create(schedule.effect)
             val policy = schedule.conflictPolicy ?: ConflictPolicy.INTERRUPT
-            screenService.displayScheduled(schedule.text, schedule.id, renderer, policy)
+            screenService.displayScheduled(schedule.text, schedule.id, renderer, schedule.effect, policy)
         } catch (e: Exception) {
             log.error("Failed to fire schedule ${schedule.id}: ${e.message}", e)
             false

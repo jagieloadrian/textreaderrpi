@@ -1,11 +1,13 @@
 package com.anjo.service
 
 import com.anjo.config.model.RetryConfig
+import com.anjo.db.HistoryRepository
 import com.anjo.driver.DisplayDriver
 import com.anjo.driver.DisplayStatus
 import com.anjo.service.effect.EffectRenderer
 import com.anjo.model.ConflictPolicy
 import com.anjo.model.Effect
+import com.anjo.model.HistoryRecord
 import com.anjo.model.ScreenDriverMetrics
 import com.codahale.metrics.Timer
 import kotlinx.coroutines.CancellationException
@@ -26,6 +28,7 @@ class ScreenDriverService(
     private val displaySelectionService: DisplaySelectionService?,
     private val metrics: ScreenDriverMetrics,
     private val effectFactory: EffectRendererFactory = EffectRendererFactory(),
+    private val historyRepository: HistoryRepository? = null,
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
 
@@ -56,6 +59,7 @@ class ScreenDriverService(
                 metrics.inFlightCounter?.inc()
                 try {
                     executeWithRecovery(text, effectFactory.create(effect))
+                    try { historyRepository?.insert(HistoryRecord(text = text, effect = effect.name, source = "IMMEDIATE")) } catch (e: Exception) { log.warn("History insert failed (non-fatal): ${e.message}", e) }
                 } catch (e: Exception) {
                     metrics.failedMeter?.mark()
                     log.error("Display operation failed after retries: ${e.message}", e)
@@ -78,6 +82,7 @@ class ScreenDriverService(
         try {
             displayMutex.withLock {
                 executeWithRecovery(text, effectFactory.create(effect))
+                try { historyRepository?.insert(HistoryRecord(text = text, effect = effect.name, source = "IMMEDIATE")) } catch (e: Exception) { log.warn("History insert failed (non-fatal): ${e.message}", e) }
             }
         } catch (e: Exception) {
             metrics.failedMeter?.mark()
@@ -95,6 +100,7 @@ class ScreenDriverService(
         text: String,
         scheduleId: String,
         renderer: EffectRenderer,
+        effect: Effect,
         conflictPolicy: ConflictPolicy = ConflictPolicy.INTERRUPT
     ): Boolean {
         if (conflictPolicy == ConflictPolicy.SKIP_NEW) {
@@ -109,6 +115,7 @@ class ScreenDriverService(
             try {
                 executeWithRecovery(text, renderer)
                 displaySucceeded = true
+                try { historyRepository?.insert(HistoryRecord(text = text, effect = effect.name, source = "SCHEDULED", scheduleId = scheduleId)) } catch (e: Exception) { log.warn("History insert failed (non-fatal): ${e.message}", e) }
             } catch (_: CancellationException) {
             } catch (e: Exception) {
                 log.error("Scheduled display failed for schedule $scheduleId: ${e.message}", e)
@@ -130,6 +137,7 @@ class ScreenDriverService(
             displayMutex.withLock {
                 executeWithRecovery(text, renderer)
                 displaySucceeded = true
+                try { historyRepository?.insert(HistoryRecord(text = text, effect = effect.name, source = "SCHEDULED", scheduleId = scheduleId)) } catch (e: Exception) { log.warn("History insert failed (non-fatal): ${e.message}", e) }
             }
         } catch (_: CancellationException) {
         } catch (e: Exception) {

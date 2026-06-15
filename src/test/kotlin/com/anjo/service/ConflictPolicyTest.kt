@@ -47,7 +47,7 @@ class ConflictPolicyTest : FunSpec({
             val svc = makeService(driver)
 
             val scheduledJob = launch {
-                svc.displayScheduled("scheduled-text", "sched-001", ScrollEffect())
+                svc.displayScheduled("scheduled-text", "sched-001", ScrollEffect(), Effect.SCROLL)
             }
             advanceUntilIdle()
 
@@ -85,7 +85,7 @@ class ConflictPolicyTest : FunSpec({
 
             io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
-            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any()) } answers {
+            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())
             }
 
@@ -124,7 +124,7 @@ class ConflictPolicyTest : FunSpec({
 
             io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
-            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any()) } answers {
+            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())
             }
 
@@ -185,7 +185,7 @@ class ConflictPolicyTest : FunSpec({
             val svc = makeService(driver)
 
             val scheduledJob = launch {
-                svc.displayScheduled("scheduled-text", "sched-001", ScrollEffect())
+                svc.displayScheduled("scheduled-text", "sched-001", ScrollEffect(), Effect.SCROLL)
             }
             advanceUntilIdle()
 
