@@ -29,7 +29,7 @@
 - [x] **Phase 6: MAX7219 Hardware Fix** — Scroll direction corrected, driver layer refactored (completed 2026-06-12)
 - [x] **Phase 7: Scheduler Schema Stabilisation** — ConflictPolicy, firedAt, ERROR status, webhookUrl, zoneId columns added (completed 2026-06-14)
 - [x] **Phase 8: Refactor + Dead Code Analysis** — Application cleaned and simplified, DI smoke test in place (completed 2026-06-15)
-- [ ] **Phase 9: Display History + Audit Log** — Every display event persisted and browsable
+- [x] **Phase 9: Display History + Audit Log** — Every display event persisted and browsable (completed 2026-06-15)
 - [ ] **Phase 10: Webhooks** — HTTP POST notifications fired on schedule trigger
 - [ ] **Phase 11: Multi-Zone Displays** — Multiple local and network displays managed and routable
 - [ ] **Phase 12: Observability Gap Closures** — v1.0 audit gaps closed (health/detail, metrics hardware, HTML error pages)
@@ -135,7 +135,7 @@
 **Wave 2** *(blocked on Wave 1; plans 02/03 run in parallel — disjoint files)*
 
 - [x] 09-02-PLAN.md — Recording integration: ScreenDriverService history insert in both display paths (nullable param, swallow failures), displayScheduled effect param + SchedulerService call site, DI registration, ApplicationTest DI smoke, HistoryRecordingTest
-- [ ] 09-03-PLAN.md — API + UI: GET /api/v1/history JSON + GET /history HTML (details/summary cards, filters, ?expand=all, numbered pagination), BaseLayout History nav link, Routing wiring, HistoryRoutesTest + HistoryUIRoutesTest
+- [x] 09-03-PLAN.md — API + UI: GET /api/v1/history JSON + GET /history HTML (details/summary cards, filters, ?expand=all, numbered pagination), BaseLayout History nav link, Routing wiring, HistoryRoutesTest + HistoryUIRoutesTest
 
 ### Phase 10: Webhooks
 

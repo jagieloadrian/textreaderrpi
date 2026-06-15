@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-15T17:15:00Z"
+last_updated: "2026-06-15T17:21:06.748Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 13
-  completed_plans: 12
-  percent: 46
+  completed_plans: 13
+  percent: 50
 ---
 
 # Project State & Memory
@@ -23,8 +23,8 @@ progress:
 Phase: 09 (display-history-audit-log) — EXECUTING
 Plan: 3 of 3
 **Phase:** 9
-**Plan:** 09-02 COMPLETE (history recording wiring + DI + integration tests)
-**Status:** HIST-01 satisfied by 09-01 and 09-02; 09-03 pending (history API routes + UI page)
+**Plan:** 09-03 COMPLETE (history API routes + UI page — HIST-02, HIST-03)
+**Status:** Phase 09 complete — HIST-01, HIST-02, HIST-03 all satisfied
 **Last activity:** 2026-06-15
 
 Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
@@ -193,6 +193,7 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | Phase 08 P05 | 5 minutes | 2 tasks | 0 files (sweep only) |
 | Phase 09 P01 | 5 minutes | 2 tasks | 6 files |
 | Phase 09 P02 | 11 minutes | 2 tasks | 8 files |
+| Phase 09 P03 | 5 | 2 tasks | 7 files |
 
 ## Decisions
 
@@ -204,3 +205,6 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 - [Phase 09 P02]: effect: Effect placed before conflictPolicy in displayScheduled so existing callers with default conflictPolicy compile without changes
 - [Phase 09 P02]: V3 migration source column quoted as "source" to fix H2 PostgreSQL mode case-sensitivity (unquoted identifiers stored as UPPERCASE in H2, Exposed generates lowercase quoted)
 - [Phase 09 P02]: historyRepository instantiated before screenDriverService in DI to satisfy Kotlin forward-reference constraint
+- [Phase 09 P03]: historyRoutes placed in com.anjo.routing package (same as Routing.kt) — no cross-package import needed
+- [Phase 09 P03]: HistoryUIRoutes size=all handled by two findPaginated calls to avoid passing Int.MAX_VALUE as SQL LIMIT
+- [Phase 09 P03]: details open rendered via attributes["open"] = "" (presence form per HTML5 spec, not attributes["open"] = "open")

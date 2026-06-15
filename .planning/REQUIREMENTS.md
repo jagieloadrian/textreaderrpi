@@ -33,8 +33,8 @@
 ## Display History (HIST)
 
 - [ ] **HIST-01**: Każde wyświetlenie tekstu (immediate i scheduled) jest zapisywane w bazie — tekst, efekt, strefa, timestamp, źródło
-- [ ] **HIST-02**: `GET /api/v1/history` zwraca paginowaną listę zdarzeń wyświetlania
-- [ ] **HIST-03**: `GET /history` — strona HTML z historią wyświetlonych tekstów (karty/tabela, paginacja, filtr po strefie i efekcie)
+- [x] **HIST-02**: `GET /api/v1/history` zwraca paginowaną listę zdarzeń wyświetlania
+- [x] **HIST-03**: `GET /history` — strona HTML z historią wyświetlonych tekstów (karty/tabela, paginacja, filtr po strefie i efekcie)
 
 ---
 
@@ -117,8 +117,8 @@
 | REF-03 | Phase 8 | Complete |
 | REF-04 | Phase 8 | Complete |
 | HIST-01 | Phase 9 | Pending |
-| HIST-02 | Phase 9 | Pending |
-| HIST-03 | Phase 9 | Pending |
+| HIST-02 | Phase 9 | Complete |
+| HIST-03 | Phase 9 | Complete |
 | HOOK-01 | Phase 10 | Pending |
 | HOOK-02 | Phase 10 | Pending |
 | HOOK-03 | Phase 10 | Pending |
