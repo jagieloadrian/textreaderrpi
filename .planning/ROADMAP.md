@@ -28,7 +28,7 @@
 
 - [x] **Phase 6: MAX7219 Hardware Fix** — Scroll direction corrected, driver layer refactored (completed 2026-06-12)
 - [x] **Phase 7: Scheduler Schema Stabilisation** — ConflictPolicy, firedAt, ERROR status, webhookUrl, zoneId columns added (completed 2026-06-14)
-- [ ] **Phase 8: Refactor + Dead Code Analysis** — Application cleaned and simplified, DI smoke test in place
+- [x] **Phase 8: Refactor + Dead Code Analysis** — Application cleaned and simplified, DI smoke test in place (completed 2026-06-15)
 - [ ] **Phase 9: Display History + Audit Log** — Every display event persisted and browsable
 - [ ] **Phase 10: Webhooks** — HTTP POST notifications fired on schedule trigger
 - [ ] **Phase 11: Multi-Zone Displays** — Multiple local and network displays managed and routable
@@ -112,7 +112,7 @@
 
 **Wave 3** *(blocked on Waves 1+2)*
 
-- [ ] 08-05-PLAN.md — Build-warning dead-symbol sweep + unused-import cleanup (D-11/D-12/D-16) and JaCoCo >= 70% coverage gate (D-17)
+- [x] 08-05-PLAN.md — Build-warning dead-symbol sweep + unused-import cleanup (D-11/D-12/D-16) and JaCoCo >= 70% coverage gate (D-17)
 
 ### Phase 9: Display History + Audit Log
 
@@ -201,7 +201,7 @@
 | 5 | Scheduling + Effects | v1.0 | 11/11 | ✅ Complete | 2026-05-28 |
 | 6 | MAX7219 Hardware Fix | v1.1 | 1/2 | In progress | - |
 | 7 | Scheduler Schema Stabilisation | v1.1 | 2/3 | In progress | - |
-| 8 | Refactor + Dead Code Analysis | v1.1 | 0/? | Not started | - |
+| 8 | Refactor + Dead Code Analysis | v1.1 | 5/5 | ✅ Complete | 2026-06-15 |
 | 9 | Display History + Audit Log | v1.1 | 0/? | Not started | - |
 | 10 | Webhooks | v1.1 | 0/? | Not started | - |
 | 11 | Multi-Zone Displays | v1.1 | 0/? | Not started | - |
