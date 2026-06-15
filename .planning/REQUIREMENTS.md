@@ -64,7 +64,7 @@
 - [x] **REF-01**: Analiza i usunięcie martwego kodu — nieużywane konfiguracje wyświetlaczy, unreferenced classes, stale constants, martwe ścieżki kodu
 - [ ] **REF-02**: Całościowe uproszczenie i oczyszczenie aplikacji — abstrakcje dozwolone tam gdzie mają sens, code smell usunięty
 - [ ] **REF-03**: DI smoke test weryfikuje że wszystkie providery w `configureDI()` są poprawnie podłączone (musi istnieć przed jakimkolwiek refactorem DI)
-- [ ] **REF-04**: Nowe ścieżki kodu pokryte testami (Kotest `should` convention, pokrycie ≥70%)
+- [x] **REF-04**: Nowe ścieżki kodu pokryte testami (Kotest `should` convention, pokrycie ≥70%)
 
 ---
 
@@ -115,7 +115,7 @@
 | REF-01 | Phase 8 | Complete |
 | REF-02 | Phase 8 | Pending |
 | REF-03 | Phase 8 | Pending |
-| REF-04 | Phase 8 | Pending |
+| REF-04 | Phase 8 | Complete |
 | HIST-01 | Phase 9 | Pending |
 | HIST-02 | Phase 9 | Pending |
 | HIST-03 | Phase 9 | Pending |
