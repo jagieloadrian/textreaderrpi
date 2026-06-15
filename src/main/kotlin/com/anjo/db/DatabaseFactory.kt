@@ -5,8 +5,6 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 object DatabaseFactory {
     fun init(databaseConfig: DatabaseConfig) {
@@ -29,9 +27,5 @@ object DatabaseFactory {
             .baselineVersion("1")
             .load()
             .migrate()
-        transaction {
-            SchemaUtils.create(SchedulesTable)
-            SchemaUtils.create(HistoryTable)
-        }
     }
 }
