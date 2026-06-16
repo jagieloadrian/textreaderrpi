@@ -32,6 +32,7 @@
 - [x] **Phase 9: Display History + Audit Log** — Every display event persisted and browsable (completed 2026-06-15)
 - [x] **Phase 10: Webhooks** — HTTP POST notifications fired on schedule trigger (completed 2026-06-15)
 - [x] **Phase 11: Multi-Zone Displays** — Multiple local and network displays managed and routable (completed 2026-06-16)
+- [ ] **Phase 11.2: Code Quality Cleanup** — Service nesting reduced, enum types enforced, repository calls removed from routes
 - [ ] **Phase 12: Observability Gap Closures** — v1.0 audit gaps closed (health/detail, metrics hardware, HTML error pages)
 - [ ] **Phase 13: UI/UX Refresh** — Material 3 style, side nav, all new pages deployed
 
@@ -199,10 +200,26 @@
 
 - [x] DELETE /api/v1/zones/{id} + Remove button in /zones UI — network zones only; local/hardware zones protected
 
+### Phase 11.2: Code Quality Cleanup
+
+**Goal**: Service classes are readable with flat nesting, enum types replace string literals for display types throughout, and route handlers delegate data access to services instead of calling repositories directly
+**Depends on**: Phase 11
+**Requirements**: REF-11.2
+**Success Criteria** (what must be TRUE):
+
+  1. `NetworkDiscoveryService`, `SchedulerService`, `ScreenDriverService`, and `WebhookService` have no method exceeding 30 lines; complex blocks extracted to private functions
+  2. `ZoneRegistry.initLocalZone` uses `DisplayType` enum instead of string literals for type matching
+  3. `DisplayRoutes` POST `/select` uses `DisplayType` enum for type validation; inline logic replaced by `RequestValidation` mechanism
+  4. `DisplayConfig.type` is `DisplayType` (enum) not `String`
+  5. `IpValidation` object is removed; IP validation moved into the `RequestValidation` plugin via an `AddZoneRequest` body model
+  6. `historyUIRoutes` and `historyRoutes` receive a `HistoryService` instead of `HistoryRepository` directly; no route handler imports or calls `HistoryRepository`
+
+**Plans**: TBD
+
 ### Phase 12: Observability Gap Closures
 
 **Goal**: All three v1.0 audit gaps are closed — health/detail endpoint, metrics hardware group, and HTML error pages
-**Depends on**: Phase 11
+**Depends on**: Phase 11.2
 **Requirements**: OBS-01, OBS-02, OBS-03
 **Success Criteria** (what must be TRUE):
 
@@ -246,5 +263,6 @@
 | 9 | Display History + Audit Log | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
 | 10 | Webhooks | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
 | 11 | Multi-Zone Displays | v1.1 | 5/5 | ✅ Complete | 2026-06-16 |
+| 11.2 | Code Quality Cleanup | v1.1 | 0/? | Not started | - |
 | 12 | Observability Gap Closures | v1.1 | 0/? | Not started | - |
 | 13 | UI/UX Refresh | v1.1 | 0/? | Not started | - |
