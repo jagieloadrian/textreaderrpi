@@ -21,7 +21,7 @@ class DisplaySelectionService(
     private val log = LoggerFactory.getLogger(DisplaySelectionService::class.java)
 
     init {
-        selectDisplayAtStartup(displayConfig.type)
+        selectDisplayAtStartup(displayConfig.type.name)
     }
 
     private fun selectDisplayAtStartup(displayType: String) {

@@ -8,6 +8,7 @@ import com.anjo.driver.Max7219Matrix
 import com.anjo.driver.OfflineDisplayDriver
 import com.anjo.driver.OledDisplay
 import com.anjo.model.BroadcastResult
+import com.anjo.model.DisplayType
 import com.anjo.model.Effect
 import com.anjo.model.FailedZone
 import com.anjo.model.NetworkZone
@@ -57,13 +58,11 @@ class ZoneRegistry() {
 
     private fun initLocalZone(zoneConfig: ZoneConfig, ctx: Context) {
         val driver = try {
-            when (zoneConfig.type.uppercase()) {
-                "MAX7219" -> {
-                    Max7219Matrix(ctx, zoneConfig.numDevices, zoneId = zoneConfig.chipSelect)
-                }
-                "LCD" -> LcdDisplay(ctx)
-                "OLED" -> OledDisplay(ctx)
-                else -> {
+            when (zoneConfig.type) {
+                DisplayType.MAX7219 -> Max7219Matrix(ctx, zoneConfig.numDevices, zoneId = zoneConfig.chipSelect)
+                DisplayType.LCD -> LcdDisplay(ctx)
+                DisplayType.OLED -> OledDisplay(ctx)
+                DisplayType.UNKNOWN -> {
                     log.warn("Unknown display type '${zoneConfig.type}' for zone '${zoneConfig.id}'; registering OFFLINE")
                     OfflineDisplayDriver
                 }
@@ -73,7 +72,7 @@ class ZoneRegistry() {
             OfflineDisplayDriver
         }
         zones[zoneConfig.id] = ZoneEntry(
-            driver = LocalZoneDriver(id = zoneConfig.id, type = zoneConfig.type, driver = driver),
+            driver = LocalZoneDriver(id = zoneConfig.id, type = zoneConfig.type.name, driver = driver),
             isLocal = true,
             ip = null
         )

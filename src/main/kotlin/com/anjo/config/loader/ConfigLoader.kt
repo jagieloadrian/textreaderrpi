@@ -12,6 +12,7 @@ import com.anjo.config.model.RetryConfig
 import com.anjo.config.model.WebhooksConfig
 import com.anjo.config.model.ZoneConfig
 import com.anjo.config.model.ZonesConfig
+import com.anjo.model.DisplayType
 import io.ktor.server.application.Application
 import org.slf4j.LoggerFactory
 
@@ -22,7 +23,7 @@ object ConfigLoader {
         val config = application.environment.config
 
         val displayConfig = DisplayConfig(
-            type = config.propertyOrNull("display.type")?.getString() ?: "MAX7219",
+            type = parseDisplayType(config.propertyOrNull("display.type")?.getString() ?: "MAX7219"),
             max7219 = Max7219Config(
                 numDevices = config.propertyOrNull("display.max7219.numDevices")?.getString()?.toIntOrNull() ?: 2,
                 brightness = config.propertyOrNull("display.max7219.brightness")
@@ -100,7 +101,7 @@ object ConfigLoader {
         var index = 0
         while (true) {
             val id = config.propertyOrNull("display.zones.$index.id")?.getString() ?: break
-            val type = config.propertyOrNull("display.zones.$index.type")?.getString() ?: "MAX7219"
+            val type = parseDisplayType(config.propertyOrNull("display.zones.$index.type")?.getString() ?: "MAX7219")
             val numDevices = config.propertyOrNull("display.zones.$index.numDevices")?.getString()?.toIntOrNull() ?: 2
             val bus = config.propertyOrNull("display.zones.$index.bus")?.getString()?.toIntOrNull() ?: 0
             val chipSelect = config.propertyOrNull("display.zones.$index.chipSelect")?.getString()?.toIntOrNull() ?: 0
@@ -108,11 +109,20 @@ object ConfigLoader {
             index++
         }
         if (zones.isEmpty()) {
-            val fallbackType = config.propertyOrNull("display.type")?.getString() ?: "MAX7219"
+            val fallbackType = parseDisplayType(config.propertyOrNull("display.type")?.getString() ?: "MAX7219")
             val fallbackNumDevices = config.propertyOrNull("display.max7219.numDevices")?.getString()?.toIntOrNull() ?: 2
             zones.add(ZoneConfig(id = "main", type = fallbackType, numDevices = fallbackNumDevices, bus = 0, chipSelect = 0))
         }
         return ZonesConfig(zones)
+    }
+
+    private fun parseDisplayType(raw: String): DisplayType {
+        val result = DisplayType.fromString(raw)
+        if (result == DisplayType.UNKNOWN) {
+            log.warn("Unknown display type '$raw'; defaulting to MAX7219")
+            return DisplayType.MAX7219
+        }
+        return result
     }
 
     private fun String.toIntAuto(): Int? {

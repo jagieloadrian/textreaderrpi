@@ -2,6 +2,7 @@ package com.anjo.validation
 
 import com.anjo.config.model.ApiConfig
 import com.anjo.model.AddZoneRequest
+import com.anjo.model.DisplaySelectRequest
 import com.anjo.model.Schedule
 import com.anjo.model.TextRequest
 import io.ktor.server.application.Application
@@ -21,6 +22,9 @@ fun Application.configureRequestValidation() {
         }
         validate<AddZoneRequest> { req ->
             RequestValidators.validateAddZoneRequest(req)
+        }
+        validate<DisplaySelectRequest> { req ->
+            RequestValidators.validateDisplaySelectRequest(req)
         }
     }
 }

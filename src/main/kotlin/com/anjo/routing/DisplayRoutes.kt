@@ -32,24 +32,9 @@ fun Route.displayRoutes(screenDriverService: ScreenDriverService) {
 
         post("/select") {
             val request = call.receive<DisplaySelectRequest>()
-            val normalized = request.type.lowercase()
-            val allowed = setOf("max7219", "lcd", "oled")
-
-            if (normalized !in allowed) {
-                log.warn("Driver switch rejected — unsupported type: ${request.type}")
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    DisplaySelectResponse(
-                        accepted = false,
-                        message = "Unsupported driver type: ${request.type}"
-                    )
-                )
-                return@post
-            }
-
-            val queued = screenDriverService.queueDisplaySwitch(normalized)
+            val queued = screenDriverService.queueDisplaySwitch(request.type)
             if (!queued) {
-                log.warn("Driver switch rejected — queueDisplaySwitch returned false for type: $normalized")
+                log.warn("Driver switch rejected — queueDisplaySwitch returned false for type: ${request.type}")
                 call.respond(
                     HttpStatusCode.BadRequest,
                     DisplaySelectResponse(
@@ -60,11 +45,11 @@ fun Route.displayRoutes(screenDriverService: ScreenDriverService) {
                 return@post
             }
 
-            log.info("Driver switch accepted: $normalized")
+            log.info("Driver switch accepted: ${request.type}")
             call.respond(
                 DisplaySelectResponse(
                     accepted = true,
-                    message = "Driver switch queued: $normalized"
+                    message = "Driver switch queued: ${request.type}"
                 )
             )
         }

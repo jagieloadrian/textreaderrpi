@@ -2,6 +2,7 @@ package com.anjo.service
 
 import com.anjo.config.model.DisplayConfig
 import com.anjo.driver.DisplayDriver
+import com.anjo.model.DisplayType
 import com.pi4j.context.Context
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
@@ -13,7 +14,7 @@ import io.mockk.verify
 class DisplaySelectionServiceTest : FunSpec({
 
     val context = mockk<Context>(relaxed = true)
-    val config = DisplayConfig(type = "MAX7219")
+    val config = DisplayConfig(type = DisplayType.MAX7219)
 
     test("should load startup driver from display config") {
         val startupDriver = mockk<DisplayDriver>(relaxed = true)
@@ -50,7 +51,7 @@ class DisplaySelectionServiceTest : FunSpec({
 
     test("should report UNKNOWN type when startup driver fails") {
         val service = DisplaySelectionService(
-            ctx = context, displayConfig = DisplayConfig(type = "OLED"),
+            ctx = context, displayConfig = DisplayConfig(type = DisplayType.OLED),
             driverFactory = { _, _, _ -> null }
         )
         service.currentDriver().shouldBeNull()

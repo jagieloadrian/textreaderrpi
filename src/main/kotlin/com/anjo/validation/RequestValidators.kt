@@ -2,6 +2,8 @@ package com.anjo.validation
 
 import com.anjo.config.model.ApiConfig
 import com.anjo.model.AddZoneRequest
+import com.anjo.model.DisplaySelectRequest
+import com.anjo.model.DisplayType
 import com.anjo.model.TextRequest
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 
@@ -34,6 +36,14 @@ object RequestValidators {
             octets[0] == 172 && octets[1] in 16..31 -> ValidationResult.Valid
             octets[0] == 192 && octets[1] == 168 -> ValidationResult.Valid
             else -> ValidationResult.Invalid("IP must be a valid RFC1918 private address")
+        }
+    }
+
+    fun validateDisplaySelectRequest(req: DisplaySelectRequest): ValidationResult {
+        return if (DisplayType.fromString(req.type) == DisplayType.UNKNOWN) {
+            ValidationResult.Invalid("Unsupported driver type: ${req.type}")
+        } else {
+            ValidationResult.Valid
         }
     }
 }

@@ -54,14 +54,14 @@ class WebAndDisplayRoutesTest : FunSpec({
         }
     }
 
-    test("should reject invalid driver type with 400 on POST /api/v1/display/select") {
+    test("should reject invalid driver type with 422 on POST /api/v1/display/select") {
         testApplication {
             application { module() }
             val response = client.post("/api/v1/display/select") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody("""{"type":"invalid-driver"}""")
             }
-            response.status shouldBe HttpStatusCode.BadRequest
+            response.status shouldBe HttpStatusCode.UnprocessableEntity
             response.bodyAsText() shouldContain "Unsupported driver type"
         }
     }
