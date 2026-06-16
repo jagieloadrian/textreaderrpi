@@ -195,6 +195,10 @@
 
 - [x] 11-05-PLAN.md — UI: /zones PicoCSS page (status badges) + ZonesUIRoutes + BaseLayout nav link + app.js scan/add-by-IP handlers + ZonesUIRoutesTest + human-verify checkpoint
 
+**Gap closure** *(added post-plan at user request)*
+
+- [x] DELETE /api/v1/zones/{id} + Remove button in /zones UI — network zones only; local/hardware zones protected
+
 ### Phase 12: Observability Gap Closures
 
 **Goal**: All three v1.0 audit gaps are closed — health/detail endpoint, metrics hardware group, and HTML error pages

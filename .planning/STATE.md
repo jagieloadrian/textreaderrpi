@@ -48,7 +48,7 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 - **Hardware:** Pi4J 4.0.0 + MAX7219 via SPI, LCD/OLED via I2C
 - **Database:** H2 (embedded default) or PostgreSQL (via env vars)
 - **Current package root:** `src/main/kotlin/com/anjo/...`
-- **Test suite:** 20 test classes, Kotest `should` convention, JaCoCo ≥70% gate
+- **Test suite:** 27 test classes, Kotest `should` convention, JaCoCo ≥70% gate
 
 ---
 
@@ -90,6 +90,14 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 ---
 
 ## Accumulated Context
+
+### New in Phase 11
+
+- Packages: `com.anjo.zone` (ZoneDriver, LocalZoneDriver, NetworkZoneDriver), `com.anjo.routing.ui` (ZonesUIRoutes)
+- New services: `ZoneRegistry`, `NetworkDiscoveryService`
+- New routes: `GET/DELETE /api/v1/zones`, `POST /api/v1/zones/discover`, `POST /api/v1/zones/{ip}`, `GET /zones`
+- DB: `network_zones` table (V5 migration); status is in-memory only (not persisted per D-05)
+- Hardware validation pending: dual-SPI independent render (SC-1), network autodiscovery timing (SC-2), WebSocket heartbeat OFFLINE detection (ZONE-05)
 
 ### Key Decisions (v1.1 planning)
 
@@ -229,3 +237,10 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 - [Phase 11 P04]: ZoneRegistry stores wsClient field from DI constructor so addNetworkZone(zone) route-layer callers don't need direct HttpClient reference
 - [Phase 11 P04]: NetworkDiscoveryService.testOnDeviceDiscovered() internal seam for unit testing mDNS/UDP callback without real network IO
 - [Phase 11 P04]: V5 migration quoting: name and type reserved words in H2 PostgreSQL mode — fixed with double-quoted column names in DDL (same fix as V3 source column)
+- [Phase 11 gap]: DELETE /api/v1/zones/{id} added post-plan at user request — only network zones (present in network_zones table) can be deleted; local/hardware zones return 404
+- [Phase 11 gap]: ZoneDriver.stop() added as default no-op; NetworkZoneDriver overrides to cancel reconnect scope; ZoneRegistry.stop() added and wired into ApplicationStopping before wsClient.close()
+- [Phase 11 review CR-01]: parseDiscoveryReply ignores JSON "ip" field — always uses kernel-verified senderIp to prevent SSRF via rogue device advertisement
+- [Phase 11 review CR-02]: localZoneIds set in ZoneRegistry blocks network zones from overwriting hardware-connected local zones on re-registration
+- [Phase 11 review CR-03]: ipIndex (ConcurrentHashMap ip→id) added to ZoneRegistry; duplicate check in POST /zones/{ip} uses containsIp() not contains() — catches discovered zones stored under name key
+- [Phase 11 review CR-05]: zones.put().stop() in addNetworkZone stops orphaned coroutine scope when same zone re-registers (repeated mDNS announcements)
+- [Phase 11 review WR-04]: mDNS device name sanitised (alphanumeric + .-_, max 64 chars) before use as zone id to prevent DB constraint violation and HTML id attribute corruption
