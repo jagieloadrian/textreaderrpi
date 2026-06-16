@@ -2,31 +2,31 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
-status: planning
-last_updated: "2026-06-16T07:28:05.803Z"
+status: executing
+last_updated: "2026-06-16T11:05:34Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 8
   completed_phases: 5
-  total_plans: 16
-  completed_plans: 16
-  percent: 63
+  total_plans: 21
+  completed_plans: 17
+  percent: 65
 ---
 
 # Project State & Memory
 
 **Last Updated:** 2026-06-16  
-**Status:** Ready to plan
+**Status:** Executing Phase 11
 
 ## Current Position
 
-Phase: 11
-Plan: Not started
-**Next:** Phase 10 Plan 02 (Webhooks — Scheduler Integration)
+Phase: 11 (multi-zone-displays) — EXECUTING
+Plan: 2 of 5
+**Next:** `/gsd-execute-phase 11`
 **Last activity:** 2026-06-16
 
-Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase 12 ]`  
-`░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` 0% (0/7 phases)
+Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 ✓ | Phase 11 → | Phase 12 ]`  
+`████████████████████████████████░░░░░░░░░░░░░░░░░░` 63% (5/8 phases)
 
 ---
 
@@ -79,12 +79,12 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 6 | MAX7219 Hardware Fix | HW-01, HW-02 | COMPLETE |
-| 7 | Scheduler Schema Stabilisation | SCHED-01, SCHED-02, SCHED-03, SCHED-04 | Not started |
-| 8 | Refactor + Dead Code Analysis | REF-01, REF-02, REF-03, REF-04 | Not started |
-| 9 | Display History + Audit Log | HIST-01, HIST-02, HIST-03 | Not started |
-| 10 | Webhooks | HOOK-01, HOOK-02, HOOK-03 | Not started |
-| 11 | Multi-Zone Displays | ZONE-01 through ZONE-08 | Not started |
+| 6 | MAX7219 Hardware Fix | HW-01, HW-02 | COMPLETE ✓ |
+| 7 | Scheduler Schema Stabilisation | SCHED-01, SCHED-02, SCHED-03, SCHED-04 | COMPLETE ✓ |
+| 8 | Refactor + Dead Code Analysis | REF-01, REF-02, REF-03, REF-04 | COMPLETE ✓ |
+| 9 | Display History + Audit Log | HIST-01, HIST-02, HIST-03 | COMPLETE ✓ |
+| 10 | Webhooks | HOOK-01, HOOK-02, HOOK-03 | COMPLETE ✓ |
+| 11 | Multi-Zone Displays | ZONE-01 through ZONE-08 | EXECUTING (1/5 plans complete) |
 | 12 | Observability Gap Closures + UI/UX Refresh | OBS-01, OBS-02, OBS-03, UI-01 through UI-08 | Not started |
 
 ---
@@ -194,6 +194,7 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 | Phase 09 P03 | 5 | 2 tasks | 7 files |
 | Phase 10 P01 | 22 minutes | 2 tasks | 10 files |
 | Phase 10-webhooks P02 | 4 minutes | 2 tasks | 4 files |
+| Phase 11 P01 | 12 minutes | 2 tasks | 8 files |
 
 ## Decisions
 
@@ -215,3 +216,6 @@ Progress: `[ Phase 6 | Phase 7 | Phase 8 | Phase 9 | Phase 10 | Phase 11 | Phase
 - [Phase ?]: webhookService named nullable param (Pitfall 4): existing positional call sites compile unchanged
 - [Phase ?]: webhookService?.send() inside fire() try block: contained failure never fails display (D-16)
 - [Phase ?]: HttpClient+WebhookService as DI singletons proven by ApplicationTest smoke assertion (D-10)
+- [Phase 11 P01]: ZoneConfig.bus + chipSelect (not gpioPins map) — matches Pi4J SpiBus/SpiChipSelect API per D-03
+- [Phase 11 P01]: No status column in NetworkZonesTable — zone status is in-memory only per D-05
+- [Phase 11 P01]: ZoneRepository.upsert() refreshes all writable fields on update including ip — enables re-discovery to capture IP changes
