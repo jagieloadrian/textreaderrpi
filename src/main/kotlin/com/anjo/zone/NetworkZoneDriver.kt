@@ -70,7 +70,8 @@ class NetworkZoneDriver(
         id = id,
         type = type,
         status = if (online) "ONLINE" else "OFFLINE",
-        ip = ip
+        ip = ip,
+        error = if (online) null else "OFFLINE"
     )
 
     override fun stop() {

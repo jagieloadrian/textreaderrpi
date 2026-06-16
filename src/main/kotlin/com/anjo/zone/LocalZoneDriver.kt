@@ -26,6 +26,6 @@ class LocalZoneDriver(
     override fun status(): ZoneStatus {
         val driverStatus = driver.status()
         val statusStr = if (driverStatus.hardwareAvailable) "ONLINE" else "OFFLINE"
-        return ZoneStatus(id = id, type = type, status = statusStr)
+        return ZoneStatus(id = id, type = type, status = statusStr, error = driverStatus.error)
     }
 }

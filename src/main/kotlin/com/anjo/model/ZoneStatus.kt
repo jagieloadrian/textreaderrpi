@@ -8,5 +8,6 @@ data class ZoneStatus(
     val type: String,
     val status: String,
     val ip: String? = null,
-    val lastSeenAt: String? = null
+    val lastSeenAt: String? = null,
+    val error: String? = null
 )
