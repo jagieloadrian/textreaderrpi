@@ -57,6 +57,8 @@ class WebhookService(
         httpClient.close()
     }
 
+    fun willSend(schedule: Schedule): Boolean = resolveUrl(schedule) != null
+
     private fun resolveUrl(schedule: Schedule): String? =
         schedule.webhookUrl?.takeIf { it.isNotBlank() }
             ?: config.defaultUrl?.takeIf { it.isNotBlank() }

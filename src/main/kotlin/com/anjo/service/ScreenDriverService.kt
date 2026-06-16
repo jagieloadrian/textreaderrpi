@@ -67,7 +67,8 @@ class ScreenDriverService(
         scheduleId: String,
         renderer: EffectRenderer,
         effect: Effect,
-        conflictPolicy: ConflictPolicy = ConflictPolicy.INTERRUPT
+        conflictPolicy: ConflictPolicy = ConflictPolicy.INTERRUPT,
+        webhookStatus: String? = null
     ): Boolean {
         if (conflictPolicy == ConflictPolicy.SKIP_NEW) {
             if (!displayMutex.tryLock()) {
@@ -78,7 +79,7 @@ class ScreenDriverService(
         currentScheduledId = scheduleId
         currentDisplayJob = currentCoroutineContext().job
         lastSentMessage.set(text)
-        return runScheduledRender(text, scheduleId, renderer, effect, alreadyLocked = conflictPolicy == ConflictPolicy.SKIP_NEW)
+        return runScheduledRender(text, scheduleId, renderer, effect, alreadyLocked = conflictPolicy == ConflictPolicy.SKIP_NEW, webhookStatus = webhookStatus)
     }
 
     fun stop() {
@@ -126,18 +127,19 @@ class ScreenDriverService(
         renderer: EffectRenderer,
         effect: Effect,
         alreadyLocked: Boolean,
+        webhookStatus: String? = null,
     ): Boolean {
         var displaySucceeded = false
         try {
             if (alreadyLocked) {
                 executeWithRecovery(text, renderer)
                 displaySucceeded = true
-                tryInsertHistory(text, effect.name, "SCHEDULED", scheduleId)
+                tryInsertHistory(text, effect.name, "SCHEDULED", scheduleId, webhookStatus)
             } else {
                 displayMutex.withLock {
                     executeWithRecovery(text, renderer)
                     displaySucceeded = true
-                    tryInsertHistory(text, effect.name, "SCHEDULED", scheduleId)
+                    tryInsertHistory(text, effect.name, "SCHEDULED", scheduleId, webhookStatus)
                 }
             }
         } catch (_: CancellationException) {
@@ -159,9 +161,10 @@ class ScreenDriverService(
         effect: String,
         source: String,
         scheduleId: String? = null,
+        webhookStatus: String? = null,
     ) {
         try {
-            historyRepository?.insert(HistoryRecord(text = text, effect = effect, source = source, scheduleId = scheduleId))
+            historyRepository?.insert(HistoryRecord(text = text, effect = effect, source = source, scheduleId = scheduleId, webhookStatus = webhookStatus))
         } catch (e: Exception) {
             log.warn("History insert failed (non-fatal): ${e.message}", e)
         }

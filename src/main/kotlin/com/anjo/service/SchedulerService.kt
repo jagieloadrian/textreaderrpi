@@ -173,7 +173,8 @@ class SchedulerService(
             log.info("Firing schedule id=${schedule.id} text='${schedule.text.take(30)}' effect=${schedule.effect}")
             val renderer = effectFactory.create(schedule.effect)
             val policy = schedule.conflictPolicy ?: ConflictPolicy.INTERRUPT
-            val displayed = screenService.displayScheduled(schedule.text, schedule.id, renderer, schedule.effect, policy)
+            val webhookStatus = if (webhookService?.willSend(schedule) == true) "sent" else "skipped"
+            val displayed = screenService.displayScheduled(schedule.text, schedule.id, renderer, schedule.effect, policy, webhookStatus)
             if (displayed) {
                 webhookService?.send(schedule, Instant.now())
             }
