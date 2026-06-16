@@ -18,7 +18,12 @@ import com.codahale.metrics.MetricRegistry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.di.DependencyKey
 import io.ktor.server.plugins.di.dependencies
@@ -59,6 +64,29 @@ class ApplicationTest : FunSpec({
             application { module() }
             val response = client.get("/nonexistent-endpoint")
             response.status shouldBe HttpStatusCode.NotFound
+        }
+    }
+
+    test("should return HTML 404 page for browser navigation to unknown route") {
+        testApplication {
+            application { module() }
+            val response = client.get("/does-not-exist") {
+                header(HttpHeaders.Accept, ContentType.Text.Html.toString())
+            }
+            response.status shouldBe HttpStatusCode.NotFound
+            response.headers[HttpHeaders.ContentType] shouldContain "text/html"
+            response.bodyAsText() shouldContain "Error 404"
+            response.bodyAsText() shouldContain "Page not found"
+        }
+    }
+
+    test("should return JSON error for API path unknown route") {
+        testApplication {
+            application { module() }
+            val response = client.get("/api/v1/does-not-exist")
+            response.status shouldBe HttpStatusCode.NotFound
+            val body = response.bodyAsText()
+            assert(!body.contains("Error 404")) { "API path should not return HTML 404 page, got: $body" }
         }
     }
 

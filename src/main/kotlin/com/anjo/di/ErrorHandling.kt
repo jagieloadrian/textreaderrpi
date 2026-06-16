@@ -23,7 +23,7 @@ fun Application.configureErrorHandling() {
         status(HttpStatusCode.NotFound) { call, _ ->
             log.debug("404 Not Found: ${call.request.path()}")
             if (call.prefersHtml()) {
-                call.respondText(ErrorPage(404, "Page not found").render(), ContentType.Text.Html)
+                call.respondText(ErrorPage(404, "Page not found").render(), ContentType.Text.Html, HttpStatusCode.NotFound)
             } else {
                 call.respond(
                     HttpStatusCode.NotFound,
@@ -37,7 +37,8 @@ fun Application.configureErrorHandling() {
             if (call.prefersHtml()) {
                 call.respondText(
                     ErrorPage(422, cause.reasons.firstOrNull() ?: "Validation failed").render(),
-                    ContentType.Text.Html
+                    ContentType.Text.Html,
+                    HttpStatusCode.UnprocessableEntity
                 )
             } else {
                 call.respond(
@@ -86,7 +87,7 @@ fun Application.configureErrorHandling() {
 
             log.error("Unhandled exception at ${call.request.path()}", cause)
             if (call.prefersHtml()) {
-                call.respondText(ErrorPage(500, "An internal error occurred").render(), ContentType.Text.Html)
+                call.respondText(ErrorPage(500, "An internal error occurred").render(), ContentType.Text.Html, HttpStatusCode.InternalServerError)
             } else {
                 call.respond(
                     HttpStatusCode.InternalServerError,
