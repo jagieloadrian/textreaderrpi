@@ -2,15 +2,15 @@ package com.anjo
 
 import com.anjo.config.model.ApiConfig
 import com.anjo.config.model.ApplicationConfig
-import com.anjo.config.model.DisplayConfig
 import com.anjo.db.HistoryRepository
 import com.anjo.db.ScheduleRepository
-import com.anjo.service.DisplaySelectionService
+import com.anjo.db.ZoneRepository
 import com.anjo.service.EffectRendererFactory
 import com.anjo.service.MetricsCollector
 import com.anjo.service.SchedulerService
 import com.anjo.service.ScreenDriverService
 import com.anjo.service.WebhookService
+import com.anjo.service.ZoneRegistry
 import com.codahale.metrics.MetricRegistry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -73,10 +73,10 @@ class ApplicationTest : FunSpec({
             val deps = application.dependencies
             deps.getBlocking<ApplicationConfig>(DependencyKey<ApplicationConfig>()) shouldNotBeNull {}
             deps.getBlocking<ApiConfig>(DependencyKey<ApiConfig>()) shouldNotBeNull {}
-            deps.getBlocking<DisplayConfig>(DependencyKey<DisplayConfig>()) shouldNotBeNull {}
             deps.getBlocking<CoroutineDispatcher>(DependencyKey<CoroutineDispatcher>()) shouldNotBeNull {}
             deps.getBlocking<MetricRegistry>(DependencyKey<MetricRegistry>()) shouldNotBeNull {}
-            deps.getBlocking<DisplaySelectionService>(DependencyKey<DisplaySelectionService>()) shouldNotBeNull {}
+            deps.getBlocking<ZoneRegistry>(DependencyKey<ZoneRegistry>()) shouldNotBeNull {}
+            deps.getBlocking<ZoneRepository>(DependencyKey<ZoneRepository>()) shouldNotBeNull {}
             deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>()) shouldNotBeNull {}
             deps.getBlocking<MetricsCollector>(DependencyKey<MetricsCollector>()) shouldNotBeNull {}
             deps.getBlocking<ScheduleRepository>(DependencyKey<ScheduleRepository>()) shouldNotBeNull {}
