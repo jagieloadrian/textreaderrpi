@@ -21,7 +21,11 @@ dependencies {
     implementation(ktorLibs.ktor.client.core)
     implementation(ktorLibs.ktor.client.cio)
     implementation(ktorLibs.ktor.client.content.negotiation)
+    implementation(ktorLibs.ktor.client.websockets)
     testImplementation(ktorLibs.ktor.client.mock)
+
+    // Network discovery
+    implementation(ktorLibs.jmdns)
 
     // Core Ktor
     implementation(ktorLibs.ktor.server.core)
