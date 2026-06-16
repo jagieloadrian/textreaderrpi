@@ -156,4 +156,4 @@ This document evolves at phase transitions and milestone boundaries.
 - `/gsd-plan-phase 6` — start planning Phase 6 (first phase of v1.1)
 
 ---
-*Last updated: 2026-06-11 — milestone v1.1 started*
+*Last updated: 2026-06-16 — Phase 10 complete (webhooks). Fire-and-forget webhook dispatch on scheduled events, webhook_status in display_history, /history UI surfacing. Next: Phase 11 multi-zone displays.*
