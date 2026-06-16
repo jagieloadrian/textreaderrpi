@@ -83,6 +83,9 @@ object ConfigLoader {
         )
 
         val zonesConfig = loadZonesConfig(application)
+        val discoveryEnabled = (System.getProperty("discovery.enabled")
+            ?: config.propertyOrNull("discovery.enabled")?.getString())
+            ?.toBooleanStrictOrNull() ?: true
 
         return ApplicationConfig(
             display = displayConfig,
@@ -91,7 +94,8 @@ object ConfigLoader {
             metrics = metricsConfig,
             retryConfig = retryConfig,
             databaseConfig = databaseConfig,
-            webhooks = webhooksConfig
+            webhooks = webhooksConfig,
+            discoveryEnabled = discoveryEnabled
         )
     }
 

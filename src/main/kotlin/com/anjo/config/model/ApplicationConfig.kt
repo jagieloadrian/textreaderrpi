@@ -7,5 +7,6 @@ data class ApplicationConfig(
     val metrics: MetricsConfig,
     val retryConfig: RetryConfig,
     val databaseConfig: DatabaseConfig,
-    val webhooks: WebhooksConfig
+    val webhooks: WebhooksConfig,
+    val discoveryEnabled: Boolean = true
 )

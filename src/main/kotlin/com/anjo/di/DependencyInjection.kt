@@ -59,13 +59,13 @@ fun Application.configureDI() {
 
     monitor.subscribe(ApplicationStarted) {
         schedulerService.start()
-        networkDiscoveryService.start()
+        if (appConfig.discoveryEnabled) networkDiscoveryService.start()
     }
     monitor.subscribe(ApplicationStopping) {
         schedulerService.stop()
         webhookService.stop()
         screenDriverService.stop()
-        networkDiscoveryService.stop()
+        if (appConfig.discoveryEnabled) networkDiscoveryService.stop()
         zoneRegistry.stop()
         wsClient.close()
     }

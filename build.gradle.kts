@@ -97,6 +97,7 @@ jacoco {
 tasks.test {
     useJUnitPlatform()
     jvmArgs("-Xmx768m")
+    systemProperty("discovery.enabled", "false")
     jacoco {
         excludes += setOf(
             $$"com.anjo.model.*$serializer*",
