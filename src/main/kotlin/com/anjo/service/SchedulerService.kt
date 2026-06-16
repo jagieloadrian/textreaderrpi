@@ -127,18 +127,8 @@ class SchedulerService(
             var runs = 0
             while (isActive) {
                 delay(intervalMs.milliseconds)
-                val expiresAt = schedule.expiresAt
-                if (expiresAt != null) {
-                    val expiresInstant = try { Instant.parse(expiresAt) }
-                    catch (e: Exception) {
-                        log.error("Invalid expiresAt for schedule ${schedule.id}: $expiresAt", e)
-                        repository.updateStatus(schedule.id, "ERROR")
-                        break
-                    }
-                    if (Instant.now().isAfter(expiresInstant)) break
-                }
-                val maxRuns = schedule.maxRuns
-                if (maxRuns != null && runs >= maxRuns) break
+                if (checkExpiry(schedule)) break
+                if (checkMaxRuns(runs, schedule)) break
                 val displayed = fire(schedule)
                 if (displayed) runs++
             }
@@ -146,6 +136,21 @@ class SchedulerService(
             activeJobs.remove(schedule.id)
         }
     }
+
+    private suspend fun checkExpiry(schedule: Schedule): Boolean {
+        val expiresAt = schedule.expiresAt ?: return false
+        val expiresInstant = try {
+            Instant.parse(expiresAt)
+        } catch (e: Exception) {
+            log.error("Invalid expiresAt for schedule ${schedule.id}: $expiresAt", e)
+            repository.updateStatus(schedule.id, "ERROR")
+            return true
+        }
+        return Instant.now().isAfter(expiresInstant)
+    }
+
+    private fun checkMaxRuns(runs: Int, schedule: Schedule): Boolean =
+        schedule.maxRuns != null && runs >= schedule.maxRuns
 
     private fun launchCron(schedule: Schedule): Job? {
         val cron = try {

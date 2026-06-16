@@ -31,32 +31,7 @@ class NetworkDiscoveryService(
     private var jmdns: JmDNS? = null
 
     fun start() {
-        scope.launch(Dispatchers.IO) {
-            try {
-                val localHost = InetAddress.getLocalHost()
-                jmdns = JmDNS.create(localHost)
-                jmdns?.addServiceListener("_textreaderrpi._tcp.local.", object : ServiceListener {
-                    override fun serviceAdded(event: ServiceEvent) {}
-                    override fun serviceRemoved(event: ServiceEvent) {}
-                    override fun serviceResolved(event: ServiceEvent) {
-                        val info = event.info
-                        val addresses = info.hostAddresses
-                        if (addresses.isNotEmpty()) {
-                            scope.launch {
-                                onDeviceDiscovered(
-                                    ip = addresses[0],
-                                    method = "MDNS",
-                                    name = info.name.takeIf { it.isNotBlank() }
-                                )
-                            }
-                        }
-                    }
-                })
-                log.info("NetworkDiscoveryService mDNS listener started on $localHost")
-            } catch (e: Exception) {
-                log.warn("NetworkDiscoveryService mDNS start failed: ${e.message}")
-            }
-        }
+        scope.launch(Dispatchers.IO) { startMdnsListener() }
     }
 
     fun stop() {
@@ -81,21 +56,7 @@ class NetworkDiscoveryService(
                     InetAddress.getByName("255.255.255.255"), discoveryPort
                 )
                 socket.send(sendPacket)
-                val buf = ByteArray(1024)
-                while (true) {
-                    try {
-                        val recvPacket = DatagramPacket(buf, buf.size)
-                        socket.receive(recvPacket)
-                        val json = String(recvPacket.data, 0, recvPacket.length)
-                        val zone = parseDiscoveryReply(json, recvPacket.address.hostAddress)
-                        if (zone != null) {
-                            onDeviceDiscovered(ip = zone.ip, method = "UDP", name = zone.name)
-                            discovered.add(zone)
-                        }
-                    } catch (_: java.net.SocketTimeoutException) {
-                        break
-                    }
-                }
+                receiveUdpReplies(socket, discovered)
             }
         } catch (e: Exception) {
             log.warn("UDP scan failed: ${e.message}")
@@ -103,22 +64,59 @@ class NetworkDiscoveryService(
         discovered
     }
 
+    private suspend fun receiveUdpReplies(socket: DatagramSocket, discovered: MutableList<NetworkZone>) {
+        val buf = ByteArray(1024)
+        while (true) {
+            try {
+                val recvPacket = DatagramPacket(buf, buf.size)
+                socket.receive(recvPacket)
+                val json = String(recvPacket.data, 0, recvPacket.length)
+                val zone = parseDiscoveryReply(json, recvPacket.address.hostAddress)
+                if (zone != null) {
+                    onDeviceDiscovered(ip = zone.ip, method = "UDP", name = zone.name)
+                    discovered.add(zone)
+                }
+            } catch (_: java.net.SocketTimeoutException) {
+                break
+            }
+        }
+    }
+
     internal suspend fun testOnDeviceDiscovered(ip: String, method: String, name: String? = null) {
         onDeviceDiscovered(ip = ip, method = method, name = name)
+    }
+
+    private fun startMdnsListener() {
+        try {
+            val localHost = InetAddress.getLocalHost()
+            jmdns = JmDNS.create(localHost)
+            jmdns?.addServiceListener("_textreaderrpi._tcp.local.", object : ServiceListener {
+                override fun serviceAdded(event: ServiceEvent) {}
+                override fun serviceRemoved(event: ServiceEvent) {}
+                override fun serviceResolved(event: ServiceEvent) {
+                    val info = event.info
+                    val addresses = info.hostAddresses
+                    if (addresses.isNotEmpty()) {
+                        scope.launch {
+                            onDeviceDiscovered(
+                                ip = addresses[0],
+                                method = "MDNS",
+                                name = info.name.takeIf { it.isNotBlank() }
+                            )
+                        }
+                    }
+                }
+            })
+            log.info("NetworkDiscoveryService mDNS listener started on $localHost")
+        } catch (e: Exception) {
+            log.warn("NetworkDiscoveryService mDNS start failed: ${e.message}")
+        }
     }
 
     private suspend fun onDeviceDiscovered(ip: String, method: String, name: String? = null, type: String = DisplayType.MAX7219.name) {
         val sanitised = name?.replace(Regex("[^a-zA-Z0-9._-]"), "-")?.take(64)
         val zoneId = sanitised?.takeIf { it.isNotBlank() } ?: ip
-        val zone = NetworkZone(
-            id = zoneId,
-            name = sanitised ?: ip,
-            ip = ip,
-            type = type,
-            discoveryMethod = method,
-            createdAt = Instant.now().toString(),
-            lastSeenAt = Instant.now().toString()
-        )
+        val zone = buildNetworkZone(ip = ip, method = method, name = sanitised, type = type, zoneId = zoneId)
         try {
             zoneRepository.upsert(zone)
             zoneRegistry.addNetworkZone(zone, wsClient)
@@ -128,21 +126,24 @@ class NetworkDiscoveryService(
         }
     }
 
+    private fun buildNetworkZone(ip: String, method: String, name: String?, type: String = DisplayType.MAX7219.name, zoneId: String = name ?: ip): NetworkZone =
+        NetworkZone(
+            id = zoneId,
+            name = name ?: ip,
+            ip = ip,
+            type = type,
+            discoveryMethod = method,
+            createdAt = Instant.now().toString(),
+            lastSeenAt = Instant.now().toString()
+        )
+
     private fun parseDiscoveryReply(json: String, senderIp: String): NetworkZone? {
         return try {
             val nameMatch = Regex(""""name"\s*:\s*"([^"]+)"""").find(json)
             val typeMatch = Regex(""""type"\s*:\s*"([^"]+)"""").find(json)
             val name = nameMatch?.groupValues?.get(1) ?: senderIp
             val type = typeMatch?.groupValues?.get(1) ?: DisplayType.MAX7219.name
-            NetworkZone(
-                id = name,
-                name = name,
-                ip = senderIp,
-                type = type,
-                discoveryMethod = "UDP",
-                createdAt = Instant.now().toString(),
-                lastSeenAt = Instant.now().toString()
-            )
+            buildNetworkZone(ip = senderIp, method = "UDP", name = name, type = type)
         } catch (e: Exception) {
             log.warn("Failed to parse discovery reply '$json': ${e.message}")
             null
