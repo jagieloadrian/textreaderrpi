@@ -49,10 +49,10 @@
 ## Multi-Zone Displays (ZONE)
 
 - [x] **ZONE-01**: Aplikacja obsługuje wiele wyświetlaczy podłączonych bezpośrednio do Pi przez SPI/I2C — named zones, konfiguracja przez env vars, backward-compatible default zone
-- [ ] **ZONE-02**: Zewnętrzne wyświetlacze ogłaszają się w sieci WiFi przez UDP broadcast lub mDNS
-- [ ] **ZONE-03**: Pi automatycznie wykrywa i rejestruje dostępne wyświetlacze sieciowe (autodiscovery)
-- [ ] **ZONE-04**: Komunikacja z zewnętrznym wyświetlaczem przez WebSocket — przesyłanie tekstu i efektu
-- [ ] **ZONE-05**: Heartbeat / health check — Pi śledzi które zewnętrzne urządzenia są online/offline
+- [x] **ZONE-02**: Zewnętrzne wyświetlacze ogłaszają się w sieci WiFi przez UDP broadcast lub mDNS
+- [x] **ZONE-03**: Pi automatycznie wykrywa i rejestruje dostępne wyświetlacze sieciowe (autodiscovery)
+- [x] **ZONE-04**: Komunikacja z zewnętrznym wyświetlaczem przez WebSocket — przesyłanie tekstu i efektu
+- [x] **ZONE-05**: Heartbeat / health check — Pi śledzi które zewnętrzne urządzenia są online/offline
 - [x] **ZONE-06**: Użytkownik może ręcznie dodać zewnętrzny wyświetlacz przez IP (fallback gdy broadcast nie działa)
 - [x] **ZONE-07**: `POST /api/v1/text?zone=X` — routing tekstu do dowolnej strefy (lokalnej lub sieciowej); harmonogramy mogą mieć przypisany `zoneId`
 - [x] **ZONE-08**: `GET /api/v1/zones` — lista wszystkich zarejestrowanych stref z ich statusem
@@ -123,10 +123,10 @@
 | HOOK-02 | Phase 10 | Complete |
 | HOOK-03 | Phase 10 | Complete |
 | ZONE-01 | Phase 11 | Complete |
-| ZONE-02 | Phase 11 | Pending |
-| ZONE-03 | Phase 11 | Pending |
-| ZONE-04 | Phase 11 | Pending |
-| ZONE-05 | Phase 11 | Pending |
+| ZONE-02 | Phase 11 | Complete |
+| ZONE-03 | Phase 11 | Complete |
+| ZONE-04 | Phase 11 | Complete |
+| ZONE-05 | Phase 11 | Complete |
 | ZONE-06 | Phase 11 | Complete |
 | ZONE-07 | Phase 11 | Complete |
 | ZONE-08 | Phase 11 | Complete |
