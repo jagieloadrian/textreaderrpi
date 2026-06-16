@@ -39,6 +39,7 @@ class HistoryRecordingTest : FunSpec({
             record shouldNotBe null
             record?.source shouldBe "IMMEDIATE"
             record?.effect shouldBe "SCROLL"
+            record?.webhookStatus shouldBe null
         }
     }
 
@@ -49,12 +50,13 @@ class HistoryRecordingTest : FunSpec({
             val deps = application.dependencies
             val screenService = deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>())
             val historyRepo = deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
-            screenService.displayScheduled("sched-test", "sched-id-1", ScrollEffect(), Effect.SCROLL, ConflictPolicy.INTERRUPT)
+            screenService.displayScheduled("sched-test", "sched-id-1", ScrollEffect(), Effect.SCROLL, ConflictPolicy.INTERRUPT, "sent")
             val (items, _) = historyRepo.findPaginated(1, 50)
             val record = items.find { it.scheduleId == "sched-id-1" }
             record shouldNotBe null
             record?.source shouldBe "SCHEDULED"
             record?.effect shouldBe "SCROLL"
+            record?.webhookStatus shouldBe "sent"
         }
     }
 

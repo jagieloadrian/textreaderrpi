@@ -85,7 +85,7 @@ class ConflictPolicyTest : FunSpec({
 
             io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
-            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any()) } answers {
+            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())
             }
 
@@ -124,7 +124,7 @@ class ConflictPolicyTest : FunSpec({
 
             io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
-            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any()) } answers {
+            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())
             }
 

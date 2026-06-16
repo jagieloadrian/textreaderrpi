@@ -11,6 +11,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -34,7 +35,8 @@ class SchedulerServiceTest : FunSpec({
         clearMocks(mockRepo, mockScreen, mockFactory, mockRenderer, mockWebhook)
         coEvery { mockFactory.create(any()) } returns mockRenderer
         coEvery { mockRepo.findAllActive() } returns emptyList()
-        coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any()) } returns true
+        coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } returns true
+        every { mockWebhook.willSend(any()) } returns false
     }
 
     test("should fire display after target delay for ONESHOT schedule") {
@@ -50,9 +52,9 @@ class SchedulerServiceTest : FunSpec({
             )
             service.schedule(schedule)
 
-            coVerify(exactly = 0) { mockScreen.displayScheduled(any(), any(), any(), any(), any()) }
+            coVerify(exactly = 0) { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) }
             advanceTimeBy(60_001L.milliseconds)
-            coVerify(exactly = 1) { mockScreen.displayScheduled("hello", "s1", any(), any(), any()) }
+            coVerify(exactly = 1) { mockScreen.displayScheduled("hello", "s1", any(), any(), any(), any()) }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
@@ -72,7 +74,7 @@ class SchedulerServiceTest : FunSpec({
             )
             service.schedule(schedule)
             advanceTimeBy(30_000L.milliseconds)
-            coVerify(exactly = 0) { mockScreen.displayScheduled("early", any(), any(), any(), any()) }
+            coVerify(exactly = 0) { mockScreen.displayScheduled("early", any(), any(), any(), any(), any()) }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
@@ -91,7 +93,7 @@ class SchedulerServiceTest : FunSpec({
             )
             service.schedule(schedule)
             advanceTimeBy((3 * 5 * 60_000L + 1L).milliseconds)
-            coVerify(exactly = 3) { mockScreen.displayScheduled("recurring", "s3", any(), any(), any()) }
+            coVerify(exactly = 3) { mockScreen.displayScheduled("recurring", "s3", any(), any(), any(), any()) }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
@@ -150,7 +152,7 @@ class SchedulerServiceTest : FunSpec({
             advanceTimeBy(1L.milliseconds)
 
             coVerify(exactly = 1) { mockRepo.updateStatus("s-cxl", "DONE") }
-            coVerify(exactly = 0) { mockScreen.displayScheduled(any(), "s-cxl", any(), any(), any()) }
+            coVerify(exactly = 0) { mockScreen.displayScheduled(any(), "s-cxl", any(), any(), any(), any()) }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
@@ -172,7 +174,7 @@ class SchedulerServiceTest : FunSpec({
             service.cancel("s5")
             advanceTimeBy((2 * 60_000L).milliseconds)
 
-            coVerify(exactly = 0) { mockScreen.displayScheduled("cancelme", any(), any(), any(), any()) }
+            coVerify(exactly = 0) { mockScreen.displayScheduled("cancelme", any(), any(), any(), any(), any()) }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
@@ -192,9 +194,9 @@ class SchedulerServiceTest : FunSpec({
             )
             service.schedule(schedule)
 
-            coVerify(exactly = 0) { mockScreen.displayScheduled(any(), any(), any(), any(), any()) }
+            coVerify(exactly = 0) { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) }
             advanceTimeBy(60_001L.milliseconds)
-            coVerify(atLeast = 1) { mockScreen.displayScheduled("cron-text", "s-cron", any(), any(), any()) }
+            coVerify(atLeast = 1) { mockScreen.displayScheduled("cron-text", "s-cron", any(), any(), any(), any()) }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
@@ -216,8 +218,8 @@ class SchedulerServiceTest : FunSpec({
             service.start()
             advanceTimeBy((5L * 60_001L).milliseconds)
 
-            coVerify(atLeast = 1) { mockScreen.displayScheduled("active text", "active-1", any(), any(), any()) }
-            coVerify(exactly = 0) { mockScreen.displayScheduled(any(), match { it != "active-1" }, any(), any(), any()) }
+            coVerify(atLeast = 1) { mockScreen.displayScheduled("active text", "active-1", any(), any(), any(), any()) }
+            coVerify(exactly = 0) { mockScreen.displayScheduled(any(), match { it != "active-1" }, any(), any(), any(), any()) }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
@@ -229,7 +231,7 @@ class SchedulerServiceTest : FunSpec({
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
             val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
 
-            coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any()) } returns true
+            coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } returns true
 
             val schedule = Schedule(
                 id = "sn-mr", text = "skip-new-test",
@@ -240,7 +242,7 @@ class SchedulerServiceTest : FunSpec({
             service.schedule(schedule)
             advanceTimeBy((3L * 60_001L).milliseconds)
 
-            coVerify(atLeast = 2) { mockScreen.displayScheduled("skip-new-test", "sn-mr", any(), any(), any()) }
+            coVerify(atLeast = 2) { mockScreen.displayScheduled("skip-new-test", "sn-mr", any(), any(), any(), any()) }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
@@ -259,7 +261,7 @@ class SchedulerServiceTest : FunSpec({
             )
             service.schedule(schedule)
             advanceTimeBy((10 * 60_000L + 1L).milliseconds)
-            coVerify(atMost = 2) { mockScreen.displayScheduled("bounded", "s4", any(), any(), any()) }
+            coVerify(atMost = 2) { mockScreen.displayScheduled("bounded", "s4", any(), any(), any(), any()) }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
@@ -269,6 +271,7 @@ class SchedulerServiceTest : FunSpec({
     test("should send webhook after schedule fires successfully") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
+            every { mockWebhook.willSend(any()) } returns true
             val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope, webhookService = mockWebhook)
 
             val schedule = Schedule(
@@ -281,6 +284,7 @@ class SchedulerServiceTest : FunSpec({
             service.schedule(schedule)
             advanceTimeBy(60_001L.milliseconds)
             coVerify(exactly = 1) { mockWebhook.send(schedule, any()) }
+            coVerify(exactly = 1) { mockScreen.displayScheduled(any(), any(), any(), any(), any(), "sent") }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
@@ -290,7 +294,7 @@ class SchedulerServiceTest : FunSpec({
     test("should not send webhook when display is skipped or fails") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any()) } returns false
+            coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } returns false
             val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope, webhookService = mockWebhook)
 
             val schedule = Schedule(
@@ -303,6 +307,27 @@ class SchedulerServiceTest : FunSpec({
             service.schedule(schedule)
             advanceTimeBy(60_001L.milliseconds)
             coVerify(exactly = 0) { mockWebhook.send(any(), any()) }
+
+            service.stop()
+            testScope.coroutineContext[Job]?.cancel()
+        }
+    }
+
+    test("should record webhookStatus skipped when no webhook URL is configured") {
+        runTest {
+            val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
+            every { mockWebhook.willSend(any()) } returns false
+            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope, webhookService = mockWebhook)
+
+            val schedule = Schedule(
+                id = "wh-no-url", text = "no-url-text",
+                triggerType = TriggerType.ONESHOT,
+                triggerValue = Instant.now().plusMillis(60_000L).toString(),
+                effect = Effect.SCROLL
+            )
+            service.schedule(schedule)
+            advanceTimeBy(60_001L.milliseconds)
+            coVerify(exactly = 1) { mockScreen.displayScheduled(any(), any(), any(), any(), any(), "skipped") }
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()

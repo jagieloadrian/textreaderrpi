@@ -101,6 +101,9 @@ fun FlowContent.historyPage(
                 if (item.zoneId != null) {
                     p { strong { +"Zone:" }; +item.zoneId }
                 }
+                if (item.webhookStatus != null) {
+                    p { strong { +"Webhook:" }; +item.webhookStatus }
+                }
                 p { strong { +"Displayed at:" }; +item.displayedAt }
             }
         }

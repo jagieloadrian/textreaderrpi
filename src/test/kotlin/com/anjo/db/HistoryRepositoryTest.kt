@@ -28,14 +28,15 @@ class HistoryRepositoryTest : FunSpec({
     fun makeRecord(text: String = "hello", effect: String = "SCROLL", source: String = "IMMEDIATE") =
         HistoryRecord(text = text, effect = effect, source = source)
 
-    test("should insert and round-trip all columns including scheduleId and zoneId") {
+    test("should insert and round-trip all columns including scheduleId, zoneId, and webhookStatus") {
         runTest {
             val record = HistoryRecord(
                 text = "test text",
                 effect = "BLINK",
                 source = "SCHEDULED",
                 scheduleId = "sched-123",
-                zoneId = "zone-a"
+                zoneId = "zone-a",
+                webhookStatus = "sent"
             )
             val inserted = repository.insert(record)
 
@@ -46,12 +47,20 @@ class HistoryRepositoryTest : FunSpec({
             inserted.source shouldBe "SCHEDULED"
             inserted.scheduleId shouldBe "sched-123"
             inserted.zoneId shouldBe "zone-a"
+            inserted.webhookStatus shouldBe "sent"
 
             val (items, total) = repository.findPaginated(1, 20)
             total shouldBe 1L
             items[0].id shouldBe inserted.id
             items[0].scheduleId shouldBe "sched-123"
             items[0].zoneId shouldBe "zone-a"
+            items[0].webhookStatus shouldBe "sent"
+
+            val noStatusRecord = makeRecord()
+            val insertedNoStatus = repository.insert(noStatusRecord)
+            insertedNoStatus.webhookStatus shouldBe null
+            val (items2, _) = repository.findPaginated(1, 20)
+            items2.find { it.id == insertedNoStatus.id }?.webhookStatus shouldBe null
         }
     }
 
