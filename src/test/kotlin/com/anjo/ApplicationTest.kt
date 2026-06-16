@@ -4,6 +4,7 @@ import com.anjo.config.model.ApiConfig
 import com.anjo.config.model.ApplicationConfig
 import com.anjo.db.HistoryRepository
 import com.anjo.db.ScheduleRepository
+import com.anjo.service.HistoryService
 import com.anjo.db.ZoneRepository
 import com.anjo.service.EffectRendererFactory
 import com.anjo.service.MetricsCollector
@@ -83,6 +84,7 @@ class ApplicationTest : FunSpec({
             deps.getBlocking<MetricsCollector>(DependencyKey<MetricsCollector>()) shouldNotBeNull {}
             deps.getBlocking<ScheduleRepository>(DependencyKey<ScheduleRepository>()) shouldNotBeNull {}
             deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>()) shouldNotBeNull {}
+            deps.getBlocking<HistoryService>(DependencyKey<HistoryService>()) shouldNotBeNull {}
             deps.getBlocking<EffectRendererFactory>(DependencyKey<EffectRendererFactory>()) shouldNotBeNull {}
             deps.getBlocking<SchedulerService>(DependencyKey<SchedulerService>()) shouldNotBeNull {}
             deps.getBlocking<WebhookService>(DependencyKey<WebhookService>()) shouldNotBeNull {}

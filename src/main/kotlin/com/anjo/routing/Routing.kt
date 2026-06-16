@@ -1,7 +1,6 @@
 package com.anjo.routing
 
 import com.anjo.config.model.ApiConfig
-import com.anjo.db.HistoryRepository
 import com.anjo.db.ScheduleRepository
 import com.anjo.db.ZoneRepository
 import com.anjo.di.installApiRateLimiting
@@ -9,6 +8,7 @@ import com.anjo.routing.ui.historyUIRoutes
 import com.anjo.routing.ui.scheduleUIRoutes
 import com.anjo.routing.ui.webRoutes
 import com.anjo.routing.ui.zonesUIRoutes
+import com.anjo.service.HistoryService
 import com.anjo.service.MetricsCollector
 import com.anjo.service.NetworkDiscoveryService
 import com.anjo.service.SchedulerService
@@ -35,7 +35,7 @@ fun Application.configureRouting() {
     val metricsCollector: MetricsCollector by dependencies
     val scheduleRepository: ScheduleRepository by dependencies
     val schedulerService: SchedulerService by dependencies
-    val historyRepository: HistoryRepository by dependencies
+    val historyService: HistoryService by dependencies
     val networkDiscoveryService: NetworkDiscoveryService by dependencies
     val zoneRepository: ZoneRepository by dependencies
 
@@ -43,7 +43,7 @@ fun Application.configureRouting() {
         staticResources("/static", "static")
         webRoutes(screenDriverService)
         scheduleUIRoutes(scheduleRepository)
-        historyUIRoutes(historyRepository)
+        historyUIRoutes(historyService)
         zonesUIRoutes(zoneRegistry, zoneRepository)
         metricsRoutes(metricsCollector, apiConfig.metricsRateLimitPerMinute)
 
@@ -52,7 +52,7 @@ fun Application.configureRouting() {
             textRoutes(screenDriverService)
             displayRoutes(screenDriverService)
             scheduleRoutes(scheduleRepository, schedulerService)
-            historyRoutes(historyRepository)
+            historyRoutes(historyService)
             zoneRoutes(zoneRegistry, networkDiscoveryService, zoneRepository)
         }
 

@@ -6,6 +6,7 @@ import com.anjo.db.HistoryRepository
 import com.anjo.db.ScheduleRepository
 import com.anjo.db.ZoneRepository
 import com.anjo.service.EffectRendererFactory
+import com.anjo.service.HistoryService
 import com.anjo.service.MetricsCollector
 import com.anjo.model.ScreenDriverMetrics
 import com.anjo.service.NetworkDiscoveryService
@@ -32,6 +33,7 @@ fun Application.configureDI() {
     val metricRegistry = MetricRegistry()
     val screenDriverMetrics = ScreenDriverMetrics.from(metricRegistry, appConfig.metrics)
     val historyRepository = HistoryRepository()
+    val historyService = HistoryService(historyRepository)
     val zoneRepository = ZoneRepository()
     val wsClient = HttpClient(CIO) {
         install(WebSockets) {
@@ -81,6 +83,7 @@ fun Application.configureDI() {
         provide { metricsCollector }
         provide { scheduleRepository }
         provide { historyRepository }
+        provide { historyService }
         provide { effectRendererFactory }
         provide { webhookService }
         provide { schedulerService }
