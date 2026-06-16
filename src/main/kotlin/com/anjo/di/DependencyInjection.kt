@@ -80,6 +80,7 @@ fun Application.configureDI() {
         provide { Dispatchers.IO }
         provide { metricRegistry }
         provide { hardwareMetrics }
+        provide { screenDriverMetrics }
         provide { zoneRegistry }
         provide { zoneRepository }
         provide { networkDiscoveryService }

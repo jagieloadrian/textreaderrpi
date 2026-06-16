@@ -1,6 +1,7 @@
 package com.anjo.di
 
 import com.anjo.service.ScreenDriverService
+import com.anjo.service.ZoneRegistry
 import com.codahale.metrics.MetricRegistry
 import dev.hayden.KHealth
 import io.ktor.http.HttpHeaders
@@ -16,6 +17,7 @@ import io.ktor.server.plugins.di.dependencies
 fun Application.configureMonitoring() {
     val screenDriverService: ScreenDriverService by dependencies
     val metricRegistry: MetricRegistry by dependencies
+    val zoneRegistry: ZoneRegistry by dependencies
 
     install(CallId) {
         header(HttpHeaders.XRequestId)
@@ -31,6 +33,7 @@ fun Application.configureMonitoring() {
 
         healthChecks {
             check("appAlive") { true }
+            check("displayAvailable") { zoneRegistry.listAll().any { it.status == "ONLINE" } }
         }
 
         readyChecks {
