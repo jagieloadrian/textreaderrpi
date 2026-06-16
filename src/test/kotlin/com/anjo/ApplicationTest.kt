@@ -4,6 +4,7 @@ import com.anjo.config.model.ApiConfig
 import com.anjo.config.model.ApplicationConfig
 import com.anjo.db.HistoryRepository
 import com.anjo.db.ScheduleRepository
+import com.anjo.model.HardwareMetrics
 import com.anjo.service.HistoryService
 import com.anjo.db.ZoneRepository
 import com.anjo.service.EffectRendererFactory
@@ -86,6 +87,7 @@ class ApplicationTest : FunSpec({
             deps.getBlocking<ApiConfig>(DependencyKey<ApiConfig>()) shouldNotBeNull {}
             deps.getBlocking<CoroutineDispatcher>(DependencyKey<CoroutineDispatcher>()) shouldNotBeNull {}
             deps.getBlocking<MetricRegistry>(DependencyKey<MetricRegistry>()) shouldNotBeNull {}
+            deps.getBlocking<HardwareMetrics>(DependencyKey<HardwareMetrics>()) shouldNotBeNull {}
             deps.getBlocking<ZoneRegistry>(DependencyKey<ZoneRegistry>()) shouldNotBeNull {}
             deps.getBlocking<ZoneRepository>(DependencyKey<ZoneRepository>()) shouldNotBeNull {}
             deps.getBlocking<NetworkDiscoveryService>(DependencyKey<NetworkDiscoveryService>()) shouldNotBeNull {}

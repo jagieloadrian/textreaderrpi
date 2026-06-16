@@ -23,23 +23,23 @@ class MetricsRoutesTest : FunSpec({
         }
     }
 
-    test("should include timestamp and 2 groups in metrics response") {
+    test("should include timestamp and 3 groups in metrics response") {
         testApplication {
             application { module() }
             val json = Json.parseToJsonElement(client.get("/metrics").bodyAsText()).jsonObject
             json["timestamp"]!!.jsonPrimitive.content.shouldNotBeEmpty()
-            json["groups"]!!.jsonArray shouldHaveSize 2
+            json["groups"]!!.jsonArray shouldHaveSize 3
         }
     }
 
-    test("should have runtime and api groups in metrics") {
+    test("should have runtime, api and hardware groups in metrics") {
         testApplication {
             application { module() }
             val json = Json.parseToJsonElement(client.get("/metrics").bodyAsText()).jsonObject
             val groupNames = json["groups"]!!.jsonArray.map {
                 it.jsonObject["name"]!!.jsonPrimitive.content
             }
-            groupNames shouldBe listOf("runtime", "api")
+            groupNames shouldBe listOf("runtime", "api", "hardware")
         }
     }
 

@@ -1,5 +1,6 @@
 package com.anjo.service
 
+import com.anjo.model.HardwareMetrics
 import com.anjo.model.MetricEntry
 import com.anjo.model.MetricGroup
 import com.anjo.model.MetricsResponse
@@ -9,10 +10,11 @@ import java.time.Instant
 
 class MetricsCollector(
     private val metricRegistry: MetricRegistry,
+    private val hardwareMetrics: HardwareMetrics,
 ) {
     fun collect(): MetricsResponse = MetricsResponse(
         timestamp = Instant.now().toString(),
-        groups = listOf(runtimeGroup(), apiGroup())
+        groups = listOf(runtimeGroup(), apiGroup(), hardwareGroup())
     )
 
     private fun runtimeGroup(): MetricGroup {
@@ -40,4 +42,14 @@ class MetricsCollector(
         }
         return MetricGroup(name = "api", metrics = entries)
     }
+
+    private fun hardwareGroup(): MetricGroup = MetricGroup(
+        name = "hardware",
+        metrics = listOf(
+            MetricEntry(key = "display.failures", type = "counter", count = hardwareMetrics.displayFailureCounter?.count ?: 0L),
+            MetricEntry(key = "recovery.retries", type = "counter", count = hardwareMetrics.recoveryRetryCounter?.count ?: 0L),
+            MetricEntry(key = "display.inFlight", type = "counter", count = hardwareMetrics.inFlightCounter?.count ?: 0L),
+            MetricEntry(key = "display.skipped", type = "counter", count = hardwareMetrics.skippedCounter?.count ?: 0L),
+        )
+    )
 }

@@ -7,6 +7,7 @@ import com.anjo.model.BroadcastResult
 import com.anjo.model.ConflictPolicy
 import com.anjo.model.DisplayType
 import com.anjo.model.Effect
+import com.anjo.model.HardwareMetrics
 import com.anjo.model.HistoryRecord
 import com.anjo.model.ScreenDriverMetrics
 import com.codahale.metrics.Timer
@@ -38,6 +39,7 @@ class ScreenDriverService(
     private val ioDispatcher: CoroutineDispatcher,
     private val retryConfig: RetryConfig,
     private val metrics: ScreenDriverMetrics,
+    private val hardwareMetrics: HardwareMetrics = HardwareMetrics.DISABLED,
     private val effectFactory: EffectRendererFactory = EffectRendererFactory(),
     private val historyRepository: HistoryRepository? = null,
 ) {
@@ -62,6 +64,7 @@ class ScreenDriverService(
         }
         val zoneMutex = acquireMutex(zoneId, conflictPolicy) ?: run {
             log.info("SKIP_NEW: display busy for zone=$zoneId, dropping request for text '${text.take(30)}'")
+            hardwareMetrics.skippedCounter?.inc()
             return DisplayResult.Accepted(false)
         }
         metrics.acceptedMeter?.mark()
@@ -126,6 +129,7 @@ class ScreenDriverService(
     private suspend fun renderImmediate(text: String, effect: Effect, mutex: Mutex, alreadyLocked: Boolean, zoneId: String?) {
         val timerContext: Timer.Context? = metrics.executionTimer?.time()
         metrics.inFlightCounter?.inc()
+        hardwareMetrics.inFlightCounter?.inc()
         try {
             if (zoneId == null) return
             val renderer = effectFactory.create(effect)
@@ -138,6 +142,7 @@ class ScreenDriverService(
             log.error("Display operation failed after retries: ${e.message}", e)
         } finally {
             metrics.inFlightCounter?.dec()
+            hardwareMetrics.inFlightCounter?.dec()
             timerContext?.stop()
             if (alreadyLocked) mutex.unlock()
         }
@@ -190,7 +195,7 @@ class ScreenDriverService(
 
     private suspend fun executeWithRecovery(input: String, renderer: com.anjo.service.effect.EffectRenderer, zoneId: String?) {
         withContext(ioDispatcher) {
-            retryWithBackoff(retryConfig) {
+            retryWithBackoff(retryConfig, hardwareMetrics) {
                 if (zoneId != null) {
                     zoneRegistry.route(zoneId, input, Effect.SCROLL)
                 }
