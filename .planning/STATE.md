@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-16T18:10:48.828Z"
+last_updated: "2026-06-16T18:18:13.953Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 24
-  completed_plans: 22
+  completed_plans: 23
   percent: 67
 ---
 
@@ -21,7 +21,7 @@ progress:
 ## Current Position
 
 Phase: 11.2 (code-quality-cleanup) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 **Next:** `/gsd-execute-phase 12`
 **Last activity:** 2026-06-16
 
@@ -208,6 +208,7 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 | Phase 11-multi-zone-displays P04 | 10min | 3 tasks | 11 files |
 | Phase 11-multi-zone-displays P05 | 6min | 2 tasks | 6 files |
 | Phase 11.2 P01 | 20 minutes | 2 tasks | 13 files |
+| Phase 11.2 P02 | 12 minutes | 2 tasks | 6 files |
 
 ## Decisions
 
@@ -248,3 +249,4 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 - [Phase ?]: IpValidation object deleted; RFC1918 logic migrated verbatim into RequestValidators plugin validator
 - [Phase ?]: DisplayType enum enforced in DisplayConfig and ZoneConfig; ConfigLoader uses parseDisplayType() helper with UNKNOWN->MAX7219 fallback
 - [Phase ?]: ZoneRegistry initLocalZone uses exhaustive enum when dispatch; passes .name to LocalZoneDriver (String field)
+- [Phase ?]: [Phase 11.2-02]: HistoryService concrete class introduced; routes typed to service not repository; HistoryRepository binding retained for test seeding
