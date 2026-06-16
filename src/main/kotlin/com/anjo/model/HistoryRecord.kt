@@ -10,7 +10,8 @@ data class HistoryRecord(
     val source: String,
     val scheduleId: String? = null,
     val zoneId: String? = null,
-    val displayedAt: String = ""
+    val displayedAt: String = "",
+    val webhookStatus: String? = null
 )
 
 @Serializable

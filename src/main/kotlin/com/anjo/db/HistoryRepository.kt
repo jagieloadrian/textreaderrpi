@@ -34,6 +34,7 @@ class HistoryRepository {
                 it[scheduleId] = record.scheduleId
                 it[zoneId] = record.zoneId
                 it[displayedAt] = now
+                it[webhookStatus] = record.webhookStatus
             }
         }
         return record.copy(id = newId, displayedAt = now)
@@ -72,7 +73,8 @@ class HistoryRepository {
         source = this[HistoryTable.displaySource],
         scheduleId = this[HistoryTable.scheduleId],
         zoneId = this[HistoryTable.zoneId],
-        displayedAt = this[HistoryTable.displayedAt]
+        displayedAt = this[HistoryTable.displayedAt],
+        webhookStatus = this[HistoryTable.webhookStatus]
     )
 
     companion object {

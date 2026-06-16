@@ -10,6 +10,7 @@ object HistoryTable : Table("display_history") {
     val scheduleId = varchar("schedule_id", 36).nullable()
     val zoneId = varchar("zone_id", 64).nullable()
     val displayedAt = varchar("displayed_at", 32)
+    val webhookStatus = varchar("webhook_status", 20).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }
