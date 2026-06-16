@@ -68,6 +68,15 @@ class ApplicationTest : FunSpec({
         }
     }
 
+    test("should read discoveryEnabled as false from system property in test JVM") {
+        testApplication {
+            application { module() }
+            client.get("/health")
+            val appConfig = application.dependencies.getBlocking<ApplicationConfig>(DependencyKey<ApplicationConfig>())
+            appConfig.discoveryEnabled shouldBe false
+        }
+    }
+
     test("should resolve all configureDI bindings without error") {
         testApplication {
             application { module() }
