@@ -214,7 +214,15 @@
   5. `IpValidation` object is removed; IP validation moved into the `RequestValidation` plugin via an `AddZoneRequest` body model
   6. `historyUIRoutes` and `historyRoutes` receive a `HistoryService` instead of `HistoryRepository` directly; no route handler imports or calls `HistoryRepository`
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Prerequisite** *(D-23 — before execution)*: Commit current working-tree changes as `fix(11): duration-api + minor cleanup` (Duration.milliseconds conversions, HistoryRepository expression form, LcdDisplay/OledDisplay init inlining). These are phase 11 post-UAT cleanup, not part of 11.2.
+
+**Wave 1** *(disjoint files — run in parallel)*
+
+- [ ] 11.2-01-PLAN.md — Validation plugin migration + DisplayType enum enforcement: delete IpValidation, add AddZoneRequest + plugin validators (IP + display-type), flip ZoneRoutes POST to body, remove DisplayRoutes if-chain, DisplayConfig/ZoneConfig type→DisplayType, ConfigLoader fromString (3 sites), ZoneRegistry enum when; ZoneRoutesTest + WebAndDisplayRoutesTest updated to 422
+- [ ] 11.2-02-PLAN.md — HistoryService layer: new HistoryService wrapping HistoryRepository, historyRoutes/historyUIRoutes re-typed to service, Routing + DependencyInjection rewired (HistoryRepository binding retained), ApplicationTest DI smoke extended
+- [ ] 11.2-03-PLAN.md — Service nesting reductions: NetworkDiscoveryService (startMdnsListener + buildNetworkZone), SchedulerService (checkExpiry + checkMaxRuns), ScreenDriverService (withMutex + acquireMutex + queueDisplaySwitch), WebhookService (executePost); all service tests stay green
 
 ### Phase 12: Observability Gap Closures
 
@@ -263,6 +271,6 @@
 | 9 | Display History + Audit Log | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
 | 10 | Webhooks | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
 | 11 | Multi-Zone Displays | v1.1 | 5/5 | ✅ Complete | 2026-06-16 |
-| 11.2 | Code Quality Cleanup | v1.1 | 0/? | Not started | - |
+| 11.2 | Code Quality Cleanup | v1.1 | 0/3 | Not started | - |
 | 12 | Observability Gap Closures | v1.1 | 0/? | Not started | - |
 | 13 | UI/UX Refresh | v1.1 | 0/? | Not started | - |
