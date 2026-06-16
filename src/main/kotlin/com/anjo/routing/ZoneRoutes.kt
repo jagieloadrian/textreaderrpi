@@ -1,12 +1,13 @@
 package com.anjo.routing
 
 import com.anjo.db.ZoneRepository
+import com.anjo.model.AddZoneRequest
 import com.anjo.model.DisplayType
 import com.anjo.model.NetworkZone
 import com.anjo.service.NetworkDiscoveryService
 import com.anjo.service.ZoneRegistry
-import com.anjo.validation.IpValidation
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
@@ -46,28 +47,22 @@ fun Route.zoneRoutes(
             call.respond(discovered)
         }
 
-        post("/{ip}") {
-            val ip = call.parameters["ip"]
-                ?: return@post call.respond(HttpStatusCode.BadRequest, "missing ip")
+        post {
+            val req = call.receive<AddZoneRequest>()
 
-            if (!IpValidation.isValidPrivateIpv4(ip)) {
-                log.warn("POST /zones/{ip} rejected non-RFC1918 IP: $ip")
-                return@post call.respond(HttpStatusCode.BadRequest, "IP must be a valid RFC1918 private address")
+            if (zoneRegistry.containsIp(req.ip)) {
+                return@post call.respond(HttpStatusCode.Conflict, "Zone with IP ${req.ip} is already registered")
             }
 
-            if (zoneRegistry.containsIp(ip)) {
-                return@post call.respond(HttpStatusCode.Conflict, "Zone with IP $ip is already registered")
-            }
-
-            val existing = zoneRepository.findById(ip)
+            val existing = zoneRepository.findById(req.ip)
             if (existing != null) {
-                return@post call.respond(HttpStatusCode.Conflict, "Zone with IP $ip is already registered")
+                return@post call.respond(HttpStatusCode.Conflict, "Zone with IP ${req.ip} is already registered")
             }
 
             val zone = NetworkZone(
-                id = ip,
-                name = ip,
-                ip = ip,
+                id = req.ip,
+                name = req.ip,
+                ip = req.ip,
                 type = DisplayType.MAX7219.name,
                 discoveryMethod = "MANUAL",
                 createdAt = Instant.now().toString(),
@@ -75,7 +70,7 @@ fun Route.zoneRoutes(
             )
             zoneRepository.upsert(zone)
             zoneRegistry.addNetworkZone(zone)
-            log.info("Manual zone added: ip=$ip")
+            log.info("Manual zone added: ip=${req.ip}")
             call.respond(HttpStatusCode.Created, zone)
         }
     }
