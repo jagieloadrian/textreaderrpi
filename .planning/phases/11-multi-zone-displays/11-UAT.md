@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 11-multi-zone-displays
 source: [11-01-SUMMARY.md, 11-02-SUMMARY.md, 11-03-SUMMARY.md, 11-04-SUMMARY.md, 11-05-SUMMARY.md]
 started: "2026-06-16T00:00:00Z"
@@ -87,4 +87,50 @@ skipped: 0
 
 ## Gaps
 
-[none yet]
+- truth: "/zones UI pokazuje strefy poprawnie bez duplikatów"
+  status: failed
+  reason: "Registered Zones miesza wiersze — 1 wiersz dla main, 2. wiersz z info o main i manualnie dodanej strefie"
+  severity: major
+  test: post-uat
+  artifacts: [ZonesPage.kt, ZonesUIRoutes.kt]
+  missing: [logika de-duplikacji lub błąd w mapowaniu ZoneInfo]
+
+- truth: "TextRoutes nie zawiera martwego kodu"
+  status: failed
+  reason: "ZoneRegistry jest wstrzyknięty do TextRoutes ale nie jest używany"
+  severity: minor
+  test: post-uat
+  artifacts: [TextRoutes.kt]
+  missing: [usunięcie nieużywanego parametru lub podpięcie go do logiki]
+
+- truth: "ZoneRoutes używa konwencji RequestValidation jak reszta projektu"
+  status: failed
+  reason: "ZoneRoutes waliduje ręcznie (isValidPrivateIpv4) zamiast użyć RequestValidationConfig.kt — zaśmieca kontroler"
+  severity: minor
+  test: post-uat
+  artifacts: [ZoneRoutes.kt, RequestValidationConfig.kt]
+  missing: [przeniesienie walidacji IP do RequestValidationConfig]
+
+- truth: "ZoneRegistry nie ma nadmiarowych pól ConcurrentHashMap"
+  status: failed
+  reason: "ZoneRegistry ma 3 osobne ConcurrentHashMap (zones, localZoneIds, ipIndex) — mogą prowadzić do blokad i desynchronizacji"
+  severity: minor
+  test: post-uat
+  artifacts: [ZoneRegistry.kt]
+  missing: [uproszczenie do jednej struktury lub value object]
+
+- truth: "NetworkZoneDriver używa rzeczywistego typu wyświetlacza, nie hardkodowanego MAX7219"
+  status: failed
+  reason: "NetworkZoneDriver.status() hardkoduje type='MAX7219' — zewnętrzne urządzenia mogą mieć różne typy; hardkodowane stringi zamiast enum w kilku plikach"
+  severity: major
+  test: post-uat
+  artifacts: [NetworkZoneDriver.kt, NetworkDiscoveryService.kt]
+  missing: [enum DisplayType, przekazanie typu z NetworkZone do drivera]
+
+- truth: "Build z testami kończy się poniżej 3 minut, brak ignorowanych testów"
+  status: failed
+  reason: "Niektóre testy trwają 2,5s, cały build >7 minut; 1 test jest @Ignore"
+  severity: major
+  test: post-uat
+  artifacts: []
+  missing: [zidentyfikowanie wolnych testów, usunięcie @Ignore lub naprawa testu]
