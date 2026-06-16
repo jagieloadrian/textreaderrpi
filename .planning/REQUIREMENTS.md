@@ -26,7 +26,7 @@
 
 - [x] **OBS-01**: `GET /health/detail` zwraca rozszerzony payload: uptime, memory, display status, error counts
 - [ ] **OBS-02**: `GET /metrics` zawiera hardware group — display failures, recovery retries, resource utilization
-- [ ] **OBS-03**: Strony HTML 404/500 są dostępne w przeglądarce dla nieznanych GET routes (fix Ktor SwaggerUI catch-all)
+- [x] **OBS-03**: Strony HTML 404/500 są dostępne w przeglądarce dla nieznanych GET routes (fix Ktor SwaggerUI catch-all)
 
 ---
 
@@ -132,7 +132,7 @@
 | ZONE-08 | Phase 11 | Complete |
 | OBS-01 | Phase 12 | Complete |
 | OBS-02 | Phase 12 | Pending |
-| OBS-03 | Phase 12 | Pending |
+| OBS-03 | Phase 12 | Complete |
 | UI-01 | Phase 13 | Pending |
 | UI-02 | Phase 13 | Pending |
 | UI-03 | Phase 13 | Pending |

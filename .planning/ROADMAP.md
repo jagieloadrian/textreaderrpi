@@ -33,7 +33,7 @@
 - [x] **Phase 10: Webhooks** — HTTP POST notifications fired on schedule trigger (completed 2026-06-15)
 - [x] **Phase 11: Multi-Zone Displays** — Multiple local and network displays managed and routable (completed 2026-06-16)
 - [x] **Phase 11.2: Code Quality Cleanup** — Service nesting reduced, enum types enforced, repository calls removed from routes (completed 2026-06-16)
-- [ ] **Phase 12: Observability Gap Closures** — v1.0 audit gaps closed (health/detail, metrics hardware, HTML error pages)
+- [x] **Phase 12: Observability Gap Closures** — v1.0 audit gaps closed (health/detail, metrics hardware, HTML error pages) (completed 2026-06-16)
 - [ ] **Phase 13: UI/UX Refresh** — Material 3 style, side nav, all new pages deployed
 
 ---
@@ -247,7 +247,7 @@
 
 **Wave 3** *(blocked on Wave 2 — shared Routing.kt + ApplicationTest)*
 
-- [ ] 12-03-PLAN.md — OBS-03: verify/lock HTML 404 page for browser navigation (swaggerUI ordering) + automated content-type assertion + human-verify checkpoint (SC-3)
+- [x] 12-03-PLAN.md — OBS-03: verify/lock HTML 404 page for browser navigation (swaggerUI ordering) + automated content-type assertion + human-verify checkpoint (SC-3)
 
 ### Phase 13: UI/UX Refresh
 
