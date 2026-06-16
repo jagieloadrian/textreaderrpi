@@ -32,7 +32,7 @@
 - [x] **Phase 9: Display History + Audit Log** — Every display event persisted and browsable (completed 2026-06-15)
 - [x] **Phase 10: Webhooks** — HTTP POST notifications fired on schedule trigger (completed 2026-06-15)
 - [x] **Phase 11: Multi-Zone Displays** — Multiple local and network displays managed and routable (completed 2026-06-16)
-- [ ] **Phase 11.2: Code Quality Cleanup** — Service nesting reduced, enum types enforced, repository calls removed from routes
+- [x] **Phase 11.2: Code Quality Cleanup** — Service nesting reduced, enum types enforced, repository calls removed from routes (completed 2026-06-16)
 - [ ] **Phase 12: Observability Gap Closures** — v1.0 audit gaps closed (health/detail, metrics hardware, HTML error pages)
 - [ ] **Phase 13: UI/UX Refresh** — Material 3 style, side nav, all new pages deployed
 
@@ -221,8 +221,8 @@
 **Wave 1** *(disjoint files — run in parallel)*
 
 - [x] 11.2-01-PLAN.md — Validation plugin migration + DisplayType enum enforcement: delete IpValidation, add AddZoneRequest + plugin validators (IP + display-type), flip ZoneRoutes POST to body, remove DisplayRoutes if-chain, DisplayConfig/ZoneConfig type→DisplayType, ConfigLoader fromString (3 sites), ZoneRegistry enum when; ZoneRoutesTest + WebAndDisplayRoutesTest updated to 422
-- [ ] 11.2-02-PLAN.md — HistoryService layer: new HistoryService wrapping HistoryRepository, historyRoutes/historyUIRoutes re-typed to service, Routing + DependencyInjection rewired (HistoryRepository binding retained), ApplicationTest DI smoke extended
-- [ ] 11.2-03-PLAN.md — Service nesting reductions: NetworkDiscoveryService (startMdnsListener + buildNetworkZone), SchedulerService (checkExpiry + checkMaxRuns), ScreenDriverService (withMutex + acquireMutex + queueDisplaySwitch), WebhookService (executePost); all service tests stay green
+- [x] 11.2-02-PLAN.md — HistoryService layer: new HistoryService wrapping HistoryRepository, historyRoutes/historyUIRoutes re-typed to service, Routing + DependencyInjection rewired (HistoryRepository binding retained), ApplicationTest DI smoke extended
+- [x] 11.2-03-PLAN.md — Service nesting reductions: NetworkDiscoveryService (startMdnsListener + buildNetworkZone), SchedulerService (checkExpiry + checkMaxRuns), ScreenDriverService (withMutex + acquireMutex + queueDisplaySwitch), WebhookService (executePost); all service tests stay green
 
 ### Phase 12: Observability Gap Closures
 
