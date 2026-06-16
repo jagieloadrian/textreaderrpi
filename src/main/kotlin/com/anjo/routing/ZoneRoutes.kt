@@ -53,7 +53,7 @@ fun Route.zoneRoutes(
                 return@post call.respond(HttpStatusCode.BadRequest, "IP must be a valid RFC1918 private address")
             }
 
-            if (zoneRegistry.contains(ip)) {
+            if (zoneRegistry.containsIp(ip)) {
                 return@post call.respond(HttpStatusCode.Conflict, "Zone with IP $ip is already registered")
             }
 

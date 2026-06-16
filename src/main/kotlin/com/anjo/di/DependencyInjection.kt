@@ -64,6 +64,7 @@ fun Application.configureDI() {
         webhookService.stop()
         screenDriverService.stop()
         networkDiscoveryService.stop()
+        zoneRegistry.stop()
         wsClient.close()
     }
 

@@ -45,7 +45,7 @@ class NetworkZoneDriver(
                 } finally {
                     online = false
                     session = null
-                    delay(5_000.milliseconds)
+                    if (isActive) delay(5_000.milliseconds)
                 }
             }
         }

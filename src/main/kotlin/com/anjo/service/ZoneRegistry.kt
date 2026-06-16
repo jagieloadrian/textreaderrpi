@@ -29,6 +29,8 @@ class ZoneRegistry() {
 
     private val log = LoggerFactory.getLogger(ZoneRegistry::class.java)
     private val zones = ConcurrentHashMap<String, ZoneDriver>()
+    private val localZoneIds = ConcurrentHashMap.newKeySet<String>()
+    private val ipIndex = ConcurrentHashMap<String, String>()
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var wsClient: HttpClient? = null
 
@@ -69,6 +71,7 @@ class ZoneRegistry() {
             log.warn("Zone '${zoneConfig.id}' hardware init failed: ${e.message}; registering OFFLINE")
             OfflineDisplayDriver
         }
+        localZoneIds.add(zoneConfig.id)
         zones[zoneConfig.id] = LocalZoneDriver(id = zoneConfig.id, type = zoneConfig.type, driver = driver)
     }
 
@@ -107,11 +110,23 @@ class ZoneRegistry() {
 
     fun removeZone(id: String): Boolean {
         val driver = zones.remove(id) ?: return false
+        val ip = driver.status().ip
+        if (ip != null) ipIndex.remove(ip)
         driver.stop()
         return true
     }
 
+    fun containsIp(ip: String): Boolean = ipIndex.containsKey(ip)
+
+    fun stop() {
+        zones.values.forEach { it.stop() }
+    }
+
     fun addNetworkZone(zone: NetworkZone, client: HttpClient) {
+        if (localZoneIds.contains(zone.id)) {
+            log.warn("Ignoring network zone '${zone.id}': conflicts with a local hardware zone")
+            return
+        }
         val driver = NetworkZoneDriver(
             id = zone.id,
             ip = zone.ip,
@@ -119,6 +134,7 @@ class ZoneRegistry() {
             client = client
         )
         driver.startConnect()
-        zones[zone.id] = driver
+        zones.put(zone.id, driver)?.stop()
+        ipIndex[zone.ip] = zone.id
     }
 }

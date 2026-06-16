@@ -9,12 +9,11 @@ import io.ktor.http.ContentType
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import kotlinx.coroutines.runBlocking
 
 fun Route.zonesUIRoutes(zoneRegistry: ZoneRegistry, zoneRepository: ZoneRepository) {
     get("/zones") {
         val liveStatuses = zoneRegistry.listAll()
-        val networkZones = runBlocking { zoneRepository.findAll() }
+        val networkZones = zoneRepository.findAll()
         val networkZoneMap = networkZones.associateBy { it.id }
 
         val zones = liveStatuses.map { zoneStatus ->

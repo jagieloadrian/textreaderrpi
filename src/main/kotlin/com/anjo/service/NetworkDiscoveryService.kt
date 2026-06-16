@@ -107,10 +107,11 @@ class NetworkDiscoveryService(
     }
 
     private suspend fun onDeviceDiscovered(ip: String, method: String, name: String? = null, type: String = "MAX7219") {
-        val zoneId = name ?: ip
+        val sanitised = name?.replace(Regex("[^a-zA-Z0-9._-]"), "-")?.take(64)
+        val zoneId = sanitised?.takeIf { it.isNotBlank() } ?: ip
         val zone = NetworkZone(
             id = zoneId,
-            name = name ?: ip,
+            name = sanitised ?: ip,
             ip = ip,
             type = type,
             discoveryMethod = method,
@@ -129,9 +130,8 @@ class NetworkDiscoveryService(
     private fun parseDiscoveryReply(json: String, senderIp: String): NetworkZone? {
         return try {
             val nameMatch = Regex(""""name"\s*:\s*"([^"]+)"""").find(json)
-            val ipMatch = Regex(""""ip"\s*:\s*"([^"]+)"""").find(json)
             val typeMatch = Regex(""""type"\s*:\s*"([^"]+)"""").find(json)
-            val ip = ipMatch?.groupValues?.get(1) ?: senderIp
+            val ip = senderIp
             val name = nameMatch?.groupValues?.get(1) ?: ip
             val type = typeMatch?.groupValues?.get(1) ?: "MAX7219"
             NetworkZone(
