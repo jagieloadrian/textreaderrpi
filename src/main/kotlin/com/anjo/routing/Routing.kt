@@ -8,6 +8,7 @@ import com.anjo.di.installApiRateLimiting
 import com.anjo.routing.ui.historyUIRoutes
 import com.anjo.routing.ui.scheduleUIRoutes
 import com.anjo.routing.ui.webRoutes
+import com.anjo.routing.ui.zonesUIRoutes
 import com.anjo.service.MetricsCollector
 import com.anjo.service.NetworkDiscoveryService
 import com.anjo.service.SchedulerService
@@ -43,6 +44,7 @@ fun Application.configureRouting() {
         webRoutes(screenDriverService)
         scheduleUIRoutes(scheduleRepository)
         historyUIRoutes(historyRepository)
+        zonesUIRoutes(zoneRegistry, zoneRepository)
         metricsRoutes(metricsCollector, apiConfig.metricsRateLimitPerMinute)
 
         route("/api/v1") {
