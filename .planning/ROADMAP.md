@@ -181,7 +181,7 @@
 **Wave 1** *(disjoint files — run in parallel)*
 
 - [x] 11-01-PLAN.md — Foundation: ZonesConfig/ZoneConfig model, NetworkZonesTable + NetworkZone + ZoneRepository + V5 migration, ktor-client-websockets + jmdns dependencies, ZoneRepositoryTest
-- [ ] 11-02-PLAN.md — Zone abstraction: ZoneDriver interface + LocalZoneDriver (wraps DisplayDriver, OFFLINE fallback) + ZoneStatus model + LocalZoneDriverTest
+- [x] 11-02-PLAN.md — Zone abstraction: ZoneDriver interface + LocalZoneDriver (wraps DisplayDriver, OFFLINE fallback) + ZoneStatus model + LocalZoneDriverTest
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -241,6 +241,6 @@
 | 8 | Refactor + Dead Code Analysis | v1.1 | 5/5 | ✅ Complete | 2026-06-15 |
 | 9 | Display History + Audit Log | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
 | 10 | Webhooks | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
-| 11 | Multi-Zone Displays | v1.1 | 1/5 | 🚧 Executing | - |
+| 11 | Multi-Zone Displays | v1.1 | 2/5 | 🚧 Executing | - |
 | 12 | Observability Gap Closures | v1.1 | 0/? | Not started | - |
 | 13 | UI/UX Refresh | v1.1 | 0/? | Not started | - |

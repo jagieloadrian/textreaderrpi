@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-16T11:05:34Z"
+last_updated: "2026-06-16T11:01:17Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 21
-  completed_plans: 17
-  percent: 65
+  completed_plans: 18
+  percent: 68
 ---
 
 # Project State & Memory
@@ -21,7 +21,7 @@ progress:
 ## Current Position
 
 Phase: 11 (multi-zone-displays) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 **Next:** `/gsd-execute-phase 11`
 **Last activity:** 2026-06-16
 
@@ -195,6 +195,7 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 | Phase 10 P01 | 22 minutes | 2 tasks | 10 files |
 | Phase 10-webhooks P02 | 4 minutes | 2 tasks | 4 files |
 | Phase 11 P01 | 12 minutes | 2 tasks | 8 files |
+| Phase 11 P02 | 15 minutes | 2 tasks | 5 files |
 
 ## Decisions
 
@@ -219,3 +220,6 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 - [Phase 11 P01]: ZoneConfig.bus + chipSelect (not gpioPins map) — matches Pi4J SpiBus/SpiChipSelect API per D-03
 - [Phase 11 P01]: No status column in NetworkZonesTable — zone status is in-memory only per D-05
 - [Phase 11 P01]: ZoneRepository.upsert() refreshes all writable fields on update including ip — enables re-discovery to capture IP changes
+- [Phase 11 P02]: LocalZoneDriver.send() calls driver.write() for all effects (synchronous direct write path); scrollText() is fire-and-forget so bypassed — Plan 03's ScreenDriverService pipeline owns full effect rendering
+- [Phase 11 P02]: ZoneStatus.status is String not enum — matches DB column convention per plan (ONLINE/OFFLINE/DEGRADED)
+- [Phase 11 P02]: com.anjo.zone package created for ZoneDriver interface and implementations; ZoneStatus lives in com.anjo.model as serializable API model
