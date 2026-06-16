@@ -1,6 +1,6 @@
 package com.anjo.routing.ui
 
-import com.anjo.db.HistoryRepository
+import com.anjo.service.HistoryService
 import com.anjo.web.templates.BaseLayout
 import com.anjo.web.templates.historyPage
 import io.ktor.http.ContentType
@@ -10,7 +10,7 @@ import io.ktor.server.routing.get
 
 private const val MAX_UI_SIZE = 1000L
 
-fun Route.historyUIRoutes(historyRepository: HistoryRepository) {
+fun Route.historyUIRoutes(historyService: HistoryService) {
     get("/history") {
         val page = call.request.queryParameters["page"]?.toIntOrNull()?.coerceAtLeast(1) ?: 1
         val rawSize = call.request.queryParameters["size"] ?: "20"
@@ -21,7 +21,7 @@ fun Route.historyUIRoutes(historyRepository: HistoryRepository) {
         val expandAll = call.request.queryParameters["expand"] == "all"
         val effectFilter = effect.takeIf { it.isNotEmpty() && it != "ALL" }
         val sourceFilter = source.takeIf { it.isNotEmpty() && it != "ALL" }
-        val (items, total) = historyRepository.findPaginated(page, size, effectFilter, sourceFilter)
+        val (items, total) = historyService.findPaginated(page, size, effectFilter, sourceFilter)
         val html = BaseLayout.render(pageTitle = "History — TextReaderRpi", activePath = "/history") {
             historyPage(items, page, rawSize, total, expandAll, effect, source)
         }
