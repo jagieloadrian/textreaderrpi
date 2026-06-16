@@ -534,17 +534,19 @@ This phase is purely code/config changes. No new external dependencies. The exis
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **ZoneStatus.error field: add or derive?**
+1. **ZoneStatus.error field: add or derive?** — RESOLVED
    - What we know: `ZoneStatus` has no `error` field; `DisplayStatus` (in `AbstractDisplayDriver`) does have `lastError: String?`
    - What's unclear: D-02 says "zoneId → `DisplayStatus.error` per zone" — does this mean add the field to `ZoneStatus` and propagate, or derive a synthetic error string from the OFFLINE status?
    - Recommendation: Add `error: String?` to `ZoneStatus` (Option 1). Propagate it in `LocalZoneDriver.status()` from `driverStatus.error`. `NetworkZoneDriver` can set it to `"OFFLINE"` when `!online`. This is additive, zero breaking changes, and aligns with D-02 wording.
+   - **Decision:** Option 1 implemented in Plan 12-02 Task 1.
 
-2. **`HealthDetailResponse` data source for `totalFailures`**
+2. **`HealthDetailResponse` data source for `totalFailures`** — RESOLVED
    - What we know: D-02 says `totalFailures` comes from `ScreenDriverMetrics.failedMeter.count`
    - What's unclear: `ScreenDriverMetrics` is injected into `ScreenDriverService`, not into `Routing.kt`. The health route needs access to it. It should be injected from DI (same as `metricsCollector`).
    - Recommendation: Pass `ScreenDriverMetrics` (or `ScreenDriverService`) as a parameter to `healthRoutes()`. Since `screenDriverService` is already in DI, the cleaner approach is to expose a `failedCount(): Long` fun on `ScreenDriverService` that delegates to `metrics.failedMeter?.count ?: 0L`.
+   - **Decision:** `screenDriverMetrics` passed directly to `healthRoutes()` via DI in Plan 12-02 Task 2.
 
 ---
 
