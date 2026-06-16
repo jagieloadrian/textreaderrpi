@@ -235,7 +235,19 @@
   2. `GET /metrics` response includes a hardware group with display failure counts, recovery retry counts, and resource slot utilisation
   3. Navigating a browser to an unknown path (e.g. `/does-not-exist`) renders an HTML 404 page instead of a Swagger JSON response
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Wave 1**
+
+- [ ] 12-01-PLAN.md — OBS-02: HardwareMetrics class (4 Dropwizard counters) + retryWithBackoff instrumentation + MetricsCollector.hardwareGroup() + DI wiring; HardwareMetricsTest/RetryPolicyTest/MetricsRoutesTest/ApplicationTest updated
+
+**Wave 2** *(blocked on Wave 1 — shared DependencyInjection.kt)*
+
+- [ ] 12-02-PLAN.md — OBS-01: GET /health/detail (HealthDetailResponse + healthRoutes, rate-limited) + ZoneStatus.error propagation + displayAvailable KHealth check + Routing/DI wiring; HealthRoutesTest flipped to 200
+
+**Wave 3** *(blocked on Wave 2 — shared Routing.kt + ApplicationTest)*
+
+- [ ] 12-03-PLAN.md — OBS-03: verify/lock HTML 404 page for browser navigation (swaggerUI ordering) + automated content-type assertion + human-verify checkpoint (SC-3)
 
 ### Phase 13: UI/UX Refresh
 
@@ -272,5 +284,5 @@
 | 10 | Webhooks | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
 | 11 | Multi-Zone Displays | v1.1 | 5/5 | ✅ Complete | 2026-06-16 |
 | 11.2 | Code Quality Cleanup | v1.1 | 0/3 | Not started | - |
-| 12 | Observability Gap Closures | v1.1 | 0/? | Not started | - |
+| 12 | Observability Gap Closures | v1.1 | 0/3 | Not started | - |
 | 13 | UI/UX Refresh | v1.1 | 0/? | Not started | - |
