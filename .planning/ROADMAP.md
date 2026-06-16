@@ -185,7 +185,7 @@
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 11-03-PLAN.md — Routing spine: ZoneRegistry (local init + route + parallel broadcast) + BroadcastResult, ScreenDriverService zoneId refactor + per-zone mutex, TextRoutes ?zone= (404/503), config migration to display.zones, DI registry wiring, ZoneRegistryTest + TextApiRouteTest + ApplicationTest
+- [x] 11-03-PLAN.md — Routing spine: ZoneRegistry (local init + route + parallel broadcast) + BroadcastResult, ScreenDriverService zoneId refactor + per-zone mutex, TextRoutes ?zone= (404/503), config migration to display.zones, DI registry wiring, ZoneRegistryTest + TextApiRouteTest + ApplicationTest
 
 **Wave 3** *(blocked on Wave 2)*
 
