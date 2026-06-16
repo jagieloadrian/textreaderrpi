@@ -1,6 +1,6 @@
 # TextReaderRpi - Development Roadmap
 
-**Last Updated:** 2026-06-12
+**Last Updated:** 2026-06-16
 
 ---
 
@@ -175,8 +175,25 @@
   4. A user can manually register an external display by IP address through the web UI when auto-discovery fails
   5. `GET /api/v1/zones` lists every registered zone with its current online/offline status
 
-**Plans**: TBD
+**Plans**: 5 plans
 **UI hint**: yes
+
+**Wave 1** *(disjoint files — run in parallel)*
+
+- [ ] 11-01-PLAN.md — Foundation: ZonesConfig/ZoneConfig model, NetworkZonesTable + NetworkZone + ZoneRepository + V5 migration, ktor-client-websockets + jmdns dependencies, ZoneRepositoryTest
+- [ ] 11-02-PLAN.md — Zone abstraction: ZoneDriver interface + LocalZoneDriver (wraps DisplayDriver, OFFLINE fallback) + ZoneStatus model + LocalZoneDriverTest
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 11-03-PLAN.md — Routing spine: ZoneRegistry (local init + route + parallel broadcast) + BroadcastResult, ScreenDriverService zoneId refactor + per-zone mutex, TextRoutes ?zone= (404/503), config migration to display.zones, DI registry wiring, ZoneRegistryTest + TextApiRouteTest + ApplicationTest
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 11-04-PLAN.md — Network layer: NetworkZoneDriver (WS client + reconnect + heartbeat), NetworkDiscoveryService (UDP scan + JmDNS listener), ZoneRoutes (GET /zones, POST /discover, POST /{ip} RFC1918-gated), shared WS HttpClient + DI/Routing lifecycle wiring, 4 test files
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 11-05-PLAN.md — UI: /zones PicoCSS page (status badges) + ZonesUIRoutes + BaseLayout nav link + app.js scan/add-by-IP handlers + ZonesUIRoutesTest + human-verify checkpoint
 
 ### Phase 12: Observability Gap Closures
 
@@ -224,6 +241,6 @@
 | 8 | Refactor + Dead Code Analysis | v1.1 | 5/5 | ✅ Complete | 2026-06-15 |
 | 9 | Display History + Audit Log | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
 | 10 | Webhooks | v1.1 | 1/2 | 🚧 Executing | - |
-| 11 | Multi-Zone Displays | v1.1 | 0/? | Not started | - |
+| 11 | Multi-Zone Displays | v1.1 | 0/5 | Not started | - |
 | 12 | Observability Gap Closures | v1.1 | 0/? | Not started | - |
 | 13 | UI/UX Refresh | v1.1 | 0/? | Not started | - |
