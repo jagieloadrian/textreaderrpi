@@ -638,19 +638,19 @@ fun Application.configureDI() {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Pi4J SpiBus.BUS_0 + CS_1 on the Dev Machine**
+1. **Pi4J SpiBus.BUS_0 + CS_1 on the Dev Machine** — *Resolved in Plan 03 Task 1:* ZoneConfig carries a `chipSelect` field; Pi4J id and SpiChipSelect are derived from it per zone. If CS_1 is not enabled via `dtoverlay=spi0-2cs`, zone-1 init fails and registers as OFFLINE (D-04). No startup blocker.
    - What we know: `/dev/spidev0.1` exists on a Pi with `dtoverlay=spi0-2cs` or when SPI0 is enabled with 2 CS lines. The Pi4J `LinuxFsSpiProviderImpl` maps directly to this device node.
    - What's unclear: Whether the test Pi has CS_1 enabled in `/boot/config.txt`. If not, zone-1 init will fail and register as OFFLINE (which is acceptable per D-04).
    - Recommendation: Add a setup note in the plan — user must verify `dtoverlay=spi0-2cs` or `dtparam=spi=on` with cs1 enabled if two MAX7219 zones are needed simultaneously. The OFFLINE fallback means this does not block startup.
 
-2. **Shared HttpClient for WebSocket connections**
+2. **Shared HttpClient for WebSocket connections** — *Resolved in Plan 04 Task 3:* A dedicated `val wsClient = HttpClient(CIO) { install(WebSockets) { pingIntervalMillis = 15_000 } }` is created in DI for zone connections. `WebhookService` keeps its own client with ContentNegotiation. Two clients, different purposes.
    - What we know: Existing `WebhookService` creates its own `HttpClient(CIO) { install(ContentNegotiation) }`. WebSocket requires `install(WebSockets) { pingIntervalMillis = 15_000 }`.
    - What's unclear: Whether ContentNegotiation and WebSockets plugins can coexist in one HttpClient (they can per Ktor docs), or whether separate clients are needed.
    - Recommendation: Create a single shared `HttpClient(CIO) { install(WebSockets) { pingIntervalMillis = 15_000 } }` in DI for zone connections. `WebhookService` keeps its own client (ContentNegotiation). Two clients is fine — they serve different purposes.
 
-3. **ScreenDriverService per-zone mutex design**
+3. **ScreenDriverService per-zone mutex design** — *Resolved in Plan 03 Task 2:* `ConcurrentHashMap<String, Mutex>` with lazy `getOrPut(zoneId) { Mutex() }` in `ScreenDriverService`. Keeps rendering-pipeline logic centralized; ZoneDriver has no mutex responsibility.
    - What we know: Current service has a single `displayMutex: Mutex`. D-17 requires mutex per zone.
    - What's unclear: Whether to use `ConcurrentHashMap<String, Mutex>` inside ScreenDriverService or push mutex ownership into each ZoneDriver.
    - Recommendation: `ConcurrentHashMap<String, Mutex>` in ScreenDriverService (lazy init on first use per zone). This keeps the existing rendering-pipeline logic centralized and avoids spreading mutex concern into ZoneDriver.
