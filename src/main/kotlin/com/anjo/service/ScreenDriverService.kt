@@ -214,6 +214,5 @@ class ScreenDriverService(
         return statuses.firstOrNull()?.type ?: "UNKNOWN"
     }
 
-    fun queueDisplaySwitch(displayType: String): Boolean =
-        DisplayType.fromString(displayType) != DisplayType.UNKNOWN
+    fun queueDisplaySwitch(displayType: String): Boolean = false
 }
