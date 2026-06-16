@@ -4,14 +4,14 @@ import com.anjo.config.loader.ConfigLoader
 import com.anjo.db.DatabaseFactory
 import com.anjo.db.HistoryRepository
 import com.anjo.db.ScheduleRepository
-import com.anjo.driver.OfflineDisplayDriver
-import com.anjo.service.DisplaySelectionService
+import com.anjo.db.ZoneRepository
+import com.anjo.service.EffectRendererFactory
 import com.anjo.service.MetricsCollector
 import com.anjo.model.ScreenDriverMetrics
-import com.anjo.service.EffectRendererFactory
 import com.anjo.service.SchedulerService
 import com.anjo.service.ScreenDriverService
 import com.anjo.service.WebhookService
+import com.anjo.service.ZoneRegistry
 import com.codahale.metrics.MetricRegistry
 import com.pi4j.Pi4J
 import io.ktor.server.application.Application
@@ -25,20 +25,16 @@ fun Application.configureDI() {
     DatabaseFactory.init(appConfig.databaseConfig)
     val pi4jContext = Pi4J.newAutoContext()
 
-    val displaySelectionService = DisplaySelectionService(
-        ctx = pi4jContext,
-        displayConfig = appConfig.display
-    )
-
     val metricRegistry = MetricRegistry()
     val screenDriverMetrics = ScreenDriverMetrics.from(metricRegistry, appConfig.metrics)
     val historyRepository = HistoryRepository()
+    val zoneRepository = ZoneRepository()
+    val zoneRegistry = ZoneRegistry(appConfig.zones, pi4jContext, zoneRepository)
 
     val screenDriverService = ScreenDriverService(
-        driver = displaySelectionService.currentDriver() ?: OfflineDisplayDriver,
+        zoneRegistry = zoneRegistry,
         ioDispatcher = Dispatchers.IO,
         retryConfig = appConfig.retryConfig,
-        displaySelectionService = displaySelectionService,
         metrics = screenDriverMetrics,
         historyRepository = historyRepository,
     )
@@ -62,7 +58,8 @@ fun Application.configureDI() {
         provide { appConfig.display }
         provide { Dispatchers.IO }
         provide { metricRegistry }
-        provide { displaySelectionService }
+        provide { zoneRegistry }
+        provide { zoneRepository }
         provide { screenDriverService }
         provide { metricsCollector }
         provide { scheduleRepository }

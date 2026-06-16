@@ -10,8 +10,14 @@ application:
 
 display:
   type: "${DISPLAY_TYPE:MAX7219}"
-  # Options: MAX7219, LCD, OLED
-  
+  zones:
+    0:
+      id: "main"
+      type: "${DISPLAY_TYPE:MAX7219}"
+      numDevices: ${MAX7219_NUM_DEVICES:2}
+      bus: 0
+      chipSelect: 0
+
   max7219:
     numDevices: ${MAX7219_NUM_DEVICES:2}
     brightness: true
@@ -20,13 +26,13 @@ display:
       spi_mosi: ${GPIO_SPI_MOSI:19}
       spi_miso: ${GPIO_SPI_MISO:9}
       spi_sck: ${GPIO_SPI_SCK:23}
-  
+
   lcd:
     i2cAddress: 0x27
     busNumber: ${I2C_BUS:1}
     rows: 2
     columns: 16
-  
+
   oled:
     i2cAddress: 0x3C
     busNumber: ${I2C_BUS:1}
@@ -53,19 +59,11 @@ api:
   metricsRateLimitPerMinute: ${API_METRICS_RATE_LIMIT:120}
 
 database:
-  # ── H2 (embedded, development / Raspberry Pi without external DB) ─────────
   url: "${DATABASE_URL:jdbc:h2:file:./data/schedules;DB_CLOSE_DELAY=-1;AUTO_SERVER=FALSE}"
   driver: "${DATABASE_DRIVER:org.h2.Driver}"
   user: "${DATABASE_USER:sa}"
   password: "${DATABASE_PASSWORD:}"
   poolSize: ${DATABASE_POOL_SIZE:5}
-
-  # ── PostgreSQL (production) ───────────────────────────────────────────────
-  # DATABASE_URL=jdbc:postgresql://localhost:5432/textreader
-  # DATABASE_DRIVER=org.postgresql.Driver
-  # DATABASE_USER=textreader
-  # DATABASE_PASSWORD=secret
-  # DATABASE_POOL_SIZE=10
 
 resources:
   screenDriverMaxSlots: ${SCREEN_DRIVER_MAX_SLOTS:10}

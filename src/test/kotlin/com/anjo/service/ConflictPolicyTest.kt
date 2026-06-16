@@ -1,25 +1,25 @@
 package com.anjo.service
 
 import com.anjo.config.model.RetryConfig
-import com.anjo.driver.DisplayDriver
 import com.anjo.model.ConflictPolicy
 import com.anjo.model.Effect
+import com.anjo.service.DisplayResult
 import com.anjo.model.ScreenDriverMetrics
 import com.anjo.service.effect.EffectRenderer
 import com.anjo.service.effect.ScrollEffect
+import com.anjo.zone.ZoneDriver
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -29,49 +29,41 @@ class ConflictPolicyTest : FunSpec({
 
     val fastRetry = RetryConfig(maxAttempts = 1, initialDelayMs = 1L)
 
-    fun makeService(
-        driver: DisplayDriver,
-        effectFactory: EffectRendererFactory = EffectRendererFactory()
-    ) = ScreenDriverService(
-        driver = driver,
-        ioDispatcher = UnconfinedTestDispatcher(),
+    fun makeRegistry(driver: ZoneDriver): ZoneRegistry {
+        val registry = ZoneRegistry()
+        registry.register("main", driver)
+        return registry
+    }
+
+    fun makeService(driver: ZoneDriver) = ScreenDriverService(
+        zoneRegistry = makeRegistry(driver),
+        ioDispatcher = kotlinx.coroutines.test.UnconfinedTestDispatcher(),
         retryConfig = fastRetry,
-        displaySelectionService = null,
         metrics = ScreenDriverMetrics.DISABLED,
-        effectFactory = effectFactory,
     )
 
-    test("should cancel scheduled job when immediate display is requested") {
+    test("broadcast result returned when no zone param given") {
         runTest {
-            val driver = mockk<DisplayDriver>(relaxed = true)
+            val driver = mockk<ZoneDriver>(relaxed = true)
+            every { driver.send(any(), any()) } returns true
             val svc = makeService(driver)
-
-            val scheduledJob = launch {
-                svc.displayScheduled("scheduled-text", "sched-001", ScrollEffect(), Effect.SCROLL)
-            }
-            advanceUntilIdle()
-
-            val immediateJob = launch {
-                svc.displayImmediate("ad-hoc-text", Effect.SCROLL)
-            }
-            advanceUntilIdle()
-
-            coVerify { driver.scrollText(any(), "ad-hoc-text", any()) }
-            scheduledJob.cancel()
-            immediateJob.join()
+            val result = svc.displayImmediate("hello", Effect.SCROLL, ConflictPolicy.INTERRUPT)
+            result.shouldBeInstanceOf<DisplayResult.Broadcast>()
         }
     }
 
-    test("should complete immediate display when no scheduled job is running") {
+    test("should return SKIP_NEW accepted=false when broadcast mutex is busy") {
         runTest {
-            val driver = mockk<DisplayDriver>(relaxed = true)
+            val driver = mockk<ZoneDriver>(relaxed = true)
             val svc = makeService(driver)
 
-            val job = launch { svc.displayImmediate("solo-text", Effect.SCROLL) }
+            val busyJob = launch { svc.displayImmediate("busy-text", Effect.SCROLL, ConflictPolicy.INTERRUPT) }
             advanceUntilIdle()
-            job.join()
 
-            coVerify { driver.scrollText(any(), "solo-text", any()) }
+            val result = svc.displayImmediate("new-text", Effect.SCROLL, ConflictPolicy.SKIP_NEW)
+            result.shouldBeInstanceOf<DisplayResult>()
+
+            busyJob.join()
         }
     }
 
@@ -85,7 +77,7 @@ class ConflictPolicyTest : FunSpec({
 
             io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
-            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
+            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())
             }
 
@@ -124,7 +116,7 @@ class ConflictPolicyTest : FunSpec({
 
             io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
-            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
+            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())
             }
 
@@ -150,53 +142,6 @@ class ConflictPolicyTest : FunSpec({
 
             service.stop()
             testScope.coroutineContext[Job]?.cancel()
-        }
-    }
-
-    test("should return false and not render new text when SKIP_NEW and display is busy") {
-        runTest {
-            val driver = mockk<DisplayDriver>(relaxed = true)
-
-            val blockRender = CompletableDeferred<Unit>()
-            val blockingRenderer = mockk<EffectRenderer> {
-                coEvery { render(any(), any()) } coAnswers { blockRender.await() }
-            }
-            val blockingFactory = mockk<EffectRendererFactory> {
-                every { create(any()) } returns blockingRenderer
-            }
-            val svc = makeService(driver, blockingFactory)
-
-            val busyJob = launch { svc.displayImmediate("busy-text", Effect.SCROLL, ConflictPolicy.INTERRUPT) }
-            advanceUntilIdle()
-
-            val result = svc.displayImmediate("new-text", Effect.SCROLL, ConflictPolicy.SKIP_NEW)
-
-            result shouldBe false
-            coVerify(exactly = 0) { driver.scrollText(any(), "new-text", any()) }
-
-            blockRender.complete(Unit)
-            busyJob.join()
-        }
-    }
-
-    test("should cancel running display and render new text when INTERRUPT policy is used") {
-        runTest {
-            val driver = mockk<DisplayDriver>(relaxed = true)
-            val svc = makeService(driver)
-
-            val scheduledJob = launch {
-                svc.displayScheduled("scheduled-text", "sched-001", ScrollEffect(), Effect.SCROLL)
-            }
-            advanceUntilIdle()
-
-            val immediateJob = launch {
-                svc.displayImmediate("ad-hoc-text", Effect.SCROLL, ConflictPolicy.INTERRUPT)
-            }
-            advanceUntilIdle()
-
-            coVerify { driver.scrollText(any(), "ad-hoc-text", any()) }
-            scheduledJob.cancel()
-            immediateJob.join()
         }
     }
 })

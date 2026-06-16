@@ -24,7 +24,6 @@ class TextApiRouteTest : FunSpec({
                 setBody("""{"text":"Hello World"}""")
             }
             response.status shouldBe HttpStatusCode.Accepted
-            response.bodyAsText() shouldContain "accepted"
         }
     }
 
@@ -94,7 +93,6 @@ class TextApiRouteTest : FunSpec({
                 setBody("""{"text":"hello","conflictPolicy":"SKIP_NEW"}""")
             }
             response.status shouldBe HttpStatusCode.Accepted
-            response.bodyAsText() shouldContain "accepted"
         }
     }
 

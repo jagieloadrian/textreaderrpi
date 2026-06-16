@@ -10,6 +10,8 @@ import com.anjo.config.model.MetricsConfig
 import com.anjo.config.model.OledConfig
 import com.anjo.config.model.RetryConfig
 import com.anjo.config.model.WebhooksConfig
+import com.anjo.config.model.ZoneConfig
+import com.anjo.config.model.ZonesConfig
 import io.ktor.server.application.Application
 import org.slf4j.LoggerFactory
 
@@ -79,14 +81,38 @@ object ConfigLoader {
             defaultUrl = config.propertyOrNull("webhooks.defaultUrl")?.getString()?.takeIf { it.isNotBlank() }
         )
 
+        val zonesConfig = loadZonesConfig(application)
+
         return ApplicationConfig(
             display = displayConfig,
+            zones = zonesConfig,
             api = apiConfig,
             metrics = metricsConfig,
             retryConfig = retryConfig,
             databaseConfig = databaseConfig,
             webhooks = webhooksConfig
         )
+    }
+
+    private fun loadZonesConfig(application: Application): ZonesConfig {
+        val config = application.environment.config
+        val zones = mutableListOf<ZoneConfig>()
+        var index = 0
+        while (true) {
+            val id = config.propertyOrNull("display.zones.$index.id")?.getString() ?: break
+            val type = config.propertyOrNull("display.zones.$index.type")?.getString() ?: "MAX7219"
+            val numDevices = config.propertyOrNull("display.zones.$index.numDevices")?.getString()?.toIntOrNull() ?: 2
+            val bus = config.propertyOrNull("display.zones.$index.bus")?.getString()?.toIntOrNull() ?: 0
+            val chipSelect = config.propertyOrNull("display.zones.$index.chipSelect")?.getString()?.toIntOrNull() ?: 0
+            zones.add(ZoneConfig(id = id, type = type, numDevices = numDevices, bus = bus, chipSelect = chipSelect))
+            index++
+        }
+        if (zones.isEmpty()) {
+            val fallbackType = config.propertyOrNull("display.type")?.getString() ?: "MAX7219"
+            val fallbackNumDevices = config.propertyOrNull("display.max7219.numDevices")?.getString()?.toIntOrNull() ?: 2
+            zones.add(ZoneConfig(id = "main", type = fallbackType, numDevices = fallbackNumDevices, bus = 0, chipSelect = 0))
+        }
+        return ZonesConfig(zones)
     }
 
     private fun String.toIntAuto(): Int? {

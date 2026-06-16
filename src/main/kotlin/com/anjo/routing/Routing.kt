@@ -10,6 +10,7 @@ import com.anjo.routing.ui.webRoutes
 import com.anjo.service.MetricsCollector
 import com.anjo.service.SchedulerService
 import com.anjo.service.ScreenDriverService
+import com.anjo.service.ZoneRegistry
 import io.ktor.http.ContentType
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application
@@ -26,6 +27,7 @@ import io.ktor.server.routing.routingRoot
 fun Application.configureRouting() {
     install(AutoHeadResponse)
     val screenDriverService: ScreenDriverService by dependencies
+    val zoneRegistry: ZoneRegistry by dependencies
     val apiConfig: ApiConfig by dependencies
     val metricsCollector: MetricsCollector by dependencies
     val scheduleRepository: ScheduleRepository by dependencies
@@ -41,7 +43,7 @@ fun Application.configureRouting() {
 
         route("/api/v1") {
             installApiRateLimiting(apiConfig.rateLimitPerMinute)
-            textRoutes(screenDriverService)
+            textRoutes(screenDriverService, zoneRegistry)
             displayRoutes(screenDriverService)
             scheduleRoutes(scheduleRepository, schedulerService)
             historyRoutes(historyRepository)

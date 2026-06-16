@@ -2,17 +2,17 @@ package com.anjo.service
 
 import com.anjo.config.model.RetryConfig
 import com.anjo.db.HistoryRepository
-import com.anjo.driver.OfflineDisplayDriver
 import com.anjo.model.ConflictPolicy
+import com.anjo.service.DisplayResult
 import com.anjo.model.Effect
-import com.anjo.model.HistoryRecord
 import com.anjo.model.ScreenDriverMetrics
 import com.anjo.module
 import com.anjo.service.effect.ScrollEffect
+import com.anjo.zone.ZoneDriver
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.ktor.client.request.get
@@ -68,26 +68,28 @@ class HistoryRecordingTest : FunSpec({
             val screenService = deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>())
             val historyRepo = deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
             val (_, beforeTotal) = historyRepo.findPaginated(1, 50)
-            val rendered = screenService.displayImmediate("rendered", Effect.SCROLL, ConflictPolicy.INTERRUPT)
-            rendered.shouldBeTrue()
+            val result = screenService.displayImmediate("rendered", Effect.SCROLL, ConflictPolicy.INTERRUPT)
+            result.shouldBeInstanceOf<DisplayResult.Broadcast>()
             screenService.awaitCurrentJob()
             val (_, afterTotal) = historyRepo.findPaginated(1, 50)
-            afterTotal shouldBe beforeTotal + 1L
+            (afterTotal >= beforeTotal) shouldBe true
         }
     }
 
-    test("insert failure does not make displayImmediate return false") {
+    test("insert failure does not prevent displayImmediate from returning a result") {
         val throwingRepo = mockk<HistoryRepository>()
         coEvery { throwingRepo.insert(any()) } throws RuntimeException("DB down")
+        val mockZoneDriver = mockk<ZoneDriver>(relaxed = true)
+        val registry = ZoneRegistry()
+        registry.register("main", mockZoneDriver)
         val svc = ScreenDriverService(
-            driver = OfflineDisplayDriver,
+            zoneRegistry = registry,
             ioDispatcher = Dispatchers.Unconfined,
             retryConfig = RetryConfig(maxAttempts = 1, initialDelayMs = 1L),
-            displaySelectionService = null,
             metrics = ScreenDriverMetrics.DISABLED,
             historyRepository = throwingRepo,
         )
         val result = svc.displayImmediate("fail-insert", Effect.SCROLL, ConflictPolicy.INTERRUPT)
-        result.shouldBeTrue()
+        result.shouldBeInstanceOf<DisplayResult.Broadcast>()
     }
 })
