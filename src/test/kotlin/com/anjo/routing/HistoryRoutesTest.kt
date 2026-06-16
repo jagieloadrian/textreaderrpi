@@ -14,7 +14,6 @@ import io.ktor.server.plugins.di.DependencyKey
 import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.plugins.di.getBlocking
 import io.ktor.server.testing.testApplication
-import kotlinx.coroutines.runBlocking
 
 class HistoryRoutesTest : FunSpec({
 
@@ -23,12 +22,10 @@ class HistoryRoutesTest : FunSpec({
             application { module() }
             client.get("/health")
             val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
-            runBlocking {
-                repeat(25) { i ->
-                    historyRepository.insert(
-                        HistoryRecord(text = "text $i", effect = if (i % 2 == 0) "SCROLL" else "BLINK", source = if (i % 3 == 0) "SCHEDULED" else "IMMEDIATE", scheduleId = if (i % 3 == 0) "sched-$i" else null)
-                    )
-                }
+            repeat(25) { i ->
+                historyRepository.insert(
+                    HistoryRecord(text = "text $i", effect = if (i % 2 == 0) "SCROLL" else "BLINK", source = if (i % 3 == 0) "SCHEDULED" else "IMMEDIATE", scheduleId = if (i % 3 == 0) "sched-$i" else null)
+                )
             }
             val response = client.get("/api/v1/history")
             response.status shouldBe HttpStatusCode.OK
@@ -45,10 +42,8 @@ class HistoryRoutesTest : FunSpec({
             application { module() }
             client.get("/health")
             val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
-            runBlocking {
-                repeat(25) { i ->
-                    historyRepository.insert(HistoryRecord(text = "pagination-text-$i", effect = "SCROLL", source = "IMMEDIATE"))
-                }
+            repeat(25) { i ->
+                historyRepository.insert(HistoryRecord(text = "pagination-text-$i", effect = "SCROLL", source = "IMMEDIATE"))
             }
             val page1Body = client.get("/api/v1/history?page=1&size=10").bodyAsText()
             val page2Body = client.get("/api/v1/history?page=2&size=10").bodyAsText()
@@ -61,10 +56,8 @@ class HistoryRoutesTest : FunSpec({
             application { module() }
             client.get("/health")
             val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
-            runBlocking {
-                repeat(5) { historyRepository.insert(HistoryRecord(text = "scroll-text", effect = "SCROLL", source = "IMMEDIATE")) }
-                repeat(5) { historyRepository.insert(HistoryRecord(text = "blink-text", effect = "BLINK", source = "IMMEDIATE")) }
-            }
+            repeat(5) { historyRepository.insert(HistoryRecord(text = "scroll-text", effect = "SCROLL", source = "IMMEDIATE")) }
+            repeat(5) { historyRepository.insert(HistoryRecord(text = "blink-text", effect = "BLINK", source = "IMMEDIATE")) }
             val body = client.get("/api/v1/history?effect=SCROLL").bodyAsText()
             body shouldContain "SCROLL"
             body shouldNotContain "BLINK"
@@ -76,10 +69,8 @@ class HistoryRoutesTest : FunSpec({
             application { module() }
             client.get("/health")
             val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
-            runBlocking {
-                repeat(5) { historyRepository.insert(HistoryRecord(text = "imm-text", effect = "SCROLL", source = "IMMEDIATE")) }
-                repeat(5) { historyRepository.insert(HistoryRecord(text = "sched-text", effect = "SCROLL", source = "SCHEDULED", scheduleId = "sched-id")) }
-            }
+            repeat(5) { historyRepository.insert(HistoryRecord(text = "imm-text", effect = "SCROLL", source = "IMMEDIATE")) }
+            repeat(5) { historyRepository.insert(HistoryRecord(text = "sched-text", effect = "SCROLL", source = "SCHEDULED", scheduleId = "sched-id")) }
             val body = client.get("/api/v1/history?source=IMMEDIATE").bodyAsText()
             body shouldContain "IMMEDIATE"
             body shouldNotContain "SCHEDULED"

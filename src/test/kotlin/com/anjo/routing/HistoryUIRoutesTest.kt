@@ -13,7 +13,6 @@ import io.ktor.server.plugins.di.DependencyKey
 import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.plugins.di.getBlocking
 import io.ktor.server.testing.testApplication
-import kotlinx.coroutines.runBlocking
 
 class HistoryUIRoutesTest : FunSpec({
 
@@ -22,9 +21,7 @@ class HistoryUIRoutesTest : FunSpec({
             application { module() }
             client.get("/health")
             val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
-            runBlocking {
-                historyRepository.insert(HistoryRecord(text = "hello world", effect = "SCROLL", source = "IMMEDIATE"))
-            }
+            historyRepository.insert(HistoryRecord(text = "hello world", effect = "SCROLL", source = "IMMEDIATE"))
             val response = client.get("/history")
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldContain "Display History"
@@ -48,9 +45,7 @@ class HistoryUIRoutesTest : FunSpec({
             application { module() }
             client.get("/health")
             val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
-            runBlocking {
-                historyRepository.insert(HistoryRecord(text = "expand test", effect = "BLINK", source = "IMMEDIATE"))
-            }
+            historyRepository.insert(HistoryRecord(text = "expand test", effect = "BLINK", source = "IMMEDIATE"))
             val body = client.get("/history?expand=all").bodyAsText()
             body shouldContain "<details open"
         }
