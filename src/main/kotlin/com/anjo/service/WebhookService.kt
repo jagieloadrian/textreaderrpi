@@ -33,24 +33,7 @@ class WebhookService(
 
     fun send(schedule: Schedule, firedAt: Instant) {
         val url = resolveUrl(schedule) ?: return
-        scope.launch {
-            try {
-                withTimeout(5_000.milliseconds) {
-                    val payload = buildPayload(schedule, firedAt)
-                    val response = httpClient.post(url) {
-                        header(HttpHeaders.ContentType, ContentType.Application.Json)
-                        setBody(payload)
-                    }
-                    if (!response.status.isSuccess()) {
-                        log.warn("Webhook non-2xx: scheduleId=${schedule.id} url=$url status=${response.status.value}")
-                    }
-                }
-            } catch (e: TimeoutCancellationException) {
-                log.warn("Webhook timeout: scheduleId=${schedule.id} url=$url")
-            } catch (e: Exception) {
-                log.warn("Webhook failed: scheduleId=${schedule.id} url=$url error=${e.message}")
-            }
-        }
+        scope.launch { executePost(url, buildPayload(schedule, firedAt)) }
     }
 
     fun stop() {
@@ -59,6 +42,24 @@ class WebhookService(
     }
 
     fun willSend(schedule: Schedule): Boolean = resolveUrl(schedule) != null
+
+    private suspend fun executePost(url: String, payload: WebhookPayload) {
+        try {
+            withTimeout(5_000.milliseconds) {
+                val response = httpClient.post(url) {
+                    header(HttpHeaders.ContentType, ContentType.Application.Json)
+                    setBody(payload)
+                }
+                if (!response.status.isSuccess()) {
+                    log.warn("Webhook non-2xx: url=$url status=${response.status.value}")
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            log.warn("Webhook timeout: url=$url")
+        } catch (e: Exception) {
+            log.warn("Webhook failed: url=$url error=${e.message}")
+        }
+    }
 
     private fun resolveUrl(schedule: Schedule): String? =
         schedule.webhookUrl?.takeIf { it.isNotBlank() }

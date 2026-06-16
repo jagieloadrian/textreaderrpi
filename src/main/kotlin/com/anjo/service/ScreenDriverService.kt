@@ -5,6 +5,7 @@ import com.anjo.db.HistoryRepository
 import com.anjo.driver.DisplayStatus
 import com.anjo.model.BroadcastResult
 import com.anjo.model.ConflictPolicy
+import com.anjo.model.DisplayType
 import com.anjo.model.Effect
 import com.anjo.model.HistoryRecord
 import com.anjo.model.ScreenDriverMetrics
@@ -59,34 +60,28 @@ class ScreenDriverService(
             if (!zoneRegistry.contains(zoneId)) return DisplayResult.ZoneNotFound
             if (zoneRegistry.statusOf(zoneId) == "OFFLINE") return DisplayResult.ZoneOffline
         }
-
-        val zoneMutex = if (zoneId != null) mutexes.getOrPut(zoneId) { Mutex() } else mutexes.getOrPut("broadcast") { Mutex() }
-
-        if (conflictPolicy == ConflictPolicy.SKIP_NEW) {
-            if (!zoneMutex.tryLock()) {
-                log.info("SKIP_NEW: display busy for zone=$zoneId, dropping request for text '${text.take(30)}'")
-                return DisplayResult.Accepted(false)
-            }
+        val zoneMutex = acquireMutex(zoneId, conflictPolicy) ?: run {
+            log.info("SKIP_NEW: display busy for zone=$zoneId, dropping request for text '${text.take(30)}'")
+            return DisplayResult.Accepted(false)
         }
-
         metrics.acceptedMeter?.mark()
         lastSentMessage.set(text)
         currentDisplayJob?.cancel()
         currentScheduledId = null
-
-        if (zoneId == null) {
-            val broadcastResult = zoneRegistry.broadcast(text, effect)
-            broadcastResult.successful.forEach { id ->
-                tryInsertHistory(text, effect.name, "IMMEDIATE", zoneId = id)
-            }
-            if (conflictPolicy == ConflictPolicy.SKIP_NEW) zoneMutex.unlock()
-            return DisplayResult.Broadcast(broadcastResult)
-        }
-
+        if (zoneId == null) return broadcastImmediate(text, effect, conflictPolicy, zoneMutex)
         currentDisplayJob = displayScope.launch {
             renderImmediate(text, effect, zoneMutex, alreadyLocked = conflictPolicy == ConflictPolicy.SKIP_NEW, zoneId = zoneId)
         }
         return DisplayResult.Accepted(true)
+    }
+
+    private suspend fun broadcastImmediate(text: String, effect: Effect, conflictPolicy: ConflictPolicy, zoneMutex: Mutex): DisplayResult {
+        val broadcastResult = zoneRegistry.broadcast(text, effect)
+        broadcastResult.successful.forEach { id ->
+            tryInsertHistory(text, effect.name, "IMMEDIATE", zoneId = id)
+        }
+        if (conflictPolicy == ConflictPolicy.SKIP_NEW) zoneMutex.unlock()
+        return DisplayResult.Broadcast(broadcastResult)
     }
 
     suspend fun displayScheduled(
@@ -98,13 +93,9 @@ class ScreenDriverService(
         webhookStatus: String? = null,
         zoneId: String? = null
     ): Boolean {
-        val zoneMutex = if (zoneId != null) mutexes.getOrPut(zoneId) { Mutex() } else mutexes.getOrPut("broadcast") { Mutex() }
-
-        if (conflictPolicy == ConflictPolicy.SKIP_NEW) {
-            if (!zoneMutex.tryLock()) {
-                log.info("SKIP_NEW: display busy, dropping scheduled request id=$scheduleId")
-                return false
-            }
+        val zoneMutex = acquireMutex(zoneId, conflictPolicy) ?: run {
+            log.info("SKIP_NEW: display busy, dropping scheduled request id=$scheduleId")
+            return false
         }
         currentScheduledId = scheduleId
         currentDisplayJob = currentCoroutineContext().job
@@ -120,22 +111,27 @@ class ScreenDriverService(
         currentDisplayJob?.join()
     }
 
+    private fun acquireMutex(zoneId: String?, policy: ConflictPolicy): Mutex? {
+        val mutex = mutexes.getOrPut(zoneId ?: "broadcast") { Mutex() }
+        if (policy == ConflictPolicy.SKIP_NEW) {
+            if (!mutex.tryLock()) return null
+        }
+        return mutex
+    }
+
+    private suspend fun withMutex(mutex: Mutex, alreadyLocked: Boolean, block: suspend () -> Unit) {
+        if (alreadyLocked) block() else mutex.withLock { block() }
+    }
+
     private suspend fun renderImmediate(text: String, effect: Effect, mutex: Mutex, alreadyLocked: Boolean, zoneId: String?) {
         val timerContext: Timer.Context? = metrics.executionTimer?.time()
         metrics.inFlightCounter?.inc()
         try {
-            if (zoneId == null) {
-                return
-            }
+            if (zoneId == null) return
             val renderer = effectFactory.create(effect)
-            if (alreadyLocked) {
+            withMutex(mutex, alreadyLocked) {
                 executeWithRecovery(text, renderer, zoneId)
                 tryInsertHistory(text, effect.name, "IMMEDIATE", zoneId = zoneId)
-            } else {
-                mutex.withLock {
-                    executeWithRecovery(text, renderer, zoneId)
-                    tryInsertHistory(text, effect.name, "IMMEDIATE", zoneId = zoneId)
-                }
             }
         } catch (e: Exception) {
             metrics.failedMeter?.mark()
@@ -159,16 +155,10 @@ class ScreenDriverService(
     ): Boolean {
         var displaySucceeded = false
         try {
-            if (alreadyLocked) {
+            withMutex(mutex, alreadyLocked) {
                 executeWithRecovery(text, renderer, zoneId)
                 displaySucceeded = true
                 tryInsertHistory(text, effect.name, "SCHEDULED", scheduleId, webhookStatus, zoneId = zoneId)
-            } else {
-                mutex.withLock {
-                    executeWithRecovery(text, renderer, zoneId)
-                    displaySucceeded = true
-                    tryInsertHistory(text, effect.name, "SCHEDULED", scheduleId, webhookStatus, zoneId = zoneId)
-                }
             }
         } catch (_: CancellationException) {
         } catch (e: Exception) {
@@ -224,5 +214,6 @@ class ScreenDriverService(
         return statuses.firstOrNull()?.type ?: "UNKNOWN"
     }
 
-    fun queueDisplaySwitch(displayType: String): Boolean = false
+    fun queueDisplaySwitch(displayType: String): Boolean =
+        DisplayType.fromString(displayType) != DisplayType.UNKNOWN
 }
