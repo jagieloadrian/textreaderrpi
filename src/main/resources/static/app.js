@@ -197,6 +197,57 @@
     }
   }
 
+  // ─── Zones page ──────────────────────────────────────────────────────────
+  async function scanForDisplays() {
+    const btn = document.getElementById("scanBtn");
+    const resultDiv = document.getElementById("scanResult");
+    if (!btn || !resultDiv) return;
+    btn.disabled = true;
+    btn.textContent = "Scanning...";
+    try {
+      const response = await fetch("/api/v1/zones/discover", { method: "POST" });
+      if (response.ok) {
+        const data = await response.json().catch(() => []);
+        const count = Array.isArray(data) ? data.length : 0;
+        if (count > 0) {
+          resultDiv.textContent = `Found ${count} new display(s). Page reloading...`;
+          setTimeout(() => { window.location.href = "/zones"; }, 1000);
+        } else {
+          resultDiv.textContent = "No new displays found. Make sure devices are on the same network.";
+        }
+      } else {
+        resultDiv.textContent = "Scan failed. Check server connection.";
+      }
+    } catch (_) {
+      resultDiv.textContent = "Scan failed. Check server connection.";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Scan for Displays";
+    }
+  }
+
+  async function addZoneByIp(e) {
+    e.preventDefault();
+    const ip = (document.getElementById("ipInput")?.value ?? "").trim();
+    const resultDiv = document.getElementById("addZoneResult");
+    if (!resultDiv) return;
+    try {
+      const response = await fetch("/api/v1/zones/" + encodeURIComponent(ip), { method: "POST" });
+      if (response.status === 201 || response.status === 200) {
+        resultDiv.textContent = "Zone added. Page reloading...";
+        setTimeout(() => { window.location.href = "/zones"; }, 1000);
+      } else if (response.status === 409) {
+        resultDiv.textContent = "A zone with this IP is already registered.";
+      } else if (response.status === 400) {
+        resultDiv.textContent = "Enter a valid IP address (e.g. 192.168.1.50).";
+      } else {
+        resultDiv.textContent = `Could not connect to ${ip}. Verify the device is online.`;
+      }
+    } catch (_) {
+      resultDiv.textContent = `Could not connect to ${ip}. Verify the device is online.`;
+    }
+  }
+
   // ─── Boot ─────────────────────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", () => {
     // Home page
@@ -216,5 +267,11 @@
     const createBtn = document.getElementById("createScheduleBtn");
     if (createBtn) createBtn.addEventListener("click", e => { e.preventDefault(); createSchedule(); });
     if (document.getElementById("scheduleListContainer")) loadSchedules();
+
+    // Zones page
+    const scanBtn = document.getElementById("scanBtn");
+    if (scanBtn) scanBtn.addEventListener("click", e => { e.preventDefault(); scanForDisplays(); });
+    const addZoneForm = document.getElementById("addZoneForm");
+    if (addZoneForm) addZoneForm.addEventListener("submit", addZoneByIp);
   });
 })();
