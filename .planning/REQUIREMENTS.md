@@ -53,9 +53,9 @@
 - [ ] **ZONE-03**: Pi automatycznie wykrywa i rejestruje dostępne wyświetlacze sieciowe (autodiscovery)
 - [ ] **ZONE-04**: Komunikacja z zewnętrznym wyświetlaczem przez WebSocket — przesyłanie tekstu i efektu
 - [ ] **ZONE-05**: Heartbeat / health check — Pi śledzi które zewnętrzne urządzenia są online/offline
-- [ ] **ZONE-06**: Użytkownik może ręcznie dodać zewnętrzny wyświetlacz przez IP (fallback gdy broadcast nie działa)
+- [x] **ZONE-06**: Użytkownik może ręcznie dodać zewnętrzny wyświetlacz przez IP (fallback gdy broadcast nie działa)
 - [x] **ZONE-07**: `POST /api/v1/text?zone=X` — routing tekstu do dowolnej strefy (lokalnej lub sieciowej); harmonogramy mogą mieć przypisany `zoneId`
-- [ ] **ZONE-08**: `GET /api/v1/zones` — lista wszystkich zarejestrowanych stref z ich statusem
+- [x] **ZONE-08**: `GET /api/v1/zones` — lista wszystkich zarejestrowanych stref z ich statusem
 
 ---
 
@@ -127,9 +127,9 @@
 | ZONE-03 | Phase 11 | Pending |
 | ZONE-04 | Phase 11 | Pending |
 | ZONE-05 | Phase 11 | Pending |
-| ZONE-06 | Phase 11 | Pending |
+| ZONE-06 | Phase 11 | Complete |
 | ZONE-07 | Phase 11 | Complete |
-| ZONE-08 | Phase 11 | Pending |
+| ZONE-08 | Phase 11 | Complete |
 | OBS-01 | Phase 12 | Pending |
 | OBS-02 | Phase 12 | Pending |
 | OBS-03 | Phase 12 | Pending |

@@ -31,7 +31,7 @@
 - [x] **Phase 8: Refactor + Dead Code Analysis** — Application cleaned and simplified, DI smoke test in place (completed 2026-06-15)
 - [x] **Phase 9: Display History + Audit Log** — Every display event persisted and browsable (completed 2026-06-15)
 - [x] **Phase 10: Webhooks** — HTTP POST notifications fired on schedule trigger (completed 2026-06-15)
-- [ ] **Phase 11: Multi-Zone Displays** — Multiple local and network displays managed and routable
+- [x] **Phase 11: Multi-Zone Displays** — Multiple local and network displays managed and routable (completed 2026-06-16)
 - [ ] **Phase 12: Observability Gap Closures** — v1.0 audit gaps closed (health/detail, metrics hardware, HTML error pages)
 - [ ] **Phase 13: UI/UX Refresh** — Material 3 style, side nav, all new pages deployed
 
@@ -189,11 +189,11 @@
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 11-04-PLAN.md — Network layer: NetworkZoneDriver (WS client + reconnect + heartbeat), NetworkDiscoveryService (UDP scan + JmDNS listener), ZoneRoutes (GET /zones, POST /discover, POST /{ip} RFC1918-gated), shared WS HttpClient + DI/Routing lifecycle wiring, 4 test files
+- [x] 11-04-PLAN.md — Network layer: NetworkZoneDriver (WS client + reconnect + heartbeat), NetworkDiscoveryService (UDP scan + JmDNS listener), ZoneRoutes (GET /zones, POST /discover, POST /{ip} RFC1918-gated), shared WS HttpClient + DI/Routing lifecycle wiring, 4 test files
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 11-05-PLAN.md — UI: /zones PicoCSS page (status badges) + ZonesUIRoutes + BaseLayout nav link + app.js scan/add-by-IP handlers + ZonesUIRoutesTest + human-verify checkpoint
+- [x] 11-05-PLAN.md — UI: /zones PicoCSS page (status badges) + ZonesUIRoutes + BaseLayout nav link + app.js scan/add-by-IP handlers + ZonesUIRoutesTest + human-verify checkpoint
 
 ### Phase 12: Observability Gap Closures
 
