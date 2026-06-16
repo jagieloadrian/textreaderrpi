@@ -3,25 +3,25 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-16T21:51:46.191Z"
+last_updated: "2026-06-16T22:08:07.798Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 27
-  completed_plans: 24
+  completed_plans: 26
   percent: 78
 ---
 
 # Project State & Memory
 
 **Last Updated:** 2026-06-16  
-**Status:** Executing Phase 12
+**Status:** Ready to execute
 
 ## Current Position
 
 Phase: 12 (observability-gap-closures) — EXECUTING
-Plan: 1 of 3
+Plan: 2 of 3
 **Next:** `/gsd-execute-phase 12`
 **Last activity:** 2026-06-16
 
@@ -210,6 +210,7 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 | Phase 11.2 P01 | 20 minutes | 2 tasks | 13 files |
 | Phase 11.2 P02 | 12 minutes | 2 tasks | 6 files |
 | Phase 11.2 P03 | 4 minutes | 2 tasks | 4 files |
+| Phase 12 P02 | 4 | - tasks | - files |
 
 ## Decisions
 
@@ -253,3 +254,6 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 - [Phase ?]: [Phase 11.2-02]: HistoryService concrete class introduced; routes typed to service not repository; HistoryRepository binding retained for test seeding
 - [Phase ?]: broadcastImmediate() extracted from displayImmediate() to keep it under 30 lines
 - [Phase ?]: receiveUdpReplies() extracted from scanUdp() to fix pre-existing 32-line method
+- [Phase ?]: ZoneStatus.error added as additive nullable field propagated from LocalZoneDriver.status() via DisplayStatus.lastError
+- [Phase ?]: screenDriverMetrics registered in DI (provide { screenDriverMetrics }) so Routing.kt resolves it via by dependencies for healthRoutes()
+- [Phase ?]: displayAvailable healthCheck placed in healthChecks {} (not readyChecks) per D-03; /health returns 503 in test env (no hardware zones ONLINE)

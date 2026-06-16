@@ -239,11 +239,11 @@
 
 **Wave 1**
 
-- [ ] 12-01-PLAN.md — OBS-02: HardwareMetrics class (4 Dropwizard counters) + retryWithBackoff instrumentation + MetricsCollector.hardwareGroup() + DI wiring; HardwareMetricsTest/RetryPolicyTest/MetricsRoutesTest/ApplicationTest updated
+- [x] 12-01-PLAN.md — OBS-02: HardwareMetrics class (4 Dropwizard counters) + retryWithBackoff instrumentation + MetricsCollector.hardwareGroup() + DI wiring; HardwareMetricsTest/RetryPolicyTest/MetricsRoutesTest/ApplicationTest updated
 
 **Wave 2** *(blocked on Wave 1 — shared DependencyInjection.kt)*
 
-- [ ] 12-02-PLAN.md — OBS-01: GET /health/detail (HealthDetailResponse + healthRoutes, rate-limited) + ZoneStatus.error propagation + displayAvailable KHealth check + Routing/DI wiring; HealthRoutesTest flipped to 200
+- [x] 12-02-PLAN.md — OBS-01: GET /health/detail (HealthDetailResponse + healthRoutes, rate-limited) + ZoneStatus.error propagation + displayAvailable KHealth check + Routing/DI wiring; HealthRoutesTest flipped to 200
 
 **Wave 3** *(blocked on Wave 2 — shared Routing.kt + ApplicationTest)*
 
