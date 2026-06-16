@@ -160,7 +160,7 @@
 
 **Wave 3** *(gap closure — SC-4; blocked on Wave 2)*
 
-- [ ] 10-03-PLAN.md — Record webhook dispatch status (sent/skipped) in display history: V4 migration + webhookStatus through HistoryTable/Record/Repository + fire() status + /history JSON & HTML
+- [x] 10-03-PLAN.md — Record webhook dispatch status (sent/skipped) in display history: V4 migration + webhookStatus through HistoryTable/Record/Repository + fire() status + /history JSON & HTML
 
 ### Phase 11: Multi-Zone Displays
 
