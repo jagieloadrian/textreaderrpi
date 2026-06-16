@@ -220,7 +220,7 @@
 
 **Wave 1** *(disjoint files — run in parallel)*
 
-- [ ] 11.2-01-PLAN.md — Validation plugin migration + DisplayType enum enforcement: delete IpValidation, add AddZoneRequest + plugin validators (IP + display-type), flip ZoneRoutes POST to body, remove DisplayRoutes if-chain, DisplayConfig/ZoneConfig type→DisplayType, ConfigLoader fromString (3 sites), ZoneRegistry enum when; ZoneRoutesTest + WebAndDisplayRoutesTest updated to 422
+- [x] 11.2-01-PLAN.md — Validation plugin migration + DisplayType enum enforcement: delete IpValidation, add AddZoneRequest + plugin validators (IP + display-type), flip ZoneRoutes POST to body, remove DisplayRoutes if-chain, DisplayConfig/ZoneConfig type→DisplayType, ConfigLoader fromString (3 sites), ZoneRegistry enum when; ZoneRoutesTest + WebAndDisplayRoutesTest updated to 422
 - [ ] 11.2-02-PLAN.md — HistoryService layer: new HistoryService wrapping HistoryRepository, historyRoutes/historyUIRoutes re-typed to service, Routing + DependencyInjection rewired (HistoryRepository binding retained), ApplicationTest DI smoke extended
 - [ ] 11.2-03-PLAN.md — Service nesting reductions: NetworkDiscoveryService (startMdnsListener + buildNetworkZone), SchedulerService (checkExpiry + checkMaxRuns), ScreenDriverService (withMutex + acquireMutex + queueDisplaySwitch), WebhookService (executePost); all service tests stay green
 

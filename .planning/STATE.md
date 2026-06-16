@@ -2,26 +2,26 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
-status: completed
-last_updated: "2026-06-16T17:18:48.109Z"
+status: executing
+last_updated: "2026-06-16T18:10:48.828Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 9
   completed_phases: 6
-  total_plans: 21
-  completed_plans: 21
+  total_plans: 24
+  completed_plans: 22
   percent: 67
 ---
 
 # Project State & Memory
 
 **Last Updated:** 2026-06-16  
-**Status:** Phase 11 complete — ready for Phase 12
+**Status:** Ready to execute
 
 ## Current Position
 
-Phase: 12 (observability-gap-closures) — NOT STARTED
-Plan: 0 of TBD
+Phase: 11.2 (code-quality-cleanup) — EXECUTING
+Plan: 2 of 3
 **Next:** `/gsd-execute-phase 12`
 **Last activity:** 2026-06-16
 
@@ -207,6 +207,7 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 | Phase 11-multi-zone-displays P03 | 18min | 2 tasks | 16 files |
 | Phase 11-multi-zone-displays P04 | 10min | 3 tasks | 11 files |
 | Phase 11-multi-zone-displays P05 | 6min | 2 tasks | 6 files |
+| Phase 11.2 P01 | 20 minutes | 2 tasks | 13 files |
 
 ## Decisions
 
@@ -244,3 +245,6 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 - [Phase 11 review CR-03]: ipIndex (ConcurrentHashMap ip→id) added to ZoneRegistry; duplicate check in POST /zones/{ip} uses containsIp() not contains() — catches discovered zones stored under name key
 - [Phase 11 review CR-05]: zones.put().stop() in addNetworkZone stops orphaned coroutine scope when same zone re-registers (repeated mDNS announcements)
 - [Phase 11 review WR-04]: mDNS device name sanitised (alphanumeric + .-_, max 64 chars) before use as zone id to prevent DB constraint violation and HTML id attribute corruption
+- [Phase ?]: IpValidation object deleted; RFC1918 logic migrated verbatim into RequestValidators plugin validator
+- [Phase ?]: DisplayType enum enforced in DisplayConfig and ZoneConfig; ConfigLoader uses parseDisplayType() helper with UNKNOWN->MAX7219 fallback
+- [Phase ?]: ZoneRegistry initLocalZone uses exhaustive enum when dispatch; passes .name to LocalZoneDriver (String field)
