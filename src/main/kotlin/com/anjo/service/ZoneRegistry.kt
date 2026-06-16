@@ -10,15 +10,17 @@ import com.anjo.driver.OledDisplay
 import com.anjo.model.BroadcastResult
 import com.anjo.model.Effect
 import com.anjo.model.FailedZone
+import com.anjo.model.NetworkZone
 import com.anjo.model.ZoneStatus
 import com.anjo.zone.LocalZoneDriver
+import com.anjo.zone.NetworkZoneDriver
 import com.anjo.zone.ZoneDriver
 import com.pi4j.context.Context
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
@@ -32,10 +34,19 @@ class ZoneRegistry() {
     constructor(
         zonesConfig: ZonesConfig,
         pi4jContext: Context,
-        zoneRepository: ZoneRepository
+        zoneRepository: ZoneRepository,
+        wsClient: HttpClient? = null
     ) : this() {
         zonesConfig.zones.forEach { zoneConfig ->
             initLocalZone(zoneConfig, pi4jContext)
+        }
+        wsClient?.let { client ->
+            try {
+                val persisted = runBlocking { zoneRepository.findAll() }
+                persisted.forEach { zone -> addNetworkZone(zone, client) }
+            } catch (e: Exception) {
+                log.warn("Failed to load persisted network zones on startup: ${e.message}")
+            }
         }
     }
 
@@ -87,7 +98,14 @@ class ZoneRegistry() {
 
     fun statusOf(zoneId: String): String? = zones[zoneId]?.status()?.status
 
-    fun addNetworkZone(zoneId: String, driver: ZoneDriver) {
-        zones[zoneId] = driver
+    fun addNetworkZone(zone: NetworkZone, client: HttpClient) {
+        val driver = NetworkZoneDriver(
+            id = zone.id,
+            ip = zone.ip,
+            port = 80,
+            client = client
+        )
+        driver.startConnect()
+        zones[zone.id] = driver
     }
 }
