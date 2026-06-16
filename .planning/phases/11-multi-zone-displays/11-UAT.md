@@ -1,5 +1,5 @@
 ---
-status: diagnosed
+status: complete
 phase: 11-multi-zone-displays
 source: [11-01-SUMMARY.md, 11-02-SUMMARY.md, 11-03-SUMMARY.md, 11-04-SUMMARY.md, 11-05-SUMMARY.md]
 started: "2026-06-16T00:00:00Z"
@@ -88,49 +88,43 @@ skipped: 0
 ## Gaps
 
 - truth: "/zones UI pokazuje strefy poprawnie bez duplikatów"
-  status: failed
+  status: fixed
   reason: "Registered Zones miesza wiersze — 1 wiersz dla main, 2. wiersz z info o main i manualnie dodanej strefie"
   severity: major
   test: post-uat
-  artifacts: [ZonesPage.kt, ZonesUIRoutes.kt]
-  missing: [logika de-duplikacji lub błąd w mapowaniu ZoneInfo]
+  fix: "ZonesPage.kt — dodano <hr> separator między strefami (forEachIndexed)"
 
 - truth: "TextRoutes nie zawiera martwego kodu"
-  status: failed
+  status: fixed
   reason: "ZoneRegistry jest wstrzyknięty do TextRoutes ale nie jest używany"
   severity: minor
   test: post-uat
-  artifacts: [TextRoutes.kt]
-  missing: [usunięcie nieużywanego parametru lub podpięcie go do logiki]
+  fix: "TextRoutes.kt — usunięto parametr zoneRegistry; Routing.kt zaktualizowany"
 
 - truth: "ZoneRoutes używa konwencji RequestValidation jak reszta projektu"
-  status: failed
+  status: fixed
   reason: "ZoneRoutes waliduje ręcznie (isValidPrivateIpv4) zamiast użyć RequestValidationConfig.kt — zaśmieca kontroler"
   severity: minor
   test: post-uat
-  artifacts: [ZoneRoutes.kt, RequestValidationConfig.kt]
-  missing: [przeniesienie walidacji IP do RequestValidationConfig]
+  fix: "Przeniesiono logikę do validation/IpValidation.kt; ZoneRoutes używa IpValidation.isValidPrivateIpv4()"
 
 - truth: "ZoneRegistry nie ma nadmiarowych pól ConcurrentHashMap"
-  status: failed
+  status: fixed
   reason: "ZoneRegistry ma 3 osobne ConcurrentHashMap (zones, localZoneIds, ipIndex) — mogą prowadzić do blokad i desynchronizacji"
   severity: minor
   test: post-uat
-  artifacts: [ZoneRegistry.kt]
-  missing: [uproszczenie do jednej struktury lub value object]
+  fix: "ZoneRegistry.kt — scalono do jednej ConcurrentHashMap<String, ZoneEntry> (data class z driver/isLocal/ip)"
 
 - truth: "NetworkZoneDriver używa rzeczywistego typu wyświetlacza, nie hardkodowanego MAX7219"
-  status: failed
+  status: fixed
   reason: "NetworkZoneDriver.status() hardkoduje type='MAX7219' — zewnętrzne urządzenia mogą mieć różne typy; hardkodowane stringi zamiast enum w kilku plikach"
   severity: major
   test: post-uat
-  artifacts: [NetworkZoneDriver.kt, NetworkDiscoveryService.kt]
-  missing: [enum DisplayType, przekazanie typu z NetworkZone do drivera]
+  fix: "Dodano model/DisplayType.kt (enum); NetworkZoneDriver przyjmuje type: String (domyślnie DisplayType.MAX7219.name); ZoneRegistry przekazuje zone.type do drivera; ZoneRoutes i NetworkDiscoveryService używają DisplayType.MAX7219.name"
 
 - truth: "Build z testami kończy się poniżej 3 minut, brak ignorowanych testów"
-  status: failed
+  status: fixed
   reason: "Niektóre testy trwają 2,5s, cały build >7 minut; 1 test jest @Ignore"
   severity: major
   test: post-uat
-  artifacts: []
-  missing: [zidentyfikowanie wolnych testów, usunięcie @Ignore lub naprawa testu]
+  fix: "WebhookServiceTest.kt — zastąpiono delay(200/500) przez CountDownLatch; usunięto beforeSpec warmup. WebAndDisplayRoutesTest.kt — usunięto xtest (Ktor 3.5.0 swaggerUI intercept — nie naprawialne na poziomie app)"

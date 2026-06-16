@@ -49,7 +49,7 @@ fun Application.configureRouting() {
 
         route("/api/v1") {
             installApiRateLimiting(apiConfig.rateLimitPerMinute)
-            textRoutes(screenDriverService, zoneRegistry)
+            textRoutes(screenDriverService)
             displayRoutes(screenDriverService)
             scheduleRoutes(scheduleRepository, schedulerService)
             historyRoutes(historyRepository)

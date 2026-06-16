@@ -1,5 +1,6 @@
 package com.anjo.zone
 
+import com.anjo.model.DisplayType
 import com.anjo.model.Effect
 import com.anjo.model.ZoneStatus
 import io.ktor.client.HttpClient
@@ -22,6 +23,7 @@ class NetworkZoneDriver(
     private val ip: String,
     private val port: Int = 80,
     private val client: HttpClient,
+    private val type: String = DisplayType.MAX7219.name,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 ) : ZoneDriver {
 
@@ -66,7 +68,7 @@ class NetworkZoneDriver(
 
     override fun status(): ZoneStatus = ZoneStatus(
         id = id,
-        type = "MAX7219",
+        type = type,
         status = if (online) "ONLINE" else "OFFLINE",
         ip = ip
     )

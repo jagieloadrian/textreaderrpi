@@ -1,6 +1,7 @@
 package com.anjo.service
 
 import com.anjo.db.ZoneRepository
+import com.anjo.model.DisplayType
 import com.anjo.model.NetworkZone
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
@@ -106,7 +107,7 @@ class NetworkDiscoveryService(
         onDeviceDiscovered(ip = ip, method = method, name = name)
     }
 
-    private suspend fun onDeviceDiscovered(ip: String, method: String, name: String? = null, type: String = "MAX7219") {
+    private suspend fun onDeviceDiscovered(ip: String, method: String, name: String? = null, type: String = DisplayType.MAX7219.name) {
         val sanitised = name?.replace(Regex("[^a-zA-Z0-9._-]"), "-")?.take(64)
         val zoneId = sanitised?.takeIf { it.isNotBlank() } ?: ip
         val zone = NetworkZone(
@@ -133,7 +134,7 @@ class NetworkDiscoveryService(
             val typeMatch = Regex(""""type"\s*:\s*"([^"]+)"""").find(json)
             val ip = senderIp
             val name = nameMatch?.groupValues?.get(1) ?: ip
-            val type = typeMatch?.groupValues?.get(1) ?: "MAX7219"
+            val type = typeMatch?.groupValues?.get(1) ?: DisplayType.MAX7219.name
             NetworkZone(
                 id = name,
                 name = name,

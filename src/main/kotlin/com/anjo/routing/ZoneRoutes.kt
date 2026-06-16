@@ -1,9 +1,11 @@
 package com.anjo.routing
 
 import com.anjo.db.ZoneRepository
+import com.anjo.model.DisplayType
 import com.anjo.model.NetworkZone
 import com.anjo.service.NetworkDiscoveryService
 import com.anjo.service.ZoneRegistry
+import com.anjo.validation.IpValidation
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -48,7 +50,7 @@ fun Route.zoneRoutes(
             val ip = call.parameters["ip"]
                 ?: return@post call.respond(HttpStatusCode.BadRequest, "missing ip")
 
-            if (!isValidPrivateIpv4(ip)) {
+            if (!IpValidation.isValidPrivateIpv4(ip)) {
                 log.warn("POST /zones/{ip} rejected non-RFC1918 IP: $ip")
                 return@post call.respond(HttpStatusCode.BadRequest, "IP must be a valid RFC1918 private address")
             }
@@ -66,7 +68,7 @@ fun Route.zoneRoutes(
                 id = ip,
                 name = ip,
                 ip = ip,
-                type = "MAX7219",
+                type = DisplayType.MAX7219.name,
                 discoveryMethod = "MANUAL",
                 createdAt = Instant.now().toString(),
                 lastSeenAt = null
@@ -76,23 +78,5 @@ fun Route.zoneRoutes(
             log.info("Manual zone added: ip=$ip")
             call.respond(HttpStatusCode.Created, zone)
         }
-    }
-}
-
-internal fun isValidPrivateIpv4(ip: String): Boolean {
-    val parts = ip.split(".")
-    if (parts.size != 4) return false
-    val octets = try {
-        parts.map { it.toInt() }
-    } catch (_: NumberFormatException) {
-        return false
-    }
-    if (octets.any { it < 0 || it > 255 }) return false
-
-    return when {
-        octets[0] == 10 -> true
-        octets[0] == 172 && octets[1] in 16..31 -> true
-        octets[0] == 192 && octets[1] == 168 -> true
-        else -> false
     }
 }

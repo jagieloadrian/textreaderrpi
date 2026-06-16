@@ -17,44 +17,38 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.delay
 import java.time.Instant
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class WebhookServiceTest : FunSpec({
 
     val firedAt = Instant.parse("2026-06-15T20:00:00Z")
 
-    fun makeClient(captured: MutableList<io.ktor.client.request.HttpRequestData>, status: HttpStatusCode = HttpStatusCode.OK): HttpClient =
+    fun makeClient(
+        captured: MutableList<io.ktor.client.request.HttpRequestData>,
+        latch: CountDownLatch? = null,
+        status: HttpStatusCode = HttpStatusCode.OK
+    ): HttpClient =
         HttpClient(MockEngine { request ->
             captured.add(request)
+            latch?.countDown()
             respond("{}", status, headersOf(HttpHeaders.ContentType, "application/json"))
         }) {
             install(ContentNegotiation) { json() }
         }
 
-    beforeSpec {
-        val warmup = mutableListOf<io.ktor.client.request.HttpRequestData>()
-        val warmupSchedule = Schedule(
-            id = "warmup", text = "w",
-            triggerType = TriggerType.ONESHOT, triggerValue = "",
-            effect = Effect.SCROLL, webhookUrl = "http://localhost:1/warmup"
-        )
-        WebhookService(makeClient(warmup), WebhooksConfig(null)).send(warmupSchedule, firedAt)
-        delay(500)
-    }
-
     test("HOOK-01 + HOOK-02: should POST JSON payload to schedule webhookUrl") {
         val capturedData = mutableListOf<io.ktor.client.request.HttpRequestData>()
-        val client = makeClient(capturedData)
+        val latch = CountDownLatch(1)
         val schedule = Schedule(
             id = "s1", text = "hello",
             triggerType = TriggerType.ONESHOT, triggerValue = "",
             effect = Effect.SCROLL,
             webhookUrl = "http://localhost:9999/hook"
         )
-        val service = WebhookService(client, WebhooksConfig(defaultUrl = null))
-        service.send(schedule, firedAt)
-        delay(200)
+        WebhookService(makeClient(capturedData, latch), WebhooksConfig(defaultUrl = null)).send(schedule, firedAt)
+        latch.await(2, TimeUnit.SECONDS)
 
         capturedData.size shouldBe 1
         capturedData[0].url.toString() shouldBe "http://localhost:9999/hook"
@@ -69,7 +63,7 @@ class WebhookServiceTest : FunSpec({
 
     test("HOOK-02 zoneId: should include zoneId in payload when set and when null") {
         val capturedWithZone = mutableListOf<io.ktor.client.request.HttpRequestData>()
-        val clientWithZone = makeClient(capturedWithZone)
+        val latchWithZone = CountDownLatch(1)
         val scheduleWithZone = Schedule(
             id = "s2", text = "zoned",
             triggerType = TriggerType.ONESHOT, triggerValue = "",
@@ -77,15 +71,12 @@ class WebhookServiceTest : FunSpec({
             webhookUrl = "http://localhost:9999/hook",
             zoneId = "zone-A"
         )
-        val serviceWithZone = WebhookService(clientWithZone, WebhooksConfig(defaultUrl = null))
-        serviceWithZone.send(scheduleWithZone, firedAt)
-        delay(200)
-
-        val bodyWithZone = capturedWithZone[0].body.toByteArray().decodeToString()
-        bodyWithZone shouldContain "\"zoneId\":\"zone-A\""
+        WebhookService(makeClient(capturedWithZone, latchWithZone), WebhooksConfig(defaultUrl = null)).send(scheduleWithZone, firedAt)
+        latchWithZone.await(2, TimeUnit.SECONDS)
+        capturedWithZone[0].body.toByteArray().decodeToString() shouldContain "\"zoneId\":\"zone-A\""
 
         val capturedNoZone = mutableListOf<io.ktor.client.request.HttpRequestData>()
-        val clientNoZone = makeClient(capturedNoZone)
+        val latchNoZone = CountDownLatch(1)
         val scheduleNoZone = Schedule(
             id = "s2b", text = "no-zone",
             triggerType = TriggerType.ONESHOT, triggerValue = "",
@@ -93,26 +84,22 @@ class WebhookServiceTest : FunSpec({
             webhookUrl = "http://localhost:9999/hook",
             zoneId = null
         )
-        val serviceNoZone = WebhookService(clientNoZone, WebhooksConfig(defaultUrl = null))
-        serviceNoZone.send(scheduleNoZone, firedAt)
-        delay(200)
-
-        val bodyNoZone = capturedNoZone[0].body.toByteArray().decodeToString()
-        bodyNoZone shouldContain "\"zoneId\":null"
+        WebhookService(makeClient(capturedNoZone, latchNoZone), WebhooksConfig(defaultUrl = null)).send(scheduleNoZone, firedAt)
+        latchNoZone.await(2, TimeUnit.SECONDS)
+        capturedNoZone[0].body.toByteArray().decodeToString() shouldContain "\"zoneId\":null"
     }
 
     test("HOOK-03: should POST to config.defaultUrl when schedule.webhookUrl is null") {
         val capturedRequests = mutableListOf<io.ktor.client.request.HttpRequestData>()
-        val client = makeClient(capturedRequests)
+        val latch = CountDownLatch(1)
         val schedule = Schedule(
             id = "s3", text = "fallback",
             triggerType = TriggerType.ONESHOT, triggerValue = "",
             effect = Effect.SCROLL,
             webhookUrl = null
         )
-        val service = WebhookService(client, WebhooksConfig(defaultUrl = "http://fallback:8080/hook"))
-        service.send(schedule, firedAt)
-        delay(200)
+        WebhookService(makeClient(capturedRequests, latch), WebhooksConfig(defaultUrl = "http://fallback:8080/hook")).send(schedule, firedAt)
+        latch.await(2, TimeUnit.SECONDS)
 
         capturedRequests.size shouldBe 1
         capturedRequests[0].url.toString() shouldBe "http://fallback:8080/hook"
@@ -120,16 +107,15 @@ class WebhookServiceTest : FunSpec({
 
     test("D-04: should POST to schedule.webhookUrl when both schedule and config URL are set") {
         val capturedRequests = mutableListOf<io.ktor.client.request.HttpRequestData>()
-        val client = makeClient(capturedRequests)
+        val latch = CountDownLatch(1)
         val schedule = Schedule(
             id = "s4", text = "priority",
             triggerType = TriggerType.ONESHOT, triggerValue = "",
             effect = Effect.SCROLL,
             webhookUrl = "http://explicit/hook"
         )
-        val service = WebhookService(client, WebhooksConfig(defaultUrl = "http://fallback/hook"))
-        service.send(schedule, firedAt)
-        delay(200)
+        WebhookService(makeClient(capturedRequests, latch), WebhooksConfig(defaultUrl = "http://fallback/hook")).send(schedule, firedAt)
+        latch.await(2, TimeUnit.SECONDS)
 
         capturedRequests.size shouldBe 1
         capturedRequests[0].url.toString() shouldBe "http://explicit/hook"
@@ -137,32 +123,28 @@ class WebhookServiceTest : FunSpec({
 
     test("D-05: should send zero requests when both webhookUrl and defaultUrl are null") {
         val capturedRequests = mutableListOf<io.ktor.client.request.HttpRequestData>()
-        val client = makeClient(capturedRequests)
         val schedule = Schedule(
             id = "s5", text = "silent",
             triggerType = TriggerType.ONESHOT, triggerValue = "",
             effect = Effect.SCROLL,
             webhookUrl = null
         )
-        val service = WebhookService(client, WebhooksConfig(defaultUrl = null))
-        service.send(schedule, firedAt)
-        delay(200)
+        WebhookService(makeClient(capturedRequests), WebhooksConfig(defaultUrl = null)).send(schedule, firedAt)
 
         capturedRequests.size shouldBe 0
     }
 
     test("D-16: should not throw when webhook response is 500") {
         val capturedRequests = mutableListOf<io.ktor.client.request.HttpRequestData>()
-        val client = makeClient(capturedRequests, HttpStatusCode.InternalServerError)
+        val latch = CountDownLatch(1)
         val schedule = Schedule(
             id = "s6", text = "error-response",
             triggerType = TriggerType.ONESHOT, triggerValue = "",
             effect = Effect.SCROLL,
             webhookUrl = "http://localhost:9999/hook"
         )
-        val service = WebhookService(client, WebhooksConfig(defaultUrl = null))
-        service.send(schedule, firedAt)
-        delay(200)
+        WebhookService(makeClient(capturedRequests, latch, HttpStatusCode.InternalServerError), WebhooksConfig(defaultUrl = null)).send(schedule, firedAt)
+        latch.await(2, TimeUnit.SECONDS)
 
         capturedRequests.size shouldBe 1
     }

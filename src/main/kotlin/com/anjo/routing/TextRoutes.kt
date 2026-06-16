@@ -1,11 +1,9 @@
 package com.anjo.routing
 
-import com.anjo.model.BroadcastResult
 import com.anjo.model.TextRequest
 import com.anjo.model.TextResponse
 import com.anjo.service.DisplayResult
 import com.anjo.service.ScreenDriverService
-import com.anjo.service.ZoneRegistry
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -17,7 +15,7 @@ private val log = LoggerFactory.getLogger("TextRoutes")
 
 private val zoneNameRegex = Regex("^[a-zA-Z0-9-]{1,64}$")
 
-fun Route.textRoutes(screenDriverService: ScreenDriverService, zoneRegistry: ZoneRegistry) {
+fun Route.textRoutes(screenDriverService: ScreenDriverService) {
     post("/text") {
         val request = call.receive<TextRequest>()
         val zoneId = call.request.queryParameters["zone"]

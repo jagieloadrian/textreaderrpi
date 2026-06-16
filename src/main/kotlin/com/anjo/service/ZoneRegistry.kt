@@ -28,9 +28,10 @@ import java.util.concurrent.ConcurrentHashMap
 class ZoneRegistry() {
 
     private val log = LoggerFactory.getLogger(ZoneRegistry::class.java)
-    private val zones = ConcurrentHashMap<String, ZoneDriver>()
-    private val localZoneIds = ConcurrentHashMap.newKeySet<String>()
-    private val ipIndex = ConcurrentHashMap<String, String>()
+
+    private data class ZoneEntry(val driver: ZoneDriver, val isLocal: Boolean, val ip: String?)
+
+    private val zones = ConcurrentHashMap<String, ZoneEntry>()
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var wsClient: HttpClient? = null
 
@@ -71,22 +72,25 @@ class ZoneRegistry() {
             log.warn("Zone '${zoneConfig.id}' hardware init failed: ${e.message}; registering OFFLINE")
             OfflineDisplayDriver
         }
-        localZoneIds.add(zoneConfig.id)
-        zones[zoneConfig.id] = LocalZoneDriver(id = zoneConfig.id, type = zoneConfig.type, driver = driver)
+        zones[zoneConfig.id] = ZoneEntry(
+            driver = LocalZoneDriver(id = zoneConfig.id, type = zoneConfig.type, driver = driver),
+            isLocal = true,
+            ip = null
+        )
     }
 
     fun register(id: String, driver: ZoneDriver) {
-        zones[id] = driver
+        zones[id] = ZoneEntry(driver, isLocal = false, ip = null)
     }
 
     fun route(zoneId: String, text: String, effect: Effect): Boolean {
-        return zones[zoneId]?.send(text, effect) ?: false
+        return zones[zoneId]?.driver?.send(text, effect) ?: false
     }
 
     fun broadcast(text: String, effect: Effect): BroadcastResult {
         val results = runBlocking {
-            zones.map { (id, driver) ->
-                id to scope.async { runCatching { driver.send(text, effect) }.getOrDefault(false) }
+            zones.map { (id, entry) ->
+                id to scope.async { runCatching { entry.driver.send(text, effect) }.getOrDefault(false) }
             }.map { (id, deferred) ->
                 id to deferred.await()
             }
@@ -97,11 +101,11 @@ class ZoneRegistry() {
         )
     }
 
-    fun listAll(): List<ZoneStatus> = zones.values.map { it.status() }
+    fun listAll(): List<ZoneStatus> = zones.values.map { it.driver.status() }
 
     fun contains(zoneId: String): Boolean = zones.containsKey(zoneId)
 
-    fun statusOf(zoneId: String): String? = zones[zoneId]?.status()?.status
+    fun statusOf(zoneId: String): String? = zones[zoneId]?.driver?.status()?.status
 
     fun addNetworkZone(zone: NetworkZone) {
         val client = wsClient ?: return
@@ -109,21 +113,19 @@ class ZoneRegistry() {
     }
 
     fun removeZone(id: String): Boolean {
-        val driver = zones.remove(id) ?: return false
-        val ip = driver.status().ip
-        if (ip != null) ipIndex.remove(ip)
-        driver.stop()
+        val entry = zones.remove(id) ?: return false
+        entry.driver.stop()
         return true
     }
 
-    fun containsIp(ip: String): Boolean = ipIndex.containsKey(ip)
+    fun containsIp(ip: String): Boolean = zones.values.any { it.ip == ip }
 
     fun stop() {
-        zones.values.forEach { it.stop() }
+        zones.values.forEach { it.driver.stop() }
     }
 
     fun addNetworkZone(zone: NetworkZone, client: HttpClient) {
-        if (localZoneIds.contains(zone.id)) {
+        if (zones[zone.id]?.isLocal == true) {
             log.warn("Ignoring network zone '${zone.id}': conflicts with a local hardware zone")
             return
         }
@@ -131,10 +133,10 @@ class ZoneRegistry() {
             id = zone.id,
             ip = zone.ip,
             port = 80,
-            client = client
+            client = client,
+            type = zone.type
         )
         driver.startConnect()
-        zones.put(zone.id, driver)?.stop()
-        ipIndex[zone.ip] = zone.id
+        zones.put(zone.id, ZoneEntry(driver, isLocal = false, ip = zone.ip))?.driver?.stop()
     }
 }

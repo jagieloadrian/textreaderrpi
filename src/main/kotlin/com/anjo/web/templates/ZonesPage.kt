@@ -7,6 +7,7 @@ import kotlinx.html.div
 import kotlinx.html.form
 import kotlinx.html.h2
 import kotlinx.html.h3
+import kotlinx.html.hr
 import kotlinx.html.id
 import kotlinx.html.input
 import kotlinx.html.InputType
@@ -36,7 +37,8 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
             p { strong { +"No zones registered" } }
             p { +"No display zones found. Connect a local display and restart, or scan the network to discover nearby devices." }
         } else {
-            for (zone in zones) {
+            zones.forEachIndexed { index, zone ->
+                if (index > 0) hr {}
                 article {
                     p {
                         strong { +zone.id }
