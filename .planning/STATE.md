@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
 status: executing
-last_updated: "2026-06-16T11:33:21.521Z"
+last_updated: "2026-06-16T11:46:11Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 21
-  completed_plans: 19
-  percent: 63
+  completed_plans: 20
+  percent: 66
 ---
 
 # Project State & Memory
@@ -21,7 +21,7 @@ progress:
 ## Current Position
 
 Phase: 11 (multi-zone-displays) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 **Next:** `/gsd-execute-phase 11`
 **Last activity:** 2026-06-16
 
@@ -197,6 +197,7 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 | Phase 11 P01 | 12 minutes | 2 tasks | 8 files |
 | Phase 11 P02 | 15 minutes | 2 tasks | 5 files |
 | Phase 11-multi-zone-displays P03 | 18min | 2 tasks | 16 files |
+| Phase 11-multi-zone-displays P04 | 10min | 3 tasks | 11 files |
 
 ## Decisions
 
@@ -224,3 +225,6 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 - [Phase 11 P02]: LocalZoneDriver.send() calls driver.write() for all effects (synchronous direct write path); scrollText() is fire-and-forget so bypassed — Plan 03's ScreenDriverService pipeline owns full effect rendering
 - [Phase 11 P02]: ZoneStatus.status is String not enum — matches DB column convention per plan (ONLINE/OFFLINE/DEGRADED)
 - [Phase 11 P02]: com.anjo.zone package created for ZoneDriver interface and implementations; ZoneStatus lives in com.anjo.model as serializable API model
+- [Phase 11 P04]: ZoneRegistry stores wsClient field from DI constructor so addNetworkZone(zone) route-layer callers don't need direct HttpClient reference
+- [Phase 11 P04]: NetworkDiscoveryService.testOnDeviceDiscovered() internal seam for unit testing mDNS/UDP callback without real network IO
+- [Phase 11 P04]: V5 migration quoting: name and type reserved words in H2 PostgreSQL mode — fixed with double-quoted column names in DDL (same fix as V3 source column)
