@@ -7,6 +7,7 @@ import com.anjo.db.ScheduleRepository
 import com.anjo.db.ZoneRepository
 import com.anjo.service.EffectRendererFactory
 import com.anjo.service.MetricsCollector
+import com.anjo.service.NetworkDiscoveryService
 import com.anjo.service.SchedulerService
 import com.anjo.service.ScreenDriverService
 import com.anjo.service.WebhookService
@@ -77,6 +78,7 @@ class ApplicationTest : FunSpec({
             deps.getBlocking<MetricRegistry>(DependencyKey<MetricRegistry>()) shouldNotBeNull {}
             deps.getBlocking<ZoneRegistry>(DependencyKey<ZoneRegistry>()) shouldNotBeNull {}
             deps.getBlocking<ZoneRepository>(DependencyKey<ZoneRepository>()) shouldNotBeNull {}
+            deps.getBlocking<NetworkDiscoveryService>(DependencyKey<NetworkDiscoveryService>()) shouldNotBeNull {}
             deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>()) shouldNotBeNull {}
             deps.getBlocking<MetricsCollector>(DependencyKey<MetricsCollector>()) shouldNotBeNull {}
             deps.getBlocking<ScheduleRepository>(DependencyKey<ScheduleRepository>()) shouldNotBeNull {}

@@ -30,6 +30,7 @@ class ZoneRegistry() {
     private val log = LoggerFactory.getLogger(ZoneRegistry::class.java)
     private val zones = ConcurrentHashMap<String, ZoneDriver>()
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var wsClient: HttpClient? = null
 
     constructor(
         zonesConfig: ZonesConfig,
@@ -37,6 +38,7 @@ class ZoneRegistry() {
         zoneRepository: ZoneRepository,
         wsClient: HttpClient? = null
     ) : this() {
+        this.wsClient = wsClient
         zonesConfig.zones.forEach { zoneConfig ->
             initLocalZone(zoneConfig, pi4jContext)
         }
@@ -97,6 +99,11 @@ class ZoneRegistry() {
     fun contains(zoneId: String): Boolean = zones.containsKey(zoneId)
 
     fun statusOf(zoneId: String): String? = zones[zoneId]?.status()?.status
+
+    fun addNetworkZone(zone: NetworkZone) {
+        val client = wsClient ?: return
+        addNetworkZone(zone, client)
+    }
 
     fun addNetworkZone(zone: NetworkZone, client: HttpClient) {
         val driver = NetworkZoneDriver(

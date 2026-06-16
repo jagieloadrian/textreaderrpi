@@ -3,11 +3,13 @@ package com.anjo.routing
 import com.anjo.config.model.ApiConfig
 import com.anjo.db.HistoryRepository
 import com.anjo.db.ScheduleRepository
+import com.anjo.db.ZoneRepository
 import com.anjo.di.installApiRateLimiting
 import com.anjo.routing.ui.historyUIRoutes
 import com.anjo.routing.ui.scheduleUIRoutes
 import com.anjo.routing.ui.webRoutes
 import com.anjo.service.MetricsCollector
+import com.anjo.service.NetworkDiscoveryService
 import com.anjo.service.SchedulerService
 import com.anjo.service.ScreenDriverService
 import com.anjo.service.ZoneRegistry
@@ -33,6 +35,8 @@ fun Application.configureRouting() {
     val scheduleRepository: ScheduleRepository by dependencies
     val schedulerService: SchedulerService by dependencies
     val historyRepository: HistoryRepository by dependencies
+    val networkDiscoveryService: NetworkDiscoveryService by dependencies
+    val zoneRepository: ZoneRepository by dependencies
 
     routing {
         staticResources("/static", "static")
@@ -47,6 +51,7 @@ fun Application.configureRouting() {
             displayRoutes(screenDriverService)
             scheduleRoutes(scheduleRepository, schedulerService)
             historyRoutes(historyRepository)
+            zoneRoutes(zoneRegistry, networkDiscoveryService, zoneRepository)
         }
 
         swaggerUI(path = "openapi") {
