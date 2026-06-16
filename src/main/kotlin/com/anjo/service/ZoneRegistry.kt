@@ -105,6 +105,12 @@ class ZoneRegistry() {
         addNetworkZone(zone, client)
     }
 
+    fun removeZone(id: String): Boolean {
+        val driver = zones.remove(id) ?: return false
+        driver.stop()
+        return true
+    }
+
     fun addNetworkZone(zone: NetworkZone, client: HttpClient) {
         val driver = NetworkZoneDriver(
             id = zone.id,

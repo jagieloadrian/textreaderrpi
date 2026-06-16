@@ -248,6 +248,23 @@
     }
   }
 
+  async function deleteZone(id) {
+    const resultDiv = document.getElementById("deleteResult-" + id);
+    try {
+      const response = await fetch("/api/v1/zones/" + encodeURIComponent(id), { method: "DELETE" });
+      if (response.status === 204) {
+        if (resultDiv) resultDiv.textContent = "Removed. Reloading...";
+        setTimeout(() => { window.location.href = "/zones"; }, 800);
+      } else if (response.status === 404) {
+        if (resultDiv) resultDiv.textContent = "Zone not found.";
+      } else {
+        if (resultDiv) resultDiv.textContent = "Could not remove zone.";
+      }
+    } catch (_) {
+      if (resultDiv) resultDiv.textContent = "Could not remove zone.";
+    }
+  }
+
   // ─── Boot ─────────────────────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", () => {
     // Home page
@@ -273,5 +290,8 @@
     if (scanBtn) scanBtn.addEventListener("click", e => { e.preventDefault(); scanForDisplays(); });
     const addZoneForm = document.getElementById("addZoneForm");
     if (addZoneForm) addZoneForm.addEventListener("submit", addZoneByIp);
+    document.querySelectorAll(".delete-zone-btn").forEach(btn => {
+      btn.addEventListener("click", e => { e.preventDefault(); deleteZone(btn.dataset.zoneId); });
+    });
   });
 })();

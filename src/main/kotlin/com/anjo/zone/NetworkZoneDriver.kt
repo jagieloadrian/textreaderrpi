@@ -6,7 +6,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
-import io.ktor.websocket.send
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,6 +15,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration.Companion.milliseconds
 
 class NetworkZoneDriver(
     private val id: String,
@@ -45,7 +45,7 @@ class NetworkZoneDriver(
                 } finally {
                     online = false
                     session = null
-                    delay(5_000)
+                    delay(5_000.milliseconds)
                 }
             }
         }
@@ -71,7 +71,7 @@ class NetworkZoneDriver(
         ip = ip
     )
 
-    fun stop() {
+    override fun stop() {
         scope.coroutineContext[Job]?.cancel()
     }
 }

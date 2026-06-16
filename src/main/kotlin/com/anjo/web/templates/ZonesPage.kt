@@ -1,6 +1,7 @@
 package com.anjo.web.templates
 
 import kotlinx.html.FlowContent
+import kotlinx.html.ButtonType
 import kotlinx.html.button
 import kotlinx.html.div
 import kotlinx.html.form
@@ -59,6 +60,16 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
                     }
                     if (zone.lastSeenAt != null) {
                         p { strong { +"Last seen:" }; +" ${zone.lastSeenAt}" }
+                    }
+                    if (!zone.isLocal) {
+                        button {
+                            type = ButtonType.button
+                            attributes["data-zone-id"] = zone.id
+                            attributes["class"] = "delete-zone-btn"
+                            attributes["style"] = "background: var(--pico-color-red-500, #c0392b)"
+                            +"Remove"
+                        }
+                        div { attributes["id"] = "deleteResult-${zone.id}" }
                     }
                 }
             }

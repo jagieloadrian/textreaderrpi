@@ -7,6 +7,7 @@ import com.anjo.service.ZoneRegistry
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -23,6 +24,19 @@ fun Route.zoneRoutes(
     route("/zones") {
         get {
             call.respond(zoneRegistry.listAll())
+        }
+
+        delete("/{id}") {
+            val id = call.parameters["id"]
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, "missing id")
+
+            val zone = zoneRepository.findById(id)
+                ?: return@delete call.respond(HttpStatusCode.NotFound, "Zone not found or is a local zone (cannot be deleted)")
+
+            zoneRepository.delete(id)
+            zoneRegistry.removeZone(id)
+            log.info("Zone deleted: id=$id")
+            call.respond(HttpStatusCode.NoContent)
         }
 
         post("/discover") {
