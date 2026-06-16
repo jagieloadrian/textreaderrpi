@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class OledDisplay(
     private val ctx: Context,
@@ -16,23 +17,22 @@ class OledDisplay(
     private val height: Int = 64,
 ) : AbstractDisplayDriver() {
 
-    private val i2c: I2C?
+    private val i2c: I2C? = try {
+        val config = I2C.newConfigBuilder(ctx)
+            .id("i2c-oled")
+            .name("I2C OLED Display")
+            .bus(busNumber)
+            .device(i2cAddress)
+            .build()
+        ctx.create(config)
+    } catch (e: Exception) {
+        lastError = "I2C initialization failed: ${e.message}"
+        null
+    }
 
     private val charsPerLine = width / 8
 
     init {
-        i2c = try {
-            val config = I2C.newConfigBuilder(ctx)
-                .id("i2c-oled")
-                .name("I2C OLED Display")
-                .bus(busNumber)
-                .device(i2cAddress)
-                .build()
-            ctx.create(config)
-        } catch (e: Exception) {
-            lastError = "I2C initialization failed: ${e.message}"
-            null
-        }
 
         if (i2c != null) {
             try {
@@ -112,7 +112,7 @@ class OledDisplay(
                 while (isActive && index <= padded.length - charsPerLine) {
                     renderText(padded.substring(index, index + charsPerLine))
                     index++
-                    delay(speedMs)
+                    delay(speedMs.milliseconds)
                 }
                 clearHardware()
             } catch (e: Exception) {

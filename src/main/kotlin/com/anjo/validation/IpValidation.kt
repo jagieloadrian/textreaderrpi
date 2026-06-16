@@ -9,7 +9,7 @@ object IpValidation {
         } catch (_: NumberFormatException) {
             return false
         }
-        if (octets.any { it < 0 || it > 255 }) return false
+        if (octets.any { it !in 0..255 }) return false
 
         return when {
             octets[0] == 10 -> true

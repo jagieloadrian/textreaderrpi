@@ -45,25 +45,24 @@ class Max7219Matrix(
         }
     }
 
-    private val spi: Spi?
+    private val spi: Spi? = try {
+        val config = Spi.newConfigBuilder(ctx)
+            .id("max7219-zone-$zoneId")
+            .name("MAX7219 SPI Zone $zoneId")
+            .bus(SpiBus.BUS_0)
+            .chipSelect(SpiChipSelect.CS_0)
+            .baud(1_000_000)
+            .mode(SpiMode.MODE_0)
+            .provider(LinuxFsSpiProviderImpl::class.java)
+            .build()
+        ctx.create(config)
+    } catch (e: Exception) {
+        lastError = "SPI initialization failed: ${e.message}"
+        null
+    }
     private var buffer = Array(numDevices) { ByteArray(8) }
 
     init {
-        spi = try {
-            val config = Spi.newConfigBuilder(ctx)
-                .id("max7219-zone-$zoneId")
-                .name("MAX7219 SPI Zone $zoneId")
-                .bus(SpiBus.BUS_0)
-                .chipSelect(SpiChipSelect.CS_0)
-                .baud(1_000_000)
-                .mode(SpiMode.MODE_0)
-                .provider(LinuxFsSpiProviderImpl::class.java)
-                .build()
-            ctx.create(config)
-        } catch (e: Exception) {
-            lastError = "SPI initialization failed: ${e.message}"
-            null
-        }
 
         if (spi != null) {
             try {

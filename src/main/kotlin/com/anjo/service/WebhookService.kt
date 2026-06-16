@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
 import java.time.Instant
+import kotlin.time.Duration.Companion.milliseconds
 
 class WebhookService(
     private val httpClient: HttpClient,
@@ -34,7 +35,7 @@ class WebhookService(
         val url = resolveUrl(schedule) ?: return
         scope.launch {
             try {
-                withTimeout(5_000) {
+                withTimeout(5_000.milliseconds) {
                     val payload = buildPayload(schedule, firedAt)
                     val response = httpClient.post(url) {
                         header(HttpHeaders.ContentType, ContentType.Application.Json)

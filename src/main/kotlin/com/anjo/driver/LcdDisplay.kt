@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class LcdDisplay(
     private val ctx: Context,
@@ -13,26 +14,24 @@ class LcdDisplay(
     private val busNumber: Int = 1,
 ) : AbstractDisplayDriver() {
 
-    private val i2c: I2C?
+    private val i2c: I2C? = try {
+        val config = I2C.newConfigBuilder(ctx)
+            .id("i2c-lcd")
+            .name("I2C LCD Display")
+            .bus(busNumber)
+            .device(i2cAddress)
+            .build()
+        ctx.create(config)
+    } catch (e: Exception) {
+        lastError = "I2C initialization failed: ${e.message}"
+        null
+    }
 
     private val maxLineLength = 16
     private val cursorLine1   = 0x80
     private val cursorLine2   = 0xC0
 
     init {
-        i2c = try {
-            val config = I2C.newConfigBuilder(ctx)
-                .id("i2c-lcd")
-                .name("I2C LCD Display")
-                .bus(busNumber)
-                .device(i2cAddress)
-                .build()
-            ctx.create(config)
-        } catch (e: Exception) {
-            lastError = "I2C initialization failed: ${e.message}"
-            null
-        }
-
         if (i2c != null) {
             try {
                 initializeLcd()
@@ -127,7 +126,7 @@ class LcdDisplay(
                     writeCommand(cursorLine1)
                     visible.forEach { writeData(it.code) }
                     offset++
-                    delay(speedMs)
+                    delay(speedMs.milliseconds)
                 }
                 clearHardware()
             } catch (e: Exception) {

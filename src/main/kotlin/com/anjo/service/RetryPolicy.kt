@@ -4,6 +4,7 @@ import com.anjo.config.model.RetryConfig
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
 import kotlin.math.min
+import kotlin.time.Duration.Companion.milliseconds
 
 private val log = LoggerFactory.getLogger("com.anjo.service.RetryPolicy")
 
@@ -20,7 +21,7 @@ suspend fun <T> retryWithBackoff(config: RetryConfig = RetryConfig(), block: sus
                 throw e
             }
             log.warn("Attempt $attempt/${config.maxAttempts} failed, retrying in ${delayMs}ms: ${e.message}")
-            delay(delayMs)
+            delay(delayMs.milliseconds)
             delayMs = min((delayMs * config.factor).toLong(), config.maxDelayMs)
         }
     }

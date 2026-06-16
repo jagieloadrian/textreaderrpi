@@ -132,13 +132,12 @@ class NetworkDiscoveryService(
         return try {
             val nameMatch = Regex(""""name"\s*:\s*"([^"]+)"""").find(json)
             val typeMatch = Regex(""""type"\s*:\s*"([^"]+)"""").find(json)
-            val ip = senderIp
-            val name = nameMatch?.groupValues?.get(1) ?: ip
+            val name = nameMatch?.groupValues?.get(1) ?: senderIp
             val type = typeMatch?.groupValues?.get(1) ?: DisplayType.MAX7219.name
             NetworkZone(
                 id = name,
                 name = name,
-                ip = ip,
+                ip = senderIp,
                 type = type,
                 discoveryMethod = "UDP",
                 createdAt = Instant.now().toString(),

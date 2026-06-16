@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.ZonedDateTime
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.milliseconds
 
 class SchedulerService(
     private val repository: ScheduleRepository,
@@ -84,7 +85,7 @@ class SchedulerService(
         var consecutiveErrors = 0
         while (scope.isActive) {
             try {
-                delay(60_000L)
+                delay(60_000L.milliseconds)
                 val active = repository.findAllActive()
                     .sortedWith(compareByDescending<Schedule> { it.priority }.thenBy { it.createdAt ?: "" })
                     .filter { !activeJobs.containsKey(it.id) }
@@ -109,7 +110,7 @@ class SchedulerService(
         return scope.launch {
             val now = System.currentTimeMillis()
             val delayMs = targetMs - now
-            if (delayMs > 0) delay(delayMs)
+            if (delayMs > 0) delay(delayMs.milliseconds)
             fire(schedule)
             repository.updateFiredAtAndDone(schedule.id, Instant.now().toString())
             activeJobs.remove(schedule.id)
@@ -125,7 +126,7 @@ class SchedulerService(
         return scope.launch {
             var runs = 0
             while (isActive) {
-                delay(intervalMs)
+                delay(intervalMs.milliseconds)
                 val expiresAt = schedule.expiresAt
                 if (expiresAt != null) {
                     val expiresInstant = try { Instant.parse(expiresAt) }
@@ -162,7 +163,7 @@ class SchedulerService(
                     break
                 }
                 val delayMs = next.toInstant().toEpochMilli() - System.currentTimeMillis()
-                if (delayMs > 0) delay(delayMs)
+                if (delayMs > 0) delay(delayMs.milliseconds)
                 fire(schedule)
             }
         }

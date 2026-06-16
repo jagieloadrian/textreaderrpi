@@ -51,10 +51,10 @@ class HistoryRepository {
             query = query.where { HistoryTable.effect eq effect }
         }
         if (source != null) {
-            if (effect != null) {
-                query = query.andWhere { HistoryTable.displaySource eq source }
+            query = if (effect != null) {
+                query.andWhere { HistoryTable.displaySource eq source }
             } else {
-                query = query.where { HistoryTable.displaySource eq source }
+                query.where { HistoryTable.displaySource eq source }
             }
         }
         val total = query.count()
