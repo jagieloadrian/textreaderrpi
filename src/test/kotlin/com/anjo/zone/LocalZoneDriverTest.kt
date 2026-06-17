@@ -8,6 +8,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 
 class LocalZoneDriverTest : FunSpec({
     test("should return true and report ONLINE when healthy driver succeeds") {
@@ -15,10 +16,11 @@ class LocalZoneDriverTest : FunSpec({
         every { driver.status() } returns DisplayStatus(isActive = false, hardwareAvailable = true)
         val zoneDriver = LocalZoneDriver(id = "main", type = "MAX7219", driver = driver)
 
-        val result = zoneDriver.send("Hello", Effect.SCROLL)
-
-        result shouldBe true
-        zoneDriver.status().status shouldBe "ONLINE"
+        runTest {
+            val result = zoneDriver.send("Hello", Effect.SCROLL)
+            result shouldBe true
+            zoneDriver.status().status shouldBe "ONLINE"
+        }
     }
 
     test("should return false when the wrapped driver throws on send") {
@@ -27,9 +29,10 @@ class LocalZoneDriverTest : FunSpec({
         every { driver.write(any()) } throws RuntimeException("SPI failure")
         val zoneDriver = LocalZoneDriver(id = "main", type = "MAX7219", driver = driver)
 
-        val result = zoneDriver.send("Hello", Effect.BLINK)
-
-        result shouldBe false
+        runTest {
+            val result = zoneDriver.send("Hello", Effect.BLINK)
+            result shouldBe false
+        }
     }
 
     test("should report OFFLINE when wrapping OfflineDisplayDriver") {

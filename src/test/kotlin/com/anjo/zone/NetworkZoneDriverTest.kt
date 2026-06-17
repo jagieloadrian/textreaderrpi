@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.runTest
 
 class NetworkZoneDriverTest : FunSpec({
 
@@ -33,10 +34,11 @@ class NetworkZoneDriverTest : FunSpec({
             scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         )
 
-        val result = driver.send("Hello", Effect.SCROLL)
-
-        result shouldBe false
-        driver.status().status shouldBe "OFFLINE"
+        runTest {
+            val result = driver.send("Hello", Effect.SCROLL)
+            result shouldBe false
+            driver.status().status shouldBe "OFFLINE"
+        }
     }
 
     test("status returns ZoneStatus with correct id and type") {
@@ -71,7 +73,9 @@ class NetworkZoneDriverTest : FunSpec({
             scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         )
 
-        driver.stop()
-        driver.send("Hello", Effect.SCROLL) shouldBe false
+        runTest {
+            driver.stop()
+            driver.send("Hello", Effect.SCROLL) shouldBe false
+        }
     }
 })

@@ -14,7 +14,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -53,12 +52,10 @@ class NetworkZoneDriver(
         }
     }
 
-    override fun send(text: String, effect: Effect): Boolean {
+    override suspend fun send(text: String, effect: Effect): Boolean {
         val s = session ?: return false
         return try {
-            runBlocking {
-                s.send(Frame.Text("""{"text":${kotlinx.serialization.json.Json.encodeToString(text)},"effect":"${effect.name}"}"""))
-            }
+            s.send(Frame.Text("""{"text":${kotlinx.serialization.json.Json.encodeToString(text)},"effect":"${effect.name}"}"""))
             true
         } catch (e: Exception) {
             log.warn("NetworkZoneDriver send failed to $ip: ${e.message}")
