@@ -1,10 +1,11 @@
 ---
 phase: 12
 slug: observability-gap-closures
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-16
+updated: 2026-06-17
 ---
 
 # Phase 12 — Validation Strategy
@@ -17,11 +18,11 @@ created: 2026-06-16
 
 | Property | Value |
 |----------|-------|
-| **Framework** | JUnit 5 + Ktor TestApplication (existing) |
-| **Config file** | `build.gradle.kts` — existing test config |
-| **Quick run command** | `./gradlew test --tests "*.HealthRoutesTest" --tests "*.MetricsRoutesTest"` |
+| **Framework** | Kotest (FunSpec, `should` convention) |
+| **Config file** | none — Gradle test config in `build.gradle.kts` |
+| **Quick run command** | `./gradlew test --tests "com.anjo.routing.HealthRoutesTest" --tests "com.anjo.routing.MetricsRoutesTest"` |
 | **Full suite command** | `./gradlew test` |
-| **Estimated runtime** | ~24 seconds |
+| **Estimated runtime** | ~20 seconds |
 
 ---
 
@@ -38,9 +39,11 @@ created: 2026-06-16
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | 01 | 1 | OBS-01 | — | N/A | unit+integration | `./gradlew test --tests "*.HealthRoutesTest"` | ✅ existing | ⬜ pending |
-| TBD | 02 | 1 | OBS-02 | — | N/A | unit+integration | `./gradlew test --tests "*.MetricsRoutesTest"` | ✅ existing | ⬜ pending |
-| TBD | 03 | 1 | OBS-03 | — | N/A | manual | Browser navigation to unknown path | — | ⬜ pending |
+| hardware-metrics-model | 01 | 1 | OBS-02 | — | HardwareMetrics DISABLED sentinel prevents counter allocation when metrics disabled; null-safe increments | unit | `./gradlew test --tests "com.anjo.service.HardwareMetricsTest" --tests "com.anjo.service.RetryPolicyTest"` | ✅ | ✅ green |
+| hardware-metrics-wire | 01 | 1 | OBS-02 | T-12-02 | GET /metrics groups array has 3 entries: runtime, api, hardware; rate-limited at 120 req/min | integration | `./gradlew test --tests "com.anjo.routing.MetricsRoutesTest" --tests "com.anjo.ApplicationTest"` | ✅ | ✅ green |
+| health-detail-dto | 02 | 2 | OBS-01 | — | ZoneStatus.error additive (no breaking change); HealthDetailResponse flat DTO assembled in route handler | integration | `./gradlew test --tests "com.anjo.routing.HealthRoutesTest"` | ✅ | ✅ green |
+| health-detail-register | 02 | 2 | OBS-01 | T-12-05 | GET /health/detail returns 200 + JSON with uptime, memoryUsed, memoryMax, displayStatus, totalFailures, zoneErrors; rate-limited 120/min; displayAvailable liveness check in /health | integration | `./gradlew test --tests "com.anjo.routing.HealthRoutesTest" --tests "com.anjo.ApplicationTest"` | ✅ | ✅ green |
+| html-404-fix | 03 | 3 | OBS-03 | T-12-06 | Browser Accept:text/html unknown route → 404 HTML page with "Error 404"; API paths /api/... → JSON (no HTML); respondText() passes correct status code | integration | `./gradlew test --tests "com.anjo.ApplicationTest"` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -48,10 +51,11 @@ created: 2026-06-16
 
 ## Wave 0 Requirements
 
-Existing infrastructure covers all phase requirements. No new test framework install needed.
+All test files existed pre-phase; they were updated (not created from scratch) during execution. No new test framework install needed.
 
-- [ ] Update `HealthRoutesTest` — change 404 assertion to 200 + validate JSON fields (uptime, memoryUsed, memoryMax, displayStatus, totalFailures, zoneErrors)
-- [ ] Update `MetricsRoutesTest` — change `shouldHaveSize 2` to `shouldHaveSize 3` and add "hardware" to groupNames list
+- [x] Updated `MetricsRoutesTest` — `shouldHaveSize 3`, added `hardware` to groupNames assertion
+- [x] Updated `HealthRoutesTest` — asserts `/health/detail` 200 + JSON fields; `/health` body contains "displayAvailable"; accepts 200 or 503 (no hardware zones ONLINE in test env)
+- [x] Updated `ApplicationTest` — HTML 404 assertion (`/does-not-exist` + `Accept: text/html`); API-path JSON discrimination assertion
 
 ---
 
@@ -59,17 +63,24 @@ Existing infrastructure covers all phase requirements. No new test framework ins
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Browser renders HTML 404 page (not JSON) for unknown path | OBS-03 | Requires real browser with `Accept: text/html` header — Ktor's `prefersHtml()` checks Accept header, not easily replicated in unit tests | Navigate to `http://<host>:<port>/does-not-exist` in browser; confirm HTML page with "Error 404" heading |
+| Browser renders HTML 404 page (not JSON) for unknown path | OBS-03 | Human visual confirm that the rendered HTML page looks correct (SC-3 checkpoint in plan 03) | Navigate to `http://<host>:<port>/does-not-exist` in browser; confirm HTML page with "Error 404" heading and no JSON body — **done during plan 03 execution** |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verify commands
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all test updates
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+## Validation Audit 2026-06-17
+| Metric | Count |
+|--------|-------|
+| Gaps found | 5 (all TBD task IDs, status draft) |
+| Resolved (automated) | 5 |
+| Escalated to manual-only | 0 (browser visual already done during plan 03) |
+
+**Approval:** complete
