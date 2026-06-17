@@ -45,7 +45,7 @@ class ConflictPolicyTest : FunSpec({
     test("broadcast result returned when no zone param given") {
         runTest {
             val driver = mockk<ZoneDriver>(relaxed = true)
-            every { driver.send(any(), any()) } returns true
+            coEvery { driver.send(any(), any()) } returns true
             val svc = makeService(driver)
             val result = svc.displayImmediate("hello", Effect.SCROLL, ConflictPolicy.INTERRUPT)
             result.shouldBeInstanceOf<DisplayResult.Broadcast>()

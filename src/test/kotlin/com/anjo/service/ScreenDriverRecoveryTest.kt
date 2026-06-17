@@ -6,6 +6,8 @@ import com.anjo.zone.ZoneDriver
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -33,21 +35,21 @@ class ScreenDriverRecoveryTest : FunSpec({
 
     test("should succeed when zone driver works on first attempt") {
         val driver = mockk<ZoneDriver>(relaxed = true)
-        every { driver.send(any(), any()) } returns true
+        coEvery { driver.send(any(), any()) } returns true
         service(driver).displayImmediate("hello")
-        verify(exactly = 1) { driver.send("hello", any()) }
+        coVerify(exactly = 1) { driver.send("hello", any()) }
     }
 
     test("should not throw after max retries on zone driver failure") {
         val driver = mockk<ZoneDriver>(relaxed = true)
-        every { driver.send(any(), any()) } throws RuntimeException("SPI timeout")
+        coEvery { driver.send(any(), any()) } throws RuntimeException("SPI timeout")
         every { driver.status() } returns com.anjo.model.ZoneStatus(id = "main", type = "MAX7219", status = "OFFLINE")
         service(driver).displayImmediate("this will fail hardware")
     }
 
     test("should release zone after permanent driver failure") {
         val driver = mockk<ZoneDriver>(relaxed = true)
-        every { driver.send(any(), any()) } throws RuntimeException("permanent failure")
+        coEvery { driver.send(any(), any()) } throws RuntimeException("permanent failure")
         every { driver.status() } returns com.anjo.model.ZoneStatus(id = "main", type = "MAX7219", status = "OFFLINE")
         val svc = service(driver)
         svc.displayImmediate("first message")

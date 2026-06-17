@@ -8,9 +8,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 
 class ZoneRegistryTest : FunSpec({
 
@@ -22,51 +25,55 @@ class ZoneRegistryTest : FunSpec({
 
     test("route to a known zone calls that driver and returns its result") {
         val driver = mockk<ZoneDriver>()
-        every { driver.send("hello", Effect.SCROLL) } returns true
+        coEvery { driver.send("hello", Effect.SCROLL) } returns true
 
         val registry = makeRegistry("main" to driver)
-        val result = registry.route("main", "hello", Effect.SCROLL)
-
-        result shouldBe true
-        verify(exactly = 1) { driver.send("hello", Effect.SCROLL) }
+        runTest {
+            val result = registry.route("main", "hello", Effect.SCROLL)
+            result shouldBe true
+            coVerify(exactly = 1) { driver.send("hello", Effect.SCROLL) }
+        }
     }
 
     test("route to an unknown zone returns false without calling any driver") {
         val driver = mockk<ZoneDriver>()
         val registry = makeRegistry("main" to driver)
 
-        val result = registry.route("ghost", "hello", Effect.SCROLL)
-
-        result shouldBe false
-        verify(exactly = 0) { driver.send(any(), any()) }
+        runTest {
+            val result = registry.route("ghost", "hello", Effect.SCROLL)
+            result shouldBe false
+            coVerify(exactly = 0) { driver.send(any(), any()) }
+        }
     }
 
     test("broadcast calls all drivers in parallel and returns aggregate result") {
         val mainDriver = mockk<ZoneDriver>()
         val statusDriver = mockk<ZoneDriver>()
-        every { mainDriver.send(any(), any()) } returns true
-        every { statusDriver.send(any(), any()) } returns true
+        coEvery { mainDriver.send(any(), any()) } returns true
+        coEvery { statusDriver.send(any(), any()) } returns true
 
         val registry = makeRegistry("main" to mainDriver, "status" to statusDriver)
-        val result = registry.broadcast("hello", Effect.SCROLL)
-
-        result.successful shouldContain "main"
-        result.successful shouldContain "status"
-        result.failed shouldHaveSize 0
+        runTest {
+            val result = registry.broadcast("hello", Effect.SCROLL)
+            result.successful shouldContain "main"
+            result.successful shouldContain "status"
+            result.failed shouldHaveSize 0
+        }
     }
 
     test("broadcast: one zone failing does not block or remove other zone from successful list") {
         val goodDriver = mockk<ZoneDriver>()
         val badDriver = mockk<ZoneDriver>()
-        every { goodDriver.send(any(), any()) } returns true
-        every { badDriver.send(any(), any()) } throws RuntimeException("SPI timeout")
+        coEvery { goodDriver.send(any(), any()) } returns true
+        coEvery { badDriver.send(any(), any()) } throws RuntimeException("SPI timeout")
 
         val registry = makeRegistry("main" to goodDriver, "kitchen" to badDriver)
-        val result = registry.broadcast("hello", Effect.SCROLL)
-
-        result.successful shouldContain "main"
-        result.successful.none { id: String -> id == "kitchen" } shouldBe true
-        result.failed.any { f: com.anjo.model.FailedZone -> f.zoneId == "kitchen" } shouldBe true
+        runTest {
+            val result = registry.broadcast("hello", Effect.SCROLL)
+            result.successful shouldContain "main"
+            result.successful.none { id: String -> id == "kitchen" } shouldBe true
+            result.failed.any { f: com.anjo.model.FailedZone -> f.zoneId == "kitchen" } shouldBe true
+        }
     }
 
     test("listAll returns one ZoneStatus per registered zone") {

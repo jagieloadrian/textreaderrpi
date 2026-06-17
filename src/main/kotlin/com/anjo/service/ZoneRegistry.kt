@@ -18,10 +18,8 @@ import com.anjo.zone.NetworkZoneDriver
 import com.anjo.zone.ZoneDriver
 import com.pi4j.context.Context
 import io.ktor.client.HttpClient
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
@@ -33,7 +31,6 @@ class ZoneRegistry() {
     private data class ZoneEntry(val driver: ZoneDriver, val isLocal: Boolean, val ip: String?)
 
     private val zones = ConcurrentHashMap<String, ZoneEntry>()
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var wsClient: HttpClient? = null
 
     constructor(
@@ -82,14 +79,14 @@ class ZoneRegistry() {
         zones[id] = ZoneEntry(driver, isLocal = false, ip = null)
     }
 
-    fun route(zoneId: String, text: String, effect: Effect): Boolean {
+    suspend fun route(zoneId: String, text: String, effect: Effect): Boolean {
         return zones[zoneId]?.driver?.send(text, effect) ?: false
     }
 
-    fun broadcast(text: String, effect: Effect): BroadcastResult {
-        val results = runBlocking {
+    suspend fun broadcast(text: String, effect: Effect): BroadcastResult {
+        val results = coroutineScope {
             zones.map { (id, entry) ->
-                id to scope.async { runCatching { entry.driver.send(text, effect) }.getOrDefault(false) }
+                id to async { runCatching { entry.driver.send(text, effect) }.getOrDefault(false) }
             }.map { (id, deferred) ->
                 id to deferred.await()
             }

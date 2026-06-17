@@ -8,6 +8,7 @@ import com.anjo.zone.ZoneDriver
 import com.codahale.metrics.MetricRegistry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +43,7 @@ class ScreenDriverResourceTest : FunSpec({
 
     test("should count failures and release in-flight counter on error") {
         val driver = mockk<ZoneDriver>(relaxed = true)
-        every { driver.send(any(), any()) } throws RuntimeException("hardware error")
+        coEvery { driver.send(any(), any()) } throws RuntimeException("hardware error")
         every { driver.status() } returns ZoneStatus(id = "main", type = "MAX7219", status = "OFFLINE")
         val registry = MetricRegistry()
         val svc = service(driver, registry)
