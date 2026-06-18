@@ -1,6 +1,6 @@
 # TextReaderRpi - Development Roadmap
 
-**Last Updated:** 2026-06-16
+**Last Updated:** 2026-06-18
 
 ---
 
@@ -283,6 +283,6 @@
 | 9 | Display History + Audit Log | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
 | 10 | Webhooks | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
 | 11 | Multi-Zone Displays | v1.1 | 5/5 | ✅ Complete | 2026-06-16 |
-| 11.2 | Code Quality Cleanup | v1.1 | 0/3 | Not started | - |
-| 12 | Observability Gap Closures | v1.1 | 0/3 | Not started | - |
+| 11.2 | Code Quality Cleanup | v1.1 | 3/3 | ✅ Complete | 2026-06-17 |
+| 12 | Observability Gap Closures | v1.1 | 3/3 | ✅ Complete | 2026-06-18 |
 | 13 | UI/UX Refresh | v1.1 | 0/? | Not started | - |
