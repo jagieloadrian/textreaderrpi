@@ -36,6 +36,21 @@
 - [x] **Phase 12: Observability Gap Closures** — v1.0 audit gaps closed (health/detail, metrics hardware, HTML error pages) (completed 2026-06-16)
 - [ ] **Phase 13: UI/UX Refresh** — Material 3 style, side nav, all new pages deployed
 
+**Plans**: 4 plans
+
+**Wave 1**
+
+- [ ] 13-01-PLAN.md — Foundation: custom.css (MD3 tokens + layout + animations), BaseLayout.kt (headExtra hook + aside+main + remove data-theme + custom.css link), app.js (hamburger toggle + effect preview + zone routing)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 13-02-PLAN.md — Page Templates: IndexPage.kt (zone select + effect preview div), SchedulePage.kt (zone select + zone/webhookUrl columns), StatusPage.kt (static shell + skeleton spans), HistoryPage.kt (enable zone filter + zones param)
+- [ ] 13-03-PLAN.md — Backend + Routes + JS: HistoryRepository/Service zone filter, WebRoutes/ScheduleUIRoutes/HistoryUIRoutes ZoneRegistry injection, Routing.kt call sites, app.js renderScheduleList/createSchedule/status polling
+
+**Wave 3** *(blocked on Waves 1+2)*
+
+- [ ] 13-04-PLAN.md — Tests + Coverage: BaseLayoutTest, IndexPageTest, SchedulePageTest, HistoryRepositoryTest zone filter, ApplicationTest integration, JaCoCo ≥70% gate
+
 ---
 
 ## Phase Details
