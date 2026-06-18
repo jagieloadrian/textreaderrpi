@@ -67,8 +67,8 @@ fun Application.configureErrorHandling() {
         }
 
         exception<Throwable> { call, cause ->
-            val isDeserializationFailure = generateSequence(cause.cause) { it.cause }
-                .plus(cause)
+            val isDeserializationFailure = generateSequence(cause as Throwable?) { it.cause }
+                .take(20)
                 .any { it is SerializationException || it is IllegalArgumentException }
 
             if (isDeserializationFailure && !call.prefersHtml()) {

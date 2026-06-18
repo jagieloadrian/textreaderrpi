@@ -30,6 +30,7 @@ class NetworkZoneDriver(
 
     @Volatile private var session: WebSocketSession? = null
     @Volatile private var online = false
+    @Volatile private var lastError: String? = null
 
     fun startConnect() {
         scope.launch {
@@ -38,10 +39,12 @@ class NetworkZoneDriver(
                     client.webSocket(host = ip, port = port, path = "/ws") {
                         session = this
                         online = true
+                        lastError = null
                         for (frame in incoming) {
                         }
                     }
                 } catch (e: Exception) {
+                    lastError = e.message
                     log.warn("WS connection lost to $ip: ${e.message}")
                 } finally {
                     online = false
@@ -68,7 +71,7 @@ class NetworkZoneDriver(
         type = type,
         status = if (online) "ONLINE" else "OFFLINE",
         ip = ip,
-        error = if (online) null else "OFFLINE"
+        error = if (online) null else (lastError ?: "OFFLINE")
     )
 
     override fun stop() {

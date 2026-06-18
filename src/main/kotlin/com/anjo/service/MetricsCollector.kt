@@ -38,7 +38,9 @@ class MetricsCollector(
             entries.add(MetricEntry(key = name, type = "timer", count = timer.count, meanRate = timer.meanRate, p95 = timer.snapshot.get95thPercentile()))
         }
         metricRegistry.counters.forEach { (name, counter) ->
-            entries.add(MetricEntry(key = name, type = "counter", count = counter.count))
+            if (!name.contains(".hardware.")) {
+                entries.add(MetricEntry(key = name, type = "counter", count = counter.count))
+            }
         }
         return MetricGroup(name = "api", metrics = entries)
     }

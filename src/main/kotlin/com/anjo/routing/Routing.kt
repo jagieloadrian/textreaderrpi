@@ -8,7 +8,7 @@ import com.anjo.routing.ui.historyUIRoutes
 import com.anjo.routing.ui.scheduleUIRoutes
 import com.anjo.routing.ui.webRoutes
 import com.anjo.routing.ui.zonesUIRoutes
-import com.anjo.model.ScreenDriverMetrics
+import com.anjo.model.HardwareMetrics
 import com.anjo.service.HistoryService
 import com.anjo.service.MetricsCollector
 import com.anjo.service.NetworkDiscoveryService
@@ -39,7 +39,7 @@ fun Application.configureRouting() {
     val historyService: HistoryService by dependencies
     val networkDiscoveryService: NetworkDiscoveryService by dependencies
     val zoneRepository: ZoneRepository by dependencies
-    val screenDriverMetrics: ScreenDriverMetrics by dependencies
+    val hardwareMetrics: HardwareMetrics by dependencies
 
     routing {
         staticResources("/static", "static")
@@ -48,7 +48,7 @@ fun Application.configureRouting() {
         historyUIRoutes(historyService)
         zonesUIRoutes(zoneRegistry, zoneRepository)
         metricsRoutes(metricsCollector, apiConfig.metricsRateLimitPerMinute)
-        healthRoutes(zoneRegistry, screenDriverMetrics, apiConfig.metricsRateLimitPerMinute)
+        healthRoutes(zoneRegistry, hardwareMetrics, apiConfig.metricsRateLimitPerMinute)
 
         route("/api/v1") {
             installApiRateLimiting(apiConfig.rateLimitPerMinute)

@@ -7,7 +7,6 @@ import com.anjo.service.DisplayResult
 import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
 import com.anjo.module
-import com.anjo.service.effect.ScrollEffect
 import com.anjo.zone.ZoneDriver
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -50,7 +49,7 @@ class HistoryRecordingTest : FunSpec({
             val deps = application.dependencies
             val screenService = deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>())
             val historyRepo = deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
-            screenService.displayScheduled("sched-test", "sched-id-1", ScrollEffect(), Effect.SCROLL, ConflictPolicy.INTERRUPT, "sent")
+            screenService.displayScheduled("sched-test", "sched-id-1", Effect.SCROLL, ConflictPolicy.INTERRUPT, "sent")
             val (items, _) = historyRepo.findPaginated(1, 50)
             val record = items.find { it.scheduleId == "sched-id-1" }
             record shouldNotBe null

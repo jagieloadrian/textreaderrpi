@@ -11,9 +11,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger("DisplayRoutes")
 
 fun Route.displayRoutes(screenDriverService: ScreenDriverService) {
     route("/display") {
@@ -31,25 +28,12 @@ fun Route.displayRoutes(screenDriverService: ScreenDriverService) {
         }
 
         post("/select") {
-            val request = call.receive<DisplaySelectRequest>()
-            val queued = screenDriverService.queueDisplaySwitch(request.type)
-            if (!queued) {
-                log.warn("Driver switch rejected — queueDisplaySwitch returned false for type: ${request.type}")
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    DisplaySelectResponse(
-                        accepted = false,
-                        message = "Driver switch rejected"
-                    )
-                )
-                return@post
-            }
-
-            log.info("Driver switch accepted: ${request.type}")
+            call.receive<DisplaySelectRequest>()
             call.respond(
+                HttpStatusCode.NotImplemented,
                 DisplaySelectResponse(
-                    accepted = true,
-                    message = "Driver switch queued: ${request.type}"
+                    accepted = false,
+                    message = "Display type switching is not implemented"
                 )
             )
         }

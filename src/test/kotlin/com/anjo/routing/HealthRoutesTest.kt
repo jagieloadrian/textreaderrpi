@@ -19,8 +19,7 @@ class HealthRoutesTest : FunSpec({
         testApplication {
             application { module() }
             val response = client.get("/health")
-            val validStatuses = setOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable)
-            response.status shouldBe response.status.also { assert(it in validStatuses) }
+            response.status shouldBeIn setOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable)
             response.bodyAsText() shouldContain "appAlive"
         }
     }
@@ -29,8 +28,7 @@ class HealthRoutesTest : FunSpec({
         testApplication {
             application { module() }
             val response = client.get("/health/ready")
-            val validStatuses = setOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable)
-            response.status shouldBe response.status.also { assert(it in validStatuses) }
+            response.status shouldBeIn setOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable)
             response.bodyAsText() shouldContain "displayReady"
         }
     }
@@ -54,8 +52,7 @@ class HealthRoutesTest : FunSpec({
         testApplication {
             application { module() }
             val response = client.get("/health")
-            val validStatuses = setOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable)
-            response.status shouldBe response.status.also { assert(it in validStatuses) }
+            response.status shouldBeIn setOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable)
             response.bodyAsText() shouldContain "displayAvailable"
         }
     }

@@ -55,7 +55,6 @@ class ApplicationTest : FunSpec({
             application { module() }
             val response = client.get("/")
             response.status shouldBe HttpStatusCode.OK
-            response.status shouldBe HttpStatusCode.OK
         }
     }
 

@@ -5,7 +5,6 @@ import com.anjo.db.HistoryRepository
 import com.anjo.driver.DisplayStatus
 import com.anjo.model.BroadcastResult
 import com.anjo.model.ConflictPolicy
-import com.anjo.model.DisplayType
 import com.anjo.model.Effect
 import com.anjo.model.HardwareMetrics
 import com.anjo.model.HistoryRecord
@@ -40,7 +39,6 @@ class ScreenDriverService(
     private val retryConfig: RetryConfig,
     private val metrics: ScreenDriverMetrics,
     private val hardwareMetrics: HardwareMetrics = HardwareMetrics.DISABLED,
-    private val effectFactory: EffectRendererFactory = EffectRendererFactory(),
     private val historyRepository: HistoryRepository? = null,
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
@@ -90,7 +88,6 @@ class ScreenDriverService(
     suspend fun displayScheduled(
         text: String,
         scheduleId: String,
-        renderer: com.anjo.service.effect.EffectRenderer,
         effect: Effect,
         conflictPolicy: ConflictPolicy = ConflictPolicy.INTERRUPT,
         webhookStatus: String? = null,
@@ -103,7 +100,7 @@ class ScreenDriverService(
         currentScheduledId = scheduleId
         currentDisplayJob = currentCoroutineContext().job
         lastSentMessage.set(text)
-        return runScheduledRender(text, scheduleId, renderer, effect, zoneMutex, alreadyLocked = conflictPolicy == ConflictPolicy.SKIP_NEW, webhookStatus = webhookStatus, zoneId = zoneId)
+        return runScheduledRender(text, scheduleId, effect, zoneMutex, alreadyLocked = conflictPolicy == ConflictPolicy.SKIP_NEW, webhookStatus = webhookStatus, zoneId = zoneId)
     }
 
     fun stop() {
@@ -132,9 +129,8 @@ class ScreenDriverService(
         hardwareMetrics.inFlightCounter?.inc()
         try {
             if (zoneId == null) return
-            val renderer = effectFactory.create(effect)
             withMutex(mutex, alreadyLocked) {
-                executeWithRecovery(text, renderer, zoneId)
+                executeWithRecovery(text, effect, zoneId)
                 tryInsertHistory(text, effect.name, "IMMEDIATE", zoneId = zoneId)
             }
         } catch (e: Exception) {
@@ -151,7 +147,6 @@ class ScreenDriverService(
     private suspend fun runScheduledRender(
         text: String,
         scheduleId: String,
-        renderer: com.anjo.service.effect.EffectRenderer,
         effect: Effect,
         mutex: Mutex,
         alreadyLocked: Boolean,
@@ -161,7 +156,7 @@ class ScreenDriverService(
         var displaySucceeded = false
         try {
             withMutex(mutex, alreadyLocked) {
-                executeWithRecovery(text, renderer, zoneId)
+                executeWithRecovery(text, effect, zoneId)
                 displaySucceeded = true
                 tryInsertHistory(text, effect.name, "SCHEDULED", scheduleId, webhookStatus, zoneId = zoneId)
             }
@@ -193,11 +188,11 @@ class ScreenDriverService(
         }
     }
 
-    private suspend fun executeWithRecovery(input: String, renderer: com.anjo.service.effect.EffectRenderer, zoneId: String?) {
+    private suspend fun executeWithRecovery(input: String, effect: Effect, zoneId: String?) {
         withContext(ioDispatcher) {
             retryWithBackoff(retryConfig, hardwareMetrics) {
                 if (zoneId != null) {
-                    zoneRegistry.route(zoneId, input, Effect.SCROLL)
+                    zoneRegistry.route(zoneId, input, effect)
                 }
             }
         }

@@ -1,8 +1,8 @@
 package com.anjo.routing
 
 import com.anjo.di.installMetricsRateLimiting
+import com.anjo.model.HardwareMetrics
 import com.anjo.model.HealthDetailResponse
-import com.anjo.model.ScreenDriverMetrics
 import com.anjo.service.ZoneRegistry
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -12,7 +12,7 @@ import java.lang.management.ManagementFactory
 
 fun Route.healthRoutes(
     zoneRegistry: ZoneRegistry,
-    screenDriverMetrics: ScreenDriverMetrics,
+    hardwareMetrics: HardwareMetrics,
     metricsRateLimitPerMinute: Int,
 ) {
     route("/health/detail") {
@@ -26,7 +26,7 @@ fun Route.healthRoutes(
                     memoryUsed = runtime.totalMemory() - runtime.freeMemory(),
                     memoryMax = runtime.maxMemory(),
                     displayStatus = if (zones.any { it.status == "ONLINE" }) "ONLINE" else "OFFLINE",
-                    totalFailures = screenDriverMetrics.failedMeter?.count ?: 0L,
+                    totalFailures = hardwareMetrics.displayFailureCounter?.count ?: 0L,
                     zoneErrors = zones.associate { it.id to it.error },
                 )
             )
