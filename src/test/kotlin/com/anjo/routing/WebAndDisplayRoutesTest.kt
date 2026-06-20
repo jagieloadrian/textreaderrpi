@@ -34,13 +34,12 @@ class WebAndDisplayRoutesTest : FunSpec({
         }
     }
 
-    test("should return display settings HTML for GET /settings/display") {
+    test("should filter history by zone for GET /history?zone=X") {
         testApplication {
             application { module() }
-            val response = client.get("/settings/display") { header(HttpHeaders.Accept, ContentType.Text.Html.toString()) }
+            val response = client.get("/history?zone=ALL") { header(HttpHeaders.Accept, ContentType.Text.Html.toString()) }
             response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldContain "Display Settings"
-            response.bodyAsText() shouldContain "applyDriverBtn"
+            response.bodyAsText() shouldContain "All zones"
         }
     }
 

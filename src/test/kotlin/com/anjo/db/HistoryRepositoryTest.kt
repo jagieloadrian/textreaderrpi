@@ -114,4 +114,29 @@ class HistoryRepositoryTest : FunSpec({
             items.all { it.source == "IMMEDIATE" } shouldBe true
         }
     }
+
+    test("should filter by zone returning only matching-zone records") {
+        runTest {
+            repository.insert(HistoryRecord(text = "zone-a-1", effect = "SCROLL", source = "IMMEDIATE", zoneId = "zone-a"))
+            repository.insert(HistoryRecord(text = "zone-a-2", effect = "SCROLL", source = "IMMEDIATE", zoneId = "zone-a"))
+            repository.insert(HistoryRecord(text = "zone-b-1", effect = "BLINK", source = "IMMEDIATE", zoneId = "zone-b"))
+
+            val (items, total) = repository.findPaginated(1, 20, zone = "zone-a")
+            total shouldBe 2L
+            items.all { it.zoneId == "zone-a" } shouldBe true
+        }
+    }
+
+    test("should filter by effect and zone narrowing to matching rows only") {
+        runTest {
+            repository.insert(HistoryRecord(text = "a-scroll", effect = "SCROLL", source = "IMMEDIATE", zoneId = "zone-a"))
+            repository.insert(HistoryRecord(text = "a-blink", effect = "BLINK", source = "IMMEDIATE", zoneId = "zone-a"))
+            repository.insert(HistoryRecord(text = "b-scroll", effect = "SCROLL", source = "IMMEDIATE", zoneId = "zone-b"))
+
+            val (items, total) = repository.findPaginated(1, 20, effect = "SCROLL", zone = "zone-a")
+            total shouldBe 1L
+            items[0].zoneId shouldBe "zone-a"
+            items[0].effect shouldBe "SCROLL"
+        }
+    }
 })
