@@ -43,9 +43,9 @@ fun Application.configureRouting() {
 
     routing {
         staticResources("/static", "static")
-        webRoutes(screenDriverService)
-        scheduleUIRoutes(scheduleRepository)
-        historyUIRoutes(historyService)
+        webRoutes(screenDriverService, zoneRegistry)
+        scheduleUIRoutes(scheduleRepository, zoneRegistry)
+        historyUIRoutes(historyService, zoneRegistry)
         zonesUIRoutes(zoneRegistry, zoneRepository)
         metricsRoutes(metricsCollector, apiConfig.metricsRateLimitPerMinute)
         healthRoutes(zoneRegistry, hardwareMetrics, apiConfig.metricsRateLimitPerMinute)
