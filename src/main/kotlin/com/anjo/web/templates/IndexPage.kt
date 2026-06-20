@@ -1,6 +1,8 @@
 package com.anjo.web.templates
 
+import com.anjo.model.ZoneStatus
 import kotlinx.html.FlowContent
+import kotlinx.html.article
 import kotlinx.html.button
 import kotlinx.html.div
 import kotlinx.html.h2
@@ -11,7 +13,7 @@ import kotlinx.html.p
 import kotlinx.html.select
 import kotlinx.html.textArea
 
-class IndexPage {
+class IndexPage(private val zones: List<ZoneStatus>) {
     fun render(): String {
         return BaseLayout.render(pageTitle = "Text Input", activePath = "/") {
             pageContent()
@@ -19,8 +21,23 @@ class IndexPage {
     }
 
     private fun FlowContent.pageContent() {
-        h2 { +"Send Text" }
-        div {
+        article {
+            h2 { +"Send Text" }
+            label {
+                htmlFor = "zoneSelect"
+                +"Zone"
+            }
+            select {
+                id = "zoneSelect"
+                name = "zone"
+                option { value = ""; selected = true; +"All zones" }
+                zones.forEach { zone ->
+                    option {
+                        value = zone.id
+                        +(if (zone.status == "OFFLINE") "${zone.id} (OFFLINE)" else zone.id)
+                    }
+                }
+            }
             label {
                 htmlFor = "textInput"
                 +"Text"
@@ -53,6 +70,13 @@ class IndexPage {
             button {
                 id = "submitTextBtn"
                 +"Send"
+            }
+        }
+        article {
+            h2 { +"Preview" }
+            div {
+                id = "effectPreview"
+                attributes["class"] = "effect-preview"
             }
         }
     }

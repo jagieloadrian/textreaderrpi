@@ -40,6 +40,9 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
             zones.forEachIndexed { index, zone ->
                 if (index > 0) hr {}
                 article {
+                    if (zone.discoveryMethod != null) {
+                        attributes["class"] = "zone-card--discovered"
+                    }
                     p {
                         strong { +zone.id }
                         +" "
