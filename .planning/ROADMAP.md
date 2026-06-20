@@ -1,6 +1,6 @@
 # TextReaderRpi - Development Roadmap
 
-**Last Updated:** 2026-06-18
+**Last Updated:** 2026-06-20
 
 ---
 
@@ -40,16 +40,16 @@
 
 **Wave 1**
 
-- [ ] 13-01-PLAN.md — Foundation: custom.css (MD3 tokens + layout + animations), BaseLayout.kt (headExtra hook + aside+main + remove data-theme + custom.css link), app.js (hamburger toggle + effect preview + zone routing)
+- [ ] 13-01-PLAN.md — Foundation: custom.css (MD3 dark+light tokens, PicoCSS overrides, side-nav layout, effect keyframes, discovered-zone tint) + BaseLayout.kt (aside side nav + mobile top bar/backdrop, custom.css link, headExtra hook, remove data-theme + /settings/display link)
 
-**Wave 2** *(blocked on Wave 1)*
+**Wave 2** *(blocked on Wave 1; plans 02/03 run in parallel — disjoint files)*
 
-- [ ] 13-02-PLAN.md — Page Templates: IndexPage.kt (zone select + effect preview div), SchedulePage.kt (zone select + zone/webhookUrl columns), StatusPage.kt (static shell + skeleton spans), HistoryPage.kt (enable zone filter + zones param)
-- [ ] 13-03-PLAN.md — Backend + Routes + JS: HistoryRepository/Service zone filter, WebRoutes/ScheduleUIRoutes/HistoryUIRoutes ZoneRegistry injection, Routing.kt call sites, app.js renderScheduleList/createSchedule/status polling
+- [ ] 13-02-PLAN.md — Page Templates + History backend filter: IndexPage (zone select + effect-preview card), SchedulePage (zone + webhookUrl columns + create-form zone select), HistoryPage (real zone filter + filter-aware pagination), StatusPage (param-less skeleton spans), ZonesPage (.zone-card--discovered tint), HistoryRepository/HistoryService zone filter param (D-22)
+- [ ] 13-03-PLAN.md — Routes + JS wiring: WebRoutes/ScheduleUIRoutes/HistoryUIRoutes ZoneRegistry injection + Routing.kt call sites, delete SettingsPage + route, param-less StatusPage call, history zone query param; app.js hamburger toggle + effect preview + send-text zone routing + /status polling + renderScheduleList/createSchedule zone/webhook + remove applyDriver
 
 **Wave 3** *(blocked on Waves 1+2)*
 
-- [ ] 13-04-PLAN.md — Tests + Coverage: BaseLayoutTest, IndexPageTest, SchedulePageTest, HistoryRepositoryTest zone filter, ApplicationTest integration, JaCoCo ≥70% gate
+- [ ] 13-04-PLAN.md — Tests + Coverage: HistoryRepositoryTest zone filter, new HistoryServiceTest (param forwarding), WebAndDisplayRoutesTest (delete /settings/display, add /history?zone=X), new WebRoutesTest (zone selector + schedule columns + status skeleton + no Settings link), full suite + JaCoCo ≥70% gate, human-verify checkpoint (dark mode, hamburger, effect preview, status live refresh)
 
 ---
 
@@ -278,7 +278,7 @@
   5. The `/history` page shows display event cards with zone and effect filter controls
   6. The `/status` page displays live data from `/health/detail` and `/metrics`
 
-**Plans**: TBD
+**Plans**: 4 plans
 **UI hint**: yes
 
 ---
@@ -300,4 +300,4 @@
 | 11 | Multi-Zone Displays | v1.1 | 5/5 | ✅ Complete | 2026-06-16 |
 | 11.2 | Code Quality Cleanup | v1.1 | 3/3 | ✅ Complete | 2026-06-17 |
 | 12 | Observability Gap Closures | v1.1 | 3/3 | ✅ Complete | 2026-06-18 |
-| 13 | UI/UX Refresh | v1.1 | 0/? | Not started | - |
+| 13 | UI/UX Refresh | v1.1 | 0/4 | Not started | - |
