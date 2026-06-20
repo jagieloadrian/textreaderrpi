@@ -34,7 +34,7 @@
 - [x] **Phase 11: Multi-Zone Displays** — Multiple local and network displays managed and routable (completed 2026-06-16)
 - [x] **Phase 11.2: Code Quality Cleanup** — Service nesting reduced, enum types enforced, repository calls removed from routes (completed 2026-06-16)
 - [x] **Phase 12: Observability Gap Closures** — v1.0 audit gaps closed (health/detail, metrics hardware, HTML error pages) (completed 2026-06-16)
-- [ ] **Phase 13: UI/UX Refresh** — Material 3 style, side nav, all new pages deployed
+- [x] **Phase 13: UI/UX Refresh** — Material 3 style, side nav, all new pages deployed (completed 2026-06-20)
 
 **Plans**: 4 plans
 
@@ -49,7 +49,7 @@
 
 **Wave 3** *(blocked on Waves 1+2)*
 
-- [ ] 13-04-PLAN.md — Tests + Coverage: HistoryRepositoryTest zone filter, new HistoryServiceTest (param forwarding), WebAndDisplayRoutesTest (delete /settings/display, add /history?zone=X), new WebRoutesTest (zone selector + schedule columns + status skeleton + no Settings link), full suite + JaCoCo ≥70% gate, human-verify checkpoint (dark mode, hamburger, effect preview, status live refresh)
+- [x] 13-04-PLAN.md — Tests + Coverage: HistoryRepositoryTest zone filter, new HistoryServiceTest (param forwarding), WebAndDisplayRoutesTest (delete /settings/display, add /history?zone=X), new WebRoutesTest (zone selector + schedule columns + status skeleton + no Settings link), full suite + JaCoCo ≥70% gate, human-verify checkpoint (dark mode, hamburger, effect preview, status live refresh)
 
 ---
 
