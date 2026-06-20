@@ -9,6 +9,7 @@ class HistoryService(private val repository: HistoryRepository) {
         page: Int,
         size: Int,
         effect: String? = null,
-        source: String? = null
-    ): Pair<List<HistoryRecord>, Long> = repository.findPaginated(page, size, effect, source)
+        source: String? = null,
+        zone: String? = null
+    ): Pair<List<HistoryRecord>, Long> = repository.findPaginated(page, size, effect, source, zone)
 }

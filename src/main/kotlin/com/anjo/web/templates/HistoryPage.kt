@@ -1,6 +1,7 @@
 package com.anjo.web.templates
 
 import com.anjo.model.HistoryRecord
+import com.anjo.model.ZoneStatus
 import java.net.URLEncoder
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
@@ -33,7 +34,9 @@ fun FlowContent.historyPage(
     total: Long,
     expandAll: Boolean,
     effect: String,
-    source: String
+    source: String,
+    zone: String,
+    zones: List<ZoneStatus>
 ) {
     h2 { +"Display History" }
 
@@ -63,11 +66,13 @@ fun FlowContent.historyPage(
             option { value = "50"; if (rawSize == "50") selected = true; +"50" }
             option { value = "all"; if (rawSize.lowercase() == "all") selected = true; +"all" }
         }
-        label { htmlFor = "zone"; +"Zone (Multi-zone — Phase 11)" }
+        label { htmlFor = "zone"; +"Zone" }
         select {
             id = "zone"; name = "zone"
-            attributes["disabled"] = ""
-            option { +"Multi-zone — Phase 11" }
+            option { value = "ALL"; if (zone.isEmpty() || zone == "ALL") selected = true; +"All zones" }
+            zones.forEach { z ->
+                option { value = z.id; if (zone == z.id) selected = true; +z.id }
+            }
         }
         if (expandAll) {
             input {
@@ -77,8 +82,8 @@ fun FlowContent.historyPage(
             }
         }
         button { type = ButtonType.submit; +"Apply Filters" }
-        a(href = "?expand=all&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}") { +"Expand all" }
-        a(href = "?effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}") { +"Collapse all" }
+        a(href = "?expand=all&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}") { +"Expand all" }
+        a(href = "?effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}") { +"Collapse all" }
     }
 
     if (items.isEmpty()) {
@@ -118,7 +123,7 @@ fun FlowContent.historyPage(
                 ul {
                     for (p in 1..pageCount) {
                         li {
-                            a(href = "?page=$p&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}${if (expandAll) "&expand=all" else ""}") {
+                            a(href = "?page=$p&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}${if (expandAll) "&expand=all" else ""}&zone=${zone.urlEncode()}") {
                                 if (p == page) attributes["aria-current"] = "page"
                                 +"$p"
                             }

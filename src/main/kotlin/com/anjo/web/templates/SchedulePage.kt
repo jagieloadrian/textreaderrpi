@@ -1,8 +1,10 @@
 package com.anjo.web.templates
 import com.anjo.model.Schedule
+import com.anjo.model.ZoneStatus
 import kotlinx.html.FlowContent
 import kotlinx.html.InputType
 import kotlinx.html.a
+import kotlinx.html.article
 import kotlinx.html.button
 import kotlinx.html.div
 import kotlinx.html.form
@@ -12,7 +14,6 @@ import kotlinx.html.input
 import kotlinx.html.label
 import kotlinx.html.option
 import kotlinx.html.select
-import kotlinx.html.style
 import kotlinx.html.table
 import kotlinx.html.tbody
 import kotlinx.html.td
@@ -20,9 +21,9 @@ import kotlinx.html.th
 import kotlinx.html.thead
 import kotlinx.html.tr
 
-fun FlowContent.schedulePage(schedules: List<Schedule>) {
+fun FlowContent.schedulePage(schedules: List<Schedule>, zones: List<ZoneStatus>) {
     h2 { +"Schedule Manager" }
-    div {
+    article {
         h2 { +"Create Schedule" }
         form {
             id = "createScheduleForm"
@@ -68,6 +69,16 @@ fun FlowContent.schedulePage(schedules: List<Schedule>) {
                     type = InputType.number; min = "0"; max = "100"; value = "0"
                 }
             }
+            div {
+                label { htmlFor = "scheduleZoneSelect"; +"Zone" }
+                select {
+                    id = "scheduleZoneSelect"; name = "zoneId"
+                    option { value = ""; selected = true; +"No specific zone" }
+                    zones.forEach { zone ->
+                        option { value = zone.id; +zone.id }
+                    }
+                }
+            }
             button {
                 id = "createScheduleBtn"
                 type = kotlinx.html.ButtonType.button
@@ -75,23 +86,31 @@ fun FlowContent.schedulePage(schedules: List<Schedule>) {
             }
         }
     }
-    div {
-        id = "scheduleListContainer"
-        style = "margin-top: 2rem"
-        if (schedules.isEmpty()) {
-            div { +"No schedules yet." }
-        } else {
-            table {
-                thead { tr { th { +"ID" }; th { +"Text" }; th { +"Trigger" }; th { +"Effect" }; th { +"Status" }; th { +"Actions" } } }
-                tbody {
-                    for (s in schedules) {
+    article {
+        div {
+            id = "scheduleListContainer"
+            if (schedules.isEmpty()) {
+                div { +"No schedules yet." }
+            } else {
+                table {
+                    thead {
                         tr {
-                            td { +s.id.take(8) }
-                            td { +s.text }
-                            td { +"${s.triggerType.name}: ${s.triggerValue}" }
-                            td { +s.effect.name }
-                            td { +s.status.name }
-                            td { a { href = "#"; attributes["data-delete-id"] = s.id; +"Delete" } }
+                            th { +"ID" }; th { +"Text" }; th { +"Trigger" }; th { +"Effect" }
+                            th { +"Status" }; th { +"Zone" }; th { +"Webhook URL" }; th { +"Actions" }
+                        }
+                    }
+                    tbody {
+                        for (s in schedules) {
+                            tr {
+                                td { +s.id.take(8) }
+                                td { +s.text }
+                                td { +"${s.triggerType.name}: ${s.triggerValue}" }
+                                td { +s.effect.name }
+                                td { +s.status.name }
+                                td { +(s.zoneId?.take(8) ?: "—") }
+                                td { +(s.webhookUrl?.take(40) ?: "—") }
+                                td { a { href = "#"; attributes["data-delete-id"] = s.id; +"Delete" } }
+                            }
                         }
                     }
                 }

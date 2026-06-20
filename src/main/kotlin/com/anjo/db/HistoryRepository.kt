@@ -44,7 +44,8 @@ class HistoryRepository {
         page: Int,
         size: Int,
         effect: String? = null,
-        source: String? = null
+        source: String? = null,
+        zone: String? = null
     ): Pair<List<HistoryRecord>, Long> = suspendTransaction {
         var query = HistoryTable.selectAll()
         if (effect != null) {
@@ -55,6 +56,13 @@ class HistoryRepository {
                 query.andWhere { HistoryTable.displaySource eq source }
             } else {
                 query.where { HistoryTable.displaySource eq source }
+            }
+        }
+        if (zone != null) {
+            query = if (effect != null || source != null) {
+                query.andWhere { HistoryTable.zoneId eq zone }
+            } else {
+                query.where { HistoryTable.zoneId eq zone }
             }
         }
         val total = query.count()
