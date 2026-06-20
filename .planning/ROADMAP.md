@@ -40,7 +40,7 @@
 
 **Wave 1**
 
-- [ ] 13-01-PLAN.md — Foundation: custom.css (MD3 dark+light tokens, PicoCSS overrides, side-nav layout, effect keyframes, discovered-zone tint) + BaseLayout.kt (aside side nav + mobile top bar/backdrop, custom.css link, headExtra hook, remove data-theme + /settings/display link)
+- [x] 13-01-PLAN.md — Foundation: custom.css (MD3 dark+light tokens, PicoCSS overrides, side-nav layout, effect keyframes, discovered-zone tint) + BaseLayout.kt (aside side nav + mobile top bar/backdrop, custom.css link, headExtra hook, remove data-theme + /settings/display link)
 
 **Wave 2** *(blocked on Wave 1; plans 02/03 run in parallel — disjoint files)*
 
