@@ -44,7 +44,7 @@
 
 **Wave 2** *(blocked on Wave 1; plans 02/03 run in parallel — disjoint files)*
 
-- [ ] 13-02-PLAN.md — Page Templates + History backend filter: IndexPage (zone select + effect-preview card), SchedulePage (zone + webhookUrl columns + create-form zone select), HistoryPage (real zone filter + filter-aware pagination), StatusPage (param-less skeleton spans), ZonesPage (.zone-card--discovered tint), HistoryRepository/HistoryService zone filter param (D-22)
+- [x] 13-02-PLAN.md — Page Templates + History backend filter: IndexPage (zone select + effect-preview card), SchedulePage (zone + webhookUrl columns + create-form zone select), HistoryPage (real zone filter + filter-aware pagination), StatusPage (param-less skeleton spans), ZonesPage (.zone-card--discovered tint), HistoryRepository/HistoryService zone filter param (D-22)
 - [ ] 13-03-PLAN.md — Routes + JS wiring: WebRoutes/ScheduleUIRoutes/HistoryUIRoutes ZoneRegistry injection + Routing.kt call sites, delete SettingsPage + route, param-less StatusPage call, history zone query param; app.js hamburger toggle + effect preview + send-text zone routing + /status polling + renderScheduleList/createSchedule zone/webhook + remove applyDriver
 
 **Wave 3** *(blocked on Waves 1+2)*
@@ -300,4 +300,4 @@
 | 11 | Multi-Zone Displays | v1.1 | 5/5 | ✅ Complete | 2026-06-16 |
 | 11.2 | Code Quality Cleanup | v1.1 | 3/3 | ✅ Complete | 2026-06-17 |
 | 12 | Observability Gap Closures | v1.1 | 3/3 | ✅ Complete | 2026-06-18 |
-| 13 | UI/UX Refresh | v1.1 | 0/4 | Not started | - |
+| 13 | UI/UX Refresh | v1.1 | 2/4 | In Progress | - |

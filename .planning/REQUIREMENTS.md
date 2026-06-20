@@ -73,11 +73,11 @@
 - [x] **UI-01**: Layout w stylu Material Design 3 — side navigation panel, karty (cards), gridy, responsywny (mobile-first), czysty HTML bez JS frameworka
 - [x] **UI-02**: Dark mode przez `prefers-color-scheme` + Material 3 color tokens
 - [x] **UI-03**: Side nav zawiera linki do: Wyślij tekst, Harmonogramy, Historia, Strefy, Status
-- [ ] **UI-04**: Formularz wysyłania tekstu — zone selector (lokalne + sieciowe strefy), podgląd efektu
-- [ ] **UI-05**: Strona harmonogramów (`/schedule`) — kolumna strefy, webhookUrl, expandable rows dla szczegółów
-- [ ] **UI-06**: Strona historii (`/history`) — karty z paginacją, filtr po strefie i efekcie
-- [ ] **UI-07**: Strona zarządzania strefami (`/zones`) — lista all zones (local + network), status online/offline, auto-discovered devices, przycisk "dodaj przez IP"
-- [ ] **UI-08**: Strona status (`/status`) — dane z `GET /health/detail` + hardware metrics z `GET /metrics`
+- [x] **UI-04**: Formularz wysyłania tekstu — zone selector (lokalne + sieciowe strefy), podgląd efektu
+- [x] **UI-05**: Strona harmonogramów (`/schedule`) — kolumna strefy, webhookUrl, expandable rows dla szczegółów
+- [x] **UI-06**: Strona historii (`/history`) — karty z paginacją, filtr po strefie i efekcie
+- [x] **UI-07**: Strona zarządzania strefami (`/zones`) — lista all zones (local + network), status online/offline, auto-discovered devices, przycisk "dodaj przez IP"
+- [x] **UI-08**: Strona status (`/status`) — dane z `GET /health/detail` + hardware metrics z `GET /metrics`
 
 ---
 
@@ -136,8 +136,8 @@
 | UI-01 | Phase 13 | Complete |
 | UI-02 | Phase 13 | Complete |
 | UI-03 | Phase 13 | Complete |
-| UI-04 | Phase 13 | Pending |
-| UI-05 | Phase 13 | Pending |
-| UI-06 | Phase 13 | Pending |
-| UI-07 | Phase 13 | Pending |
-| UI-08 | Phase 13 | Pending |
+| UI-04 | Phase 13 | Complete |
+| UI-05 | Phase 13 | Complete |
+| UI-06 | Phase 13 | Complete |
+| UI-07 | Phase 13 | Complete |
+| UI-08 | Phase 13 | Complete |
