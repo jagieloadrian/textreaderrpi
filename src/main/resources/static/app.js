@@ -26,12 +26,44 @@
     }, 2200);
   }
 
+  // ─── Nav toggle ──────────────────────────────────────────────────────────
+  function openNav() {
+    document.body.classList.add("nav-open");
+  }
+
+  function closeNav() {
+    document.body.classList.remove("nav-open");
+  }
+
+  function toggleNav() {
+    document.body.classList.toggle("nav-open");
+  }
+
   // ─── Home: submit text ────────────────────────────────────────────────────
   function updateCounter() {
     const input = document.getElementById("textInput");
     const counter = document.getElementById("charCounter");
     if (!input || !counter) return;
     counter.textContent = `${input.value.length} / ${maxLen}`;
+  }
+
+  function mirrorPreviewText() {
+    const input = document.getElementById("textInput");
+    const preview = document.getElementById("effectPreview");
+    if (!input || !preview) return;
+    preview.textContent = input.value;
+  }
+
+  function applyEffectPreview() {
+    const preview = document.getElementById("effectPreview");
+    const effectSelect = document.getElementById("effectSelect");
+    if (!preview || !effectSelect) return;
+    preview.classList.remove("effect-scroll", "effect-blink", "effect-reverse", "effect-fade");
+    const effect = effectSelect.value.toLowerCase();
+    if (effect === "scroll") preview.classList.add("effect-scroll");
+    else if (effect === "blink") preview.classList.add("effect-blink");
+    else if (effect === "reverse") preview.classList.add("effect-reverse");
+    else if (effect === "fade") preview.classList.add("effect-fade");
   }
 
   async function submitForm() {
@@ -41,14 +73,20 @@
 
     const text = input.value ?? "";
     const effect = effectSelect ? effectSelect.value : "SCROLL";
+    const zoneId = document.getElementById("zoneSelect")?.value ?? "";
+    const url = zoneId ? "/api/v1/text?zone=" + encodeURIComponent(zoneId) : "/api/v1/text";
     try {
-      const response = await fetch("/api/v1/text", {
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, effect })
       });
       if (response.ok) {
         showToast("Text sent", "success");
+      } else if (response.status === 503) {
+        showToast("Zone offline. Text not sent.", "error");
+      } else if (response.status === 404) {
+        showToast("Zone not found.", "error");
       } else {
         const err = await response.text();
         showToast("Failed to send: " + (err || response.status), "error");
@@ -58,24 +96,55 @@
     }
   }
 
-  // ─── Settings: apply driver ───────────────────────────────────────────────
-  async function applyDriver() {
-    const select = document.getElementById("driverSelect");
-    if (!select) return;
+  // ─── Status: fetch and poll ───────────────────────────────────────────────
+  async function fetchStatusData() {
     try {
-      const response = await fetch("/api/v1/display/select", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: select.value })
-      });
-      if (response.ok) {
-        showToast("Driver switch queued", "success");
+      const [detailRes, metricsRes] = await Promise.all([
+        fetch("/health/detail"),
+        fetch("/metrics")
+      ]);
+      if (detailRes.ok) {
+        const detail = await detailRes.json();
+        const setSpan = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val;
+        };
+        setSpan("status-uptime", detail.uptime);
+        setSpan("status-memory-used", detail.memoryUsed);
+        setSpan("status-memory-max", detail.memoryMax);
+        setSpan("status-display", detail.displayStatus);
+        setSpan("status-failures", detail.totalFailures);
       } else {
-        const err = await response.json().catch(() => ({}));
-        showToast(err.message || "Cannot switch driver", "error");
+        ["status-uptime", "status-memory-used", "status-memory-max", "status-display", "status-failures"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = "Unavailable";
+        });
+      }
+      if (metricsRes.ok) {
+        const metrics = await metricsRes.json();
+        const hwGroup = (metrics.groups || []).find(g => g.name === "hardware");
+        const hwMetrics = hwGroup ? hwGroup.metrics || [] : [];
+        const findCount = key => {
+          const m = hwMetrics.find(m => m.key === key);
+          return m !== undefined ? m.count : "Unavailable";
+        };
+        const setSpan = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val;
+        };
+        setSpan("status-hw-failures", findCount("display.failures"));
+        setSpan("status-hw-retries", findCount("recovery.retries"));
+      } else {
+        ["status-hw-failures", "status-hw-retries"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = "Unavailable";
+        });
       }
     } catch (_) {
-      showToast("Network error", "error");
+      ["status-uptime", "status-memory-used", "status-memory-max", "status-display", "status-failures", "status-hw-failures", "status-hw-retries"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = "Unavailable";
+      });
     }
   }
 
@@ -107,6 +176,8 @@
         <td>${escHtml(s.triggerType)}: ${escHtml(s.triggerValue)}</td>
         <td>${escHtml(s.effect)}</td>
         <td>${escHtml(s.status)}</td>
+        <td>${escHtml(s.zoneId || "—")}</td>
+        <td>${escHtml(s.webhookUrl || "—")}</td>
         <td>
           ${isStoppable(s) ? `<a href="#" data-stop-id="${escHtml(s.id)}">Stop</a> ` : ""}
           <a href="#" data-delete-id="${escHtml(s.id)}">Delete</a>
@@ -116,7 +187,7 @@
     container.innerHTML = `
       <table>
         <thead><tr>
-          <th>ID</th><th>Text</th><th>Trigger</th><th>Effect</th><th>Status</th><th>Actions</th>
+          <th>ID</th><th>Text</th><th>Trigger</th><th>Effect</th><th>Status</th><th>Zone</th><th>Webhook</th><th>Actions</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>`;
@@ -149,12 +220,13 @@
     const triggerValue = document.getElementById("triggerValue")?.value ?? "";
     const effect = document.getElementById("effect")?.value ?? "SCROLL";
     const priority = parseInt(document.getElementById("priority")?.value ?? "0", 10);
+    const zoneId = document.getElementById("scheduleZoneSelect")?.value ?? "";
 
     try {
       const response = await fetch("/api/v1/schedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, triggerType, triggerValue, effect, priority })
+        body: JSON.stringify({ text, triggerType, triggerValue, effect, priority, zoneId: zoneId || null })
       });
       if (response.ok) {
         showToast("Schedule created", "success");
@@ -267,23 +339,44 @@
 
   // ─── Boot ─────────────────────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", () => {
+    // Nav toggle (mobile hamburger)
+    const navToggle = document.getElementById("navToggle");
+    if (navToggle) navToggle.addEventListener("click", toggleNav);
+    const navBackdrop = document.getElementById("navBackdrop");
+    if (navBackdrop) navBackdrop.addEventListener("click", closeNav);
+    document.querySelectorAll("aside nav a").forEach(link => {
+      link.addEventListener("click", closeNav);
+    });
+
     // Home page
     const textInput = document.getElementById("textInput");
     const submitBtn = document.getElementById("submitTextBtn");
     if (textInput) {
       textInput.addEventListener("input", updateCounter);
+      textInput.addEventListener("input", mirrorPreviewText);
       updateCounter();
     }
     if (submitBtn) submitBtn.addEventListener("click", e => { e.preventDefault(); submitForm(); });
 
-    // Settings page
-    const applyBtn = document.getElementById("applyDriverBtn");
-    if (applyBtn) applyBtn.addEventListener("click", e => { e.preventDefault(); applyDriver(); });
+    // Effect preview
+    const effectPreview = document.getElementById("effectPreview");
+    if (effectPreview) {
+      const effectSelect = document.getElementById("effectSelect");
+      if (effectSelect) effectSelect.addEventListener("change", applyEffectPreview);
+      mirrorPreviewText();
+      applyEffectPreview();
+    }
 
     // Schedule page
     const createBtn = document.getElementById("createScheduleBtn");
     if (createBtn) createBtn.addEventListener("click", e => { e.preventDefault(); createSchedule(); });
     if (document.getElementById("scheduleListContainer")) loadSchedules();
+
+    // Status page
+    if (document.getElementById("status-uptime")) {
+      fetchStatusData();
+      setInterval(fetchStatusData, 10000);
+    }
 
     // Zones page
     const scanBtn = document.getElementById("scanBtn");
