@@ -71,6 +71,62 @@ Run `/gsd-audit-milestone` and `/gsd-validate-phase 1-5` retroactively revealed:
 
 ---
 
+## Milestone: v1.1 — Refactor + Fixes + UI + New Features
+
+**Shipped:** 2026-06-21
+**Phases:** 9 (6–13, incl. 11.2) | **Plans:** 32
+**Timeline:** 10 days (2026-06-12 → 2026-06-21)
+**Commits:** ~142 | **Codebase:** 7,704 Kotlin LOC (4,325 main + 3,379 test)
+
+### What Was Built
+
+- **Hardware fix** — MAX7219 SPI packet direction corrected; AbstractDisplayDriver base class DRYed 3 drivers
+- **Scheduler stabilized** — ConflictPolicy enum, ONESHOT crash-safe firedAt, CRON ERROR persistence, Flyway migrations
+- **Full refactor** — DI smoke test guards 11 bindings; dead config classes removed; 80.7% JaCoCo; HistoryService layer
+- **Display history + webhooks** — Every event persisted (1000-row cap); fire-and-forget HTTP POST on schedule fire
+- **Multi-zone displays** — ZoneRegistry routes to local SPI + network WebSocket zones; UDP/mDNS autodiscovery
+- **Observability gaps closed** — GET /health/detail, /metrics hardware group, HTML 404/500 pages fixed
+- **Material 3 UI** — Side nav, dark mode via prefers-color-scheme, zone selector, effect preview, all pages rebuilt
+
+### What Worked
+
+- **DI smoke test first** — The Phase 8 decision to add DI smoke test before any refactoring meant zero silent binding failures across 5 phases of structural changes (11, 11.2, 12, 13 all changed DI significantly)
+- **Phase-level inserted phases (11.2)** — Inserting 11.2 after Phase 11 review findings kept the original phase clean and made the quality work traceable to specific SC items, not buried in a catch-all fix
+- **Wave-based parallel execution** — Plans 11-01/11-02 (disjoint files) running in parallel with a single Wave 1 call saved significant wall-clock time on the largest phase
+- **Security review on Phase 11 network code** — CR-01 (senderIp not JSON ip), CR-02 (localZoneIds protection), CR-03 (ipIndex dedup) all came from code review and prevented real attack vectors before shipping
+- **Flyway 9.22.3 + baselineOnMigrate** — V1–V5 migrations executed cleanly on fresh H2 and simulated existing-Pi scenarios; no migration regressions
+- **HistoryRepository.insert() 1000-row cap** — Simple `selectAll().count()` guard prevents silent SD card fill; straightforward to audit
+
+### What Was Inefficient
+
+- **OOM in SchedulerServiceTest (Phase 7-03)** — Missing `coEvery returns true` stub for a `Boolean`-returning suspend mock caused infinite maxRuns loop; took 45 min to diagnose. Gradle reported "passed" for the OOM run, masking the issue.
+- **Phase 11 network layer complexity** — NetworkZoneDriver + NetworkDiscoveryService + shared WS HttpClient took 4 waves to stabilize; the mDNS device name sanitization (CR-05) and IP dedup (CR-03) were post-plan fixes that could have been specced earlier
+- **4 human-verify checkpoints not closed at milestone** — On-device Pi hardware testing (dual-SPI zones, network autodiscovery timing) was always gated on physical hardware that wasn't available during development
+- **Phase 13 UI audit post-close** — F-01 through F-15 UI audit findings required 2 additional fix commits after Phase 13 was considered "complete"; the audit should happen before the plan is marked done, not after the SUMMARY.md is written
+
+### Patterns Established
+
+- **`coEvery { suspend Boolean mock } returns true` in `beforeEach`** — Required for any mock used in a maxRuns counting loop; false (default for Boolean relaxed mock) causes OOM
+- **RFC1918 IP validation in RequestValidation plugin (not IpValidation object)** — Centralized validator prevents network zone route from accepting non-RFC1918 IPs; avoids SSRF via rogue device advertisement
+- **`parseDiscoveryReply` uses kernel `senderIp`, not JSON "ip" field** — Network security lesson: trust kernel-reported source over attacker-controlled payload field
+- **`headExtra` optional param in BaseLayout** — Allows per-page CSS injection without breaking all existing callers (defaults to null)
+- **`displayAvailable` health check in `healthChecks {}` not `readyChecks {}`** — Hardware unavailability is a health concern, not a readiness gating event
+
+### Key Lessons
+
+1. **Stub every suspend Boolean mock in `beforeEach`** — A relaxed mock returns `false` (Boolean default); if that return value is used as a loop condition the test silently OOMs. Add `coEvery returns true` globally
+2. **UI audit before SUMMARY.md** — Run `/gsd-ui-review` (or equivalent) before writing the plan SUMMARY.md, not after; it forces UI quality to be resolved within the plan lifecycle
+3. **Reserve on-device hardware checkpoints for a UAT phase** — Human-verify items that require physical hardware should be in a separate "UAT / hardware smoke test" plan, not embedded in execution PLAN.md steps that auto-close
+4. **Code review network security before merge** — Phase 11 code review found 3 exploitable issues (SSRF, zone overwrite, IP dedup) that were invisible in unit tests; network-facing code needs a review step
+
+### Cost Observations
+
+- Model mix: Claude Sonnet 4.6 primary throughout
+- Sessions: ~20+ sessions across 10 days
+- Notable: Phase 11 (largest phase, 5 plans + security review + gap closure) accounted for roughly 40% of total session time
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -78,16 +134,21 @@ Run `/gsd-audit-milestone` and `/gsd-validate-phase 1-5` retroactively revealed:
 | Milestone | Phases | Plans | Key Change |
 |-----------|--------|-------|------------|
 | v1.0 | 5 | 29 | Established baseline; wave-based execution from Phase 3 onwards |
+| v1.1 | 9 | 32 | DI smoke test first; inserted phases (11.2); security code review on network layer |
 
 ### Cumulative Quality
 
 | Milestone | Test Classes | Coverage Gate | LOC (Kotlin) |
 |-----------|-------------|---------------|--------------|
 | v1.0 | 20 | ≥70% (JaCoCo) | 3,895 |
+| v1.1 | 30+ | ≥70% (actual 80.7%) | 7,704 |
 
 ### Top Lessons (To Carry Forward)
 
 1. **Test structure mirrors production structure from Phase 1** — Avoid retroactive refactors
 2. **Per-plan SUMMARY.md is required** — Wave summaries don't substitute for plan-level artifacts
 3. **Hardware abstraction (OfflineDriver pattern) enables CI/local testing throughout** — Design for offline from the start
+4. **Stub every suspend Boolean mock in `beforeEach`** — Relaxed mock `false` default causes infinite loops and OOM in maxRuns-gated scheduler tests
+5. **UI audit before SUMMARY.md** — Post-close UI audits add unplanned fix commits; resolve audit findings within the plan lifecycle
+6. **Security code review on all network-facing code** — Unit tests miss trust boundary violations; SSRF/spoofing/dedup bugs require explicit review
 
