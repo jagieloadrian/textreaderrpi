@@ -71,6 +71,7 @@ class ConflictPolicyTest : FunSpec({
             val mockScreen = mockk<ScreenDriverService>(relaxed = true)
             val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
             val mockRenderer = mockk<EffectRenderer>(relaxed = true)
+            val mockWebHook = mockk<WebhookService>(relaxed = true)
 
             coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
@@ -92,7 +93,7 @@ class ConflictPolicyTest : FunSpec({
             )
             coEvery { mockRepo.findAllActive() } returns listOf(lowPriority, highPriority)
 
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebHook)
             service.start()
             advanceTimeBy(1000L.milliseconds)
 
@@ -110,6 +111,7 @@ class ConflictPolicyTest : FunSpec({
             val mockScreen = mockk<ScreenDriverService>(relaxed = true)
             val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
             val mockRenderer = mockk<EffectRenderer>(relaxed = true)
+            val mockWebHook = mockk<WebhookService>(relaxed = true)
 
             coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
@@ -131,7 +133,7 @@ class ConflictPolicyTest : FunSpec({
             )
             coEvery { mockRepo.findAllActive() } returns listOf(later, earlier)
 
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebHook)
             service.start()
             advanceTimeBy(1000L.milliseconds)
 
