@@ -11,8 +11,8 @@ import kotlinx.html.id
 import kotlinx.html.input
 import kotlinx.html.InputType
 import kotlinx.html.article
-import kotlinx.html.mark
 import kotlinx.html.p
+import kotlinx.html.span
 import kotlinx.html.section
 import kotlinx.html.strong
 
@@ -32,8 +32,8 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
     section {
         h3 { +"Registered Zones" }
         if (zones.isEmpty()) {
-            p { strong { +"No zones registered" } }
-            p { +"No display zones found. Connect a local display and restart, or scan the network to discover nearby devices." }
+            p { strong { +"No zones registered." } }
+            p { +"Connect a local display and restart, or scan the network to discover nearby devices." }
         } else {
             div {
                 attributes["class"] = "zones-grid"
@@ -49,12 +49,12 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
                             +typeLabel
                             +" "
                             val badgeStyle = when (zone.status) {
-                                "ONLINE" -> "background: var(--pico-primary)"
-                                "OFFLINE" -> "background: var(--pico-color-red-500, #c0392b); color: white"
-                                "DEGRADED" -> "background: var(--pico-color-orange-500, #e67e22); color: white"
-                                else -> "background: var(--pico-color-red-500, #c0392b); color: white"
+                                "ONLINE" -> "background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); padding: 2px 8px; border-radius: 4px"
+                                "OFFLINE" -> "background: var(--md-sys-color-error); color: var(--md-sys-color-on-error); padding: 2px 8px; border-radius: 4px"
+                                "DEGRADED" -> "background: #7d5c00; color: #ffe0b2; padding: 2px 8px; border-radius: 4px"
+                                else -> "background: var(--md-sys-color-error); color: var(--md-sys-color-on-error); padding: 2px 8px; border-radius: 4px"
                             }
-                            mark { attributes["style"] = badgeStyle; +zone.status }
+                            span { attributes["style"] = badgeStyle; +zone.status }
                         }
                         if (!zone.isLocal && zone.ipAddress != null) {
                             p { strong { +"IP:" }; +" ${zone.ipAddress}" }
@@ -70,7 +70,7 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
                                 type = ButtonType.button
                                 attributes["data-zone-id"] = zone.id
                                 attributes["class"] = "delete-zone-btn"
-                                attributes["style"] = "background: var(--pico-color-red-500, #c0392b)"
+                                attributes["style"] = "background: var(--md-sys-color-error); color: var(--md-sys-color-on-error)"
                                 +"Remove"
                             }
                             div { attributes["id"] = "deleteResult-${zone.id}" }

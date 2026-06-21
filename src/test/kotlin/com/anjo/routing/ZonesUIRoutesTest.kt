@@ -73,7 +73,7 @@ class ZonesUIRoutesTest : FunSpec({
             zoneRegistry.addNetworkZone(zone)
             val body = client.get("/zones").bodyAsText()
             body shouldContain "test-zone-ui"
-            body shouldContain "<mark"
+            body shouldContain "<span"
         }
     }
 

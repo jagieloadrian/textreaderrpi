@@ -1,15 +1,39 @@
-/* Override only the accent colour — PicoCSS handles backgrounds, cards, borders, dark/light */
+/* MD3 dark palette (default) + PicoCSS mappings */
 :root {
-  --pico-primary: #6750a4;
-  --pico-primary-foreground: #ffffff;
-  --app-tint: rgba(103, 80, 164, 0.14);
+  --md-sys-color-surface: #1c1b1f;
+  --md-sys-color-on-surface: #e6e1e5;
+  --md-sys-color-primary: #d0bcff;
+  --md-sys-color-on-primary: #381e72;
+  --md-sys-color-secondary: #ccc2dc;
+  --md-sys-color-surface-variant: #49454f;
+  --md-sys-color-outline: #938f99;
+  --md-sys-color-secondary-container: #4a4458;
+  --md-sys-color-on-secondary-container: #e8def8;
+  --md-sys-color-error: #cf6679;
+  --md-sys-color-on-error: #601410;
+
+  --pico-background-color: var(--md-sys-color-surface);
+  --pico-color: var(--md-sys-color-on-surface);
+  --pico-primary: var(--md-sys-color-primary);
+  --pico-primary-foreground: var(--md-sys-color-on-primary);
+  --pico-secondary: var(--md-sys-color-secondary);
+  --pico-border-color: var(--md-sys-color-outline);
+  --pico-card-background-color: var(--md-sys-color-surface-variant);
 }
 
-@media (prefers-color-scheme: dark) {
+/* MD3 light palette overrides */
+@media (prefers-color-scheme: light) {
   :root {
-    --pico-primary: #d0bcff;
-    --pico-primary-foreground: #381e72;
-    --app-tint: rgba(208, 188, 255, 0.12);
+    --md-sys-color-surface: #fffbfe;
+    --md-sys-color-on-surface: #1c1b1f;
+    --md-sys-color-primary: #6750a4;
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-secondary: #625b71;
+    --md-sys-color-surface-variant: #e7e0ec;
+    --md-sys-color-outline: #79747e;
+    --md-sys-color-secondary-container: #e8def8;
+    --md-sys-color-on-secondary-container: #1d192b;
+    --md-sys-color-error: #b3261e;
   }
 }
 
@@ -42,11 +66,11 @@ aside {
 .aside-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
   color: inherit;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.5rem;
   overflow: hidden;
   white-space: nowrap;
   flex: 1;
@@ -90,13 +114,13 @@ aside nav ul {
 }
 
 aside nav ul li {
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 aside nav a {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   padding: 10px 12px;
   border-radius: var(--pico-border-radius);
   text-decoration: none;
@@ -244,7 +268,7 @@ body.nav-collapsed aside nav a[aria-current="page"] {
 
 .effect-reverse {
   display: inline-block;
-  transform: scaleX(-1);
+  animation: reverse-preview 2s step-start infinite;
 }
 
 .effect-fade {
@@ -266,6 +290,11 @@ body.nav-collapsed aside nav a[aria-current="page"] {
   50%       { opacity: 1; }
 }
 
+@keyframes reverse-preview {
+  0%, 49%  { transform: scaleX(1); }
+  50%, 100% { transform: scaleX(-1); }
+}
+
 /* ── Zones grid ──────────────────────────────────────────────────────────── */
 
 .zones-grid {
@@ -275,8 +304,8 @@ body.nav-collapsed aside nav a[aria-current="page"] {
 }
 
 .zone-card--discovered {
-  background: var(--app-tint);
-  border-color: var(--pico-primary);
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
 }
 
 /* ── History grid ────────────────────────────────────────────────────────── */
@@ -313,6 +342,6 @@ body.nav-collapsed aside nav a[aria-current="page"] {
 }
 
 .history-meta {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   opacity: 0.65;
 }

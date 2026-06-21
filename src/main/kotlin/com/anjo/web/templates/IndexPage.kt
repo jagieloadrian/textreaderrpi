@@ -70,7 +70,7 @@ class IndexPage(private val zones: List<ZoneStatus>) {
             }
             button {
                 id = "submitTextBtn"
-                +"Send"
+                +"Send Text"
             }
         }
         article {

@@ -50,7 +50,7 @@ class WebAndDisplayRoutesTest : FunSpec({
             response.status shouldBe HttpStatusCode.OK
             val body = response.bodyAsText()
             body shouldContain "Display History"
-            body shouldContain "No display events recorded yet"
+            body shouldContain "No display history yet."
         }
     }
 

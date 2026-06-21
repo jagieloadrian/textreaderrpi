@@ -47,7 +47,7 @@ fun FlowContent.historyPage(
         label { htmlFor = "effect"; +"Effect" }
         select {
             id = "effect"; name = "effect"
-            option { value = "ALL"; if (effect.isEmpty() || effect == "ALL") selected = true; +"ALL" }
+            option { value = "ALL"; if (effect.isEmpty() || effect == "ALL") selected = true; +"All effects" }
             option { value = "SCROLL"; if (effect == "SCROLL") selected = true; +"SCROLL" }
             option { value = "BLINK"; if (effect == "BLINK") selected = true; +"BLINK" }
             option { value = "REVERSE"; if (effect == "REVERSE") selected = true; +"REVERSE" }
@@ -56,7 +56,7 @@ fun FlowContent.historyPage(
         label { htmlFor = "source"; +"Source" }
         select {
             id = "source"; name = "source"
-            option { value = "ALL"; if (source.isEmpty() || source == "ALL") selected = true; +"ALL" }
+            option { value = "ALL"; if (source.isEmpty() || source == "ALL") selected = true; +"All sources" }
             option { value = "IMMEDIATE"; if (source == "IMMEDIATE") selected = true; +"IMMEDIATE" }
             option { value = "SCHEDULED"; if (source == "SCHEDULED") selected = true; +"SCHEDULED" }
         }
@@ -101,7 +101,8 @@ fun FlowContent.historyPage(
     }
 
     if (items.isEmpty()) {
-        p { +"No display events recorded yet. Send text via the home page to see history here." }
+        p { strong { +"No display history yet." } }
+        p { +"Send text to the display to start recording events." }
     } else {
         div {
             attributes["class"] = "history-grid"
