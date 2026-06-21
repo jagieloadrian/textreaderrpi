@@ -145,11 +145,12 @@ aside nav a[aria-current="page"] {
   font-size: 16px;
   height: 48px;
   overflow: hidden;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   padding: 0 16px;
   border-radius: 4px;
   border: 1px solid var(--md-sys-color-outline);
+  max-width: 100%;
 }
 
 .effect-scroll {

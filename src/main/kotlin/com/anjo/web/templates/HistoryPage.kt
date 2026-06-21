@@ -103,7 +103,7 @@ fun FlowContent.historyPage(
         div {
             attributes["class"] = "history-grid"
             for (item in items) {
-                val shortDate = item.displayedAt.replace('T', ' ').take(16)
+                val shortDate = item.displayedAt.replace('T', ' ').take(19)
                 details {
                     if (expandAll) attributes["open"] = ""
                     summary {
