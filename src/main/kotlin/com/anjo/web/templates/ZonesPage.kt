@@ -15,7 +15,6 @@ import kotlinx.html.mark
 import kotlinx.html.p
 import kotlinx.html.section
 import kotlinx.html.strong
-import kotlinx.html.unsafe
 
 data class ZoneInfo(
     val id: String,
@@ -104,7 +103,7 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
                 required = true
             }
             button {
-                type = kotlinx.html.ButtonType.submit
+                type = ButtonType.submit
                 +"Add Zone"
             }
         }

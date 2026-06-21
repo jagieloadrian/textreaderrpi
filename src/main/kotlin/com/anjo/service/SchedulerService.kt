@@ -25,9 +25,8 @@ import kotlin.time.Duration.Companion.milliseconds
 class SchedulerService(
     private val repository: ScheduleRepository,
     private val screenService: ScreenDriverService,
-    private val effectFactory: EffectRendererFactory,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
-    private val webhookService: WebhookService? = null
+    private val webhookService: WebhookService
 ) {
     private val log = LoggerFactory.getLogger(SchedulerService::class.java)
     private val activeJobs = ConcurrentHashMap<String, Job>()
@@ -62,7 +61,7 @@ class SchedulerService(
             TriggerType.CRON -> launchCron(schedule)
         }
         if (job != null) {
-            log.debug("Coroutine launched for schedule id=${schedule.id} type=${schedule.triggerType}")
+            log.debug("Coroutine launched for schedule id={} type={}", schedule.id, schedule.triggerType)
             activeJobs[schedule.id] = job
         }
     }
@@ -178,10 +177,10 @@ class SchedulerService(
         return try {
             log.info("Firing schedule id=${schedule.id} text='${schedule.text.take(30)}' effect=${schedule.effect}")
             val policy = schedule.conflictPolicy ?: ConflictPolicy.INTERRUPT
-            val webhookStatus = if (webhookService?.willSend(schedule) == true) "sent" else "skipped"
+            val webhookStatus = if (webhookService.willSend(schedule)) "sent" else "skipped"
             val displayed = screenService.displayScheduled(schedule.text, schedule.id, schedule.effect, policy, webhookStatus)
             if (displayed) {
-                webhookService?.send(schedule, Instant.now())
+                webhookService.send(schedule, Instant.now())
             }
             displayed
         } catch (e: Exception) {

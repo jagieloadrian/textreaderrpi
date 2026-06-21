@@ -43,7 +43,7 @@ fun Application.configureRouting() {
 
     routing {
         staticResources("/static", "static")
-        webRoutes(screenDriverService, zoneRegistry)
+        webRoutes(zoneRegistry)
         scheduleUIRoutes(zoneRegistry)
         historyUIRoutes(historyService, zoneRegistry)
         zonesUIRoutes(zoneRegistry, zoneRepository)

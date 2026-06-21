@@ -57,7 +57,7 @@ fun Application.configureDI() {
     val scheduleRepository = ScheduleRepository()
     val effectRendererFactory = EffectRendererFactory()
     val webhookService = WebhookService.create(appConfig.webhooks)
-    val schedulerService = SchedulerService(scheduleRepository, screenDriverService, effectRendererFactory, webhookService = webhookService)
+    val schedulerService = SchedulerService(scheduleRepository, screenDriverService, webhookService = webhookService)
     val networkDiscoveryService = NetworkDiscoveryService(zoneRegistry, zoneRepository, wsClient)
 
     monitor.subscribe(ApplicationStarted) {

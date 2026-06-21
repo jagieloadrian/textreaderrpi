@@ -9,7 +9,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.di.DependencyKey
 import io.ktor.server.plugins.di.dependencies
@@ -82,8 +81,6 @@ class ZonesUIRoutesTest : FunSpec({
         testApplication {
             application { module() }
             client.get("/health")
-            val zoneRegistry = application.dependencies.getBlocking<ZoneRegistry>(DependencyKey<ZoneRegistry>())
-            val emptyRegistry = ZoneRegistry()
             val body: String
             val response = client.get("/zones")
             body = response.bodyAsText()

@@ -27,17 +27,4 @@ class DriverIntegrationTest : FunSpec({
         )
         service.currentDisplayType() shouldBe "MAX7219"
     }
-
-    test("queueDisplaySwitch returns false since runtime driver switching is superseded by ZoneRegistry") {
-        val driver = mockk<ZoneDriver>(relaxed = true)
-        val registry = ZoneRegistry()
-        registry.register("main", driver)
-        val service = ScreenDriverService(
-            zoneRegistry = registry,
-            ioDispatcher = Dispatchers.Unconfined,
-            retryConfig = RetryConfig(maxAttempts = 1, initialDelayMs = 1L),
-            metrics = ScreenDriverMetrics.DISABLED,
-        )
-        service.queueDisplaySwitch("lcd") shouldBe false
-    }
 })

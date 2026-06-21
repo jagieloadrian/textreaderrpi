@@ -6,7 +6,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.ktor.client.HttpClient
@@ -15,7 +14,6 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.http.headersOf
 import io.ktor.http.HttpStatusCode
-import java.time.Instant
 
 class NetworkDiscoveryServiceTest : FunSpec({
 

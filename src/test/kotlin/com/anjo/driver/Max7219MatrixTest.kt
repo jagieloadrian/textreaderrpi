@@ -22,13 +22,18 @@ class Max7219MatrixTest : FunSpec({
     }
 
     test("should support equality for DisplayStatus") {
-        val first = DisplayStatus(true, true, "Hello", null)
-        val second = DisplayStatus(true, true, "Hello", null)
+        val first = DisplayStatus(isActive = true, hardwareAvailable = true, currentMessage = "Hello", error = null)
+        val second = DisplayStatus(isActive = true, hardwareAvailable = true, currentMessage = "Hello", error = null)
         first shouldBe second
     }
 
     test("should include key fields in DisplayStatus toString") {
-        val status = DisplayStatus(true, false, "Hello", "SPI error")
+        val status = DisplayStatus(
+            isActive = true,
+            hardwareAvailable = false,
+            currentMessage = "Hello",
+            error = "SPI error"
+        )
         status.toString() shouldContain "isActive"
         status.toString() shouldContain "hardwareAvailable"
         status.toString() shouldContain "Hello"
@@ -37,7 +42,12 @@ class Max7219MatrixTest : FunSpec({
     test("should support mocking and invocation of display driver contract") {
         val driver = mockk<DisplayDriver>(relaxed = true)
         val scope = CoroutineScope(Dispatchers.Unconfined)
-        every { driver.status() } returns DisplayStatus(false, true, "ok", null)
+        every { driver.status() } returns DisplayStatus(
+            isActive = false,
+            hardwareAvailable = true,
+            currentMessage = "ok",
+            error = null
+        )
         driver.clear()
         driver.write("sample")
         driver.scrollText(scope, "sample", 10)

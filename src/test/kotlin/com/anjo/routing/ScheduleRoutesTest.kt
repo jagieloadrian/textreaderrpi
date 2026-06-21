@@ -125,7 +125,7 @@ class ScheduleRoutesTest : FunSpec({
             body shouldContain "roundtrip test"
 
             val id = Regex(""""id"\s*:\s*"([^"]+)"""").find(body)?.groupValues?.get(1)
-            if (id != null && id.isNotEmpty()) {
+            if (!id.isNullOrEmpty()) {
                 client.get("/api/v1/schedule/$id").status shouldBe HttpStatusCode.OK
                 client.delete("/api/v1/schedule/$id").status shouldBe HttpStatusCode.NoContent
             }

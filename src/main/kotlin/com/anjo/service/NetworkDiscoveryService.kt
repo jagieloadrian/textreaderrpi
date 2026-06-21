@@ -69,7 +69,9 @@ class NetworkDiscoveryService(
         while (true) {
             try {
                 val recvPacket = DatagramPacket(buf, buf.size)
-                socket.receive(recvPacket)
+                withContext(Dispatchers.IO) {
+                    socket.receive(recvPacket)
+                }
                 val json = String(recvPacket.data, 0, recvPacket.length)
                 val zone = parseDiscoveryReply(json, recvPacket.address.hostAddress)
                 if (zone != null) {

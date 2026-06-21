@@ -1,6 +1,5 @@
 package com.anjo.service
 
-import com.anjo.model.BroadcastResult
 import com.anjo.model.Effect
 import com.anjo.model.ZoneStatus
 import com.anjo.zone.ZoneDriver
@@ -12,7 +11,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 
 class ZoneRegistryTest : FunSpec({

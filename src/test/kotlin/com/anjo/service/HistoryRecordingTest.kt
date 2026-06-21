@@ -3,7 +3,6 @@ package com.anjo.service
 import com.anjo.config.model.RetryConfig
 import com.anjo.db.HistoryRepository
 import com.anjo.model.ConflictPolicy
-import com.anjo.service.DisplayResult
 import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
 import com.anjo.module

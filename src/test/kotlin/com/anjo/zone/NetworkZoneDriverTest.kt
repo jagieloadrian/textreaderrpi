@@ -1,23 +1,17 @@
 package com.anjo.zone
 
 import com.anjo.model.Effect
-import com.anjo.model.ZoneStatus
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.http.headersOf
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.mockk.mockk
-import io.mockk.spyk
+import io.ktor.http.headersOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 
 class NetworkZoneDriverTest : FunSpec({

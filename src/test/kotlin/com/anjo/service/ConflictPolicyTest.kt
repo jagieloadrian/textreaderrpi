@@ -3,17 +3,13 @@ package com.anjo.service
 import com.anjo.config.model.RetryConfig
 import com.anjo.model.ConflictPolicy
 import com.anjo.model.Effect
-import com.anjo.service.DisplayResult
 import com.anjo.model.ScreenDriverMetrics
 import com.anjo.service.effect.EffectRenderer
-import com.anjo.service.effect.ScrollEffect
 import com.anjo.zone.ZoneDriver
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -23,6 +19,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConflictPolicyTest : FunSpec({
@@ -75,9 +72,9 @@ class ConflictPolicyTest : FunSpec({
             val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
             val mockRenderer = mockk<EffectRenderer>(relaxed = true)
 
-            io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
+            coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
-            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
+            coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())
             }
 
@@ -93,11 +90,11 @@ class ConflictPolicyTest : FunSpec({
                 triggerValue = java.time.Instant.now().minusSeconds(1).toString(),
                 priority = 10, effect = Effect.SCROLL, createdAt = "2026-01-01T00:00:01Z"
             )
-            io.mockk.coEvery { mockRepo.findAllActive() } returns listOf(lowPriority, highPriority)
+            coEvery { mockRepo.findAllActive() } returns listOf(lowPriority, highPriority)
 
             val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
             service.start()
-            advanceTimeBy(1000L)
+            advanceTimeBy(1000L.milliseconds)
 
             if (firedOrder.size >= 2) firedOrder[0] shouldBe "high-priority"
 
@@ -114,9 +111,9 @@ class ConflictPolicyTest : FunSpec({
             val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
             val mockRenderer = mockk<EffectRenderer>(relaxed = true)
 
-            io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
+            coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
-            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
+            coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())
             }
 
@@ -132,11 +129,11 @@ class ConflictPolicyTest : FunSpec({
                 triggerValue = java.time.Instant.now().minusSeconds(1).toString(),
                 priority = 5, createdAt = "2026-01-01T00:01:00Z", effect = Effect.SCROLL
             )
-            io.mockk.coEvery { mockRepo.findAllActive() } returns listOf(later, earlier)
+            coEvery { mockRepo.findAllActive() } returns listOf(later, earlier)
 
             val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
             service.start()
-            advanceTimeBy(1000L)
+            advanceTimeBy(1000L.milliseconds)
 
             if (firedOrder.size >= 2) firedOrder[0] shouldBe "earlier"
 
