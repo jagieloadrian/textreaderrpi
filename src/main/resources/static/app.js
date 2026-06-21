@@ -100,16 +100,26 @@
   }
 
   // ─── Status: fetch and poll ───────────────────────────────────────────────
+  let _uptimeBase = null;
+  let _uptimeFetchedAt = null;
+
   function formatUptime(ms) {
     const totalSec = Math.floor(ms / 1000);
     const d = Math.floor(totalSec / 86400);
     const h = Math.floor((totalSec % 86400) / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
-    if (d > 0) return `${d}d ${h}h ${m}m`;
+    if (d > 0) return `${d}d ${h}h ${m}m ${s}s`;
     if (h > 0) return `${h}h ${m}m ${s}s`;
     if (m > 0) return `${m}m ${s}s`;
     return `${s}s`;
+  }
+
+  function tickUptime() {
+    if (_uptimeBase === null || _uptimeFetchedAt === null) return;
+    const el = document.getElementById("status-uptime");
+    if (!el) return;
+    el.textContent = formatUptime(_uptimeBase + (Date.now() - _uptimeFetchedAt));
   }
 
   function formatBytes(bytes) {
@@ -130,7 +140,9 @@
           const el = document.getElementById(id);
           if (el) el.textContent = val;
         };
-        setSpan("status-uptime", formatUptime(detail.uptime));
+        _uptimeBase = detail.uptime;
+        _uptimeFetchedAt = Date.now();
+        tickUptime();
         setSpan("status-memory-used", formatBytes(detail.memoryUsed));
         setSpan("status-memory-max", formatBytes(detail.memoryMax));
         setSpan("status-display", detail.displayStatus);
@@ -397,6 +409,7 @@
     if (document.getElementById("status-uptime")) {
       fetchStatusData();
       setInterval(fetchStatusData, 10000);
+      setInterval(tickUptime, 1000);
     }
 
     // Zones page
