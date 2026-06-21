@@ -2,7 +2,7 @@
 
 **Project Name:** TextReaderRpi
 **Created:** 2025-01-25
-**Status:** v1.1 — Shipped 2026-06-21 | Planning v1.2
+**Status:** v1.2 — In Planning
 
 ## What This Is
 
@@ -79,14 +79,19 @@ Simple, reliable one-way display control from any browser on the home network.
 - ✓ History page with zone/effect filter + pagination — Phase 13
 - ✓ Status page polling /health/detail + /metrics — Phase 13
 
-### Active (v1.2 candidates)
+### Active (v1.2)
 
-- [ ] Full-text search in display history
-- [ ] Export history to CSV
 - [ ] WebSocket live feed — real-time view of currently displayed text in browser
 - [ ] Dynamic zone creation via API (without restart)
-- [ ] On-device hardware smoke test for multi-SPI dual-zone Pi setup
-- [ ] External microcontroller firmware reference (ESP32/Arduino)
+- [ ] Full-text search in display history
+- [ ] Export history to CSV
+- [ ] Firmware submodule: RPi Pico (PicoW/Pico2/Pico2W) — Kotlin Native WebSocket receiver + local display rendering
+- [ ] Firmware submodule: ESP32 series — Kotlin Native WebSocket receiver + local display rendering
+- [ ] DRY/YAGNI refactoring — main code and tests (simplification, deduplication)
+- [ ] Kubernetes manifests + Helm chart in .devops/
+- [ ] Compress .planning/ files — remove noise, retain decisions/summaries/conventions
+- [ ] Delete docs/ folder
+- [ ] Update README.md
 
 ### Out of Scope
 
@@ -167,25 +172,19 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-## Next Steps
+## Current Milestone: v1.2 Firmware + Features + Refactor + Ops
 
-- `/gsd-new-milestone` — start planning v1.2
-
-<details>
-<summary>v1.1 Milestone Context (archived)</summary>
-
-**Goal:** Spłacić dług techniczny z v1.0, przeprowadzić pełny refactor aplikacji, naprawić bugi hardware (MAX7219), odświeżyć UI/UX oraz dodać nowe funkcjonalności (historia, multi-zone, scheduler rewrite, webhooks).
+**Goal:** Rozszerzyć ekosystem o firmware na mikrokontrolery (Pico/ESP32), dodać nowe funkcje serwera (live feed, dynamiczne strefy, historia), przeprowadzić refactoring DRY/YAGNI i zaktualizować dokumentację/ops.
 
 **Target features:**
-- MAX7219 chain order fix + pełny refactor warstwy driverów
-- GET /health/detail, HTML error pages, /metrics hardware group, SKIP_NEW policy (gap closures)
-- Pełny refactor aplikacji (uproszczenie, czytelność, usunięcie workaroundów)
-- UI/UX refresh (layout, stylizacja, user experience)
-- Historia wyświetlanych tekstów
-- Multi-zone (wiele wyświetlaczy jednocześnie)
-- Webhooks / push notifications on schedule fire
-
-</details>
+- WebSocket live feed — real-time podgląd wyświetlanego tekstu w przeglądarce
+- Dynamic zone creation — nowe strefy przez API bez restartu
+- Full-text search w historii wyświetleń
+- Export historii do CSV
+- Firmware submodule: RPi Pico (PicoW/Pico2/Pico2W) + ESP32 — Kotlin Native, WebSocket client, lokalne renderowanie efektów
+- DRY/YAGNI refactoring (kod główny + testy)
+- Kubernetes + Helm w .devops/
+- Kompresja .planning/, usunięcie docs/, update README
 
 ---
-*Last updated: 2026-06-21 after v1.1 milestone close. 9 phases, 32 plans shipped. All requirements validated.*
+*Last updated: 2026-06-21 — Milestone v1.2 planning started.*

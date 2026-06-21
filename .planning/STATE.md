@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Refactor + Fixes + UI + New Features
-status: completed
-last_updated: "2026-06-21T04:26:57.642Z"
+milestone: v1.2
+milestone_name: Firmware + Features + Refactor + Ops
+status: planning
+last_updated: "2026-06-21T14:15:10.306Z"
 last_activity: 2026-06-21
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 32
-  completed_plans: 32
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State & Memory
@@ -20,15 +20,10 @@ progress:
 
 ## Current Position
 
-Phase: Milestone complete
+Phase: Not started (defining requirements)
 Plan: —
-**Next:** /gsd-new-milestone (start v1.2)
-**Last activity:** 2026-06-21
-
-Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 ✓ | Phase 11 ✓ | Phase 11.2 ✓ | Phase 12 ✓ | Phase 13 ✓ ]`  
-`[████████████████████] 32/32 plans (100%)`
-
----
+Status: Defining requirements
+Last activity: 2026-06-21 — Milestone v1.2 started
 
 ## Project Context
 
