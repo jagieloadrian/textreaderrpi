@@ -87,13 +87,13 @@ fun FlowContent.historyPage(
             attributes["class"] = "history-expand-btns"
             button {
                 type = ButtonType.button
-                attributes["onclick"] = "window.location='?expand=all&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}'"
+                attributes["data-expand-url"] = "?page=$page&expand=all&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}"
                 attributes["class"] = if (expandAll) "secondary" else "secondary outline"
                 +"Expand all"
             }
             button {
                 type = ButtonType.button
-                attributes["onclick"] = "window.location='?effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}'"
+                attributes["data-expand-url"] = "?page=$page&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}"
                 attributes["class"] = if (!expandAll) "secondary" else "secondary outline"
                 +"Collapse all"
             }
@@ -117,7 +117,7 @@ fun FlowContent.historyPage(
                     p { strong { +"Effect:" }; +" ${item.effect}" }
                     p { strong { +"Source:" }; +" ${item.source}" }
                     if (item.source == "SCHEDULED" && item.scheduleId != null) {
-                        p { strong { +"Schedule:" }; +" "; a(href = "/schedule?id=${item.scheduleId}") { +item.scheduleId.take(8) } }
+                        p { strong { +"Schedule:" }; +" ${item.scheduleId.take(8)}" }
                     }
                     if (item.zoneId != null) {
                         p { strong { +"Zone:" }; +" ${item.zoneId}" }
@@ -134,14 +134,16 @@ fun FlowContent.historyPage(
     if (rawSize.lowercase() != "all") {
         val sizeInt = rawSize.toIntOrNull()?.coerceAtLeast(1) ?: 20
         if (total > sizeInt) {
-            val pageCount = ((total + sizeInt - 1) / sizeInt).toInt()
+            val pageCount = (total + sizeInt - 1) / sizeInt
+            val start = maxOf(1L, page.toLong() - 5L)
+            val end = minOf(pageCount, page.toLong() + 5L)
             nav {
                 attributes["aria-label"] = "Pagination"
                 ul {
-                    for (p in 1..pageCount) {
+                    for (p in start..end) {
                         li {
                             a(href = "?page=$p&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}${if (expandAll) "&expand=all" else ""}&zone=${zone.urlEncode()}") {
-                                if (p == page) attributes["aria-current"] = "page"
+                                if (p == page.toLong()) attributes["aria-current"] = "page"
                                 +"$p"
                             }
                         }

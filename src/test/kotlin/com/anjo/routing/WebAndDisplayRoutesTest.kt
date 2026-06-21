@@ -34,12 +34,23 @@ class WebAndDisplayRoutesTest : FunSpec({
         }
     }
 
-    test("should filter history by zone for GET /history?zone=X") {
+    test("should filter history by zone=ALL for GET /history?zone=ALL") {
         testApplication {
             application { module() }
             val response = client.get("/history?zone=ALL") { header(HttpHeaders.Accept, ContentType.Text.Html.toString()) }
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldContain "All zones"
+        }
+    }
+
+    test("should return 200 and empty results for GET /history?zone=unknown-zone") {
+        testApplication {
+            application { module() }
+            val response = client.get("/history?zone=unknown-zone") { header(HttpHeaders.Accept, ContentType.Text.Html.toString()) }
+            response.status shouldBe HttpStatusCode.OK
+            val body = response.bodyAsText()
+            body shouldContain "Display History"
+            body shouldContain "No display events recorded yet"
         }
     }
 

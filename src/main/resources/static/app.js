@@ -1,7 +1,6 @@
 (() => {
   const maxLen = 128;
 
-  // ─── Toast ────────────────────────────────────────────────────────────────
   function showToast(message, type = "info") {
     const toast = document.createElement("div");
     toast.textContent = message;
@@ -26,11 +25,6 @@
     }, 2200);
   }
 
-  // ─── Nav toggle ──────────────────────────────────────────────────────────
-  function openNav() {
-    document.body.classList.add("nav-open");
-  }
-
   function closeNav() {
     document.body.classList.remove("nav-open");
   }
@@ -39,7 +33,6 @@
     document.body.classList.toggle("nav-open");
   }
 
-  // ─── Home: submit text ────────────────────────────────────────────────────
   function updateCounter() {
     const input = document.getElementById("textInput");
     const counter = document.getElementById("charCounter");
@@ -99,7 +92,6 @@
     }
   }
 
-  // ─── Status: fetch and poll ───────────────────────────────────────────────
   let _uptimeBase = null;
   let _uptimeFetchedAt = null;
 
@@ -181,7 +173,6 @@
     }
   }
 
-  // ─── Schedule page ────────────────────────────────────────────────────────
   function escHtml(str) {
     return String(str)
       .replace(/&/g, "&amp;")
@@ -244,7 +235,7 @@
     try {
       const response = await fetch("/api/v1/schedule");
       if (response.ok) renderScheduleList(await response.json());
-    } catch (_) { /* silently ignore */ }
+    } catch (_) {}
   }
 
   async function createSchedule() {
@@ -252,7 +243,8 @@
     const triggerType = document.getElementById("triggerType")?.value ?? "RECURRING";
     const triggerValue = document.getElementById("triggerValue")?.value ?? "";
     const effect = document.getElementById("effect")?.value ?? "SCROLL";
-    const priority = parseInt(document.getElementById("priority")?.value ?? "0", 10);
+    const rawPriority = parseInt(document.getElementById("priority")?.value ?? "0", 10);
+    const priority = isNaN(rawPriority) ? 0 : rawPriority;
     const zoneId = document.getElementById("scheduleZoneSelect")?.value ?? "";
 
     try {
@@ -302,7 +294,6 @@
     }
   }
 
-  // ─── Zones page ──────────────────────────────────────────────────────────
   async function scanForDisplays() {
     const btn = document.getElementById("scanBtn");
     const resultDiv = document.getElementById("scanResult");
@@ -370,9 +361,7 @@
     }
   }
 
-  // ─── Boot ─────────────────────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", () => {
-    // Nav collapse (desktop sidebar toggle)
     const collapseBtn = document.getElementById("navCollapseBtn");
     if (collapseBtn) {
       if (localStorage.getItem("navCollapsed") === "1") document.body.classList.add("nav-collapsed");
@@ -382,7 +371,6 @@
       });
     }
 
-    // Nav toggle (mobile hamburger)
     const navToggle = document.getElementById("navToggle");
     if (navToggle) navToggle.addEventListener("click", toggleNav);
     const navBackdrop = document.getElementById("navBackdrop");
@@ -391,7 +379,6 @@
       link.addEventListener("click", closeNav);
     });
 
-    // Home page
     const textInput = document.getElementById("textInput");
     const submitBtn = document.getElementById("submitTextBtn");
     if (textInput) {
@@ -401,7 +388,6 @@
     }
     if (submitBtn) submitBtn.addEventListener("click", e => { e.preventDefault(); submitForm(); });
 
-    // Effect preview
     const effectPreview = document.getElementById("effectPreview");
     if (effectPreview) {
       const effectSelect = document.getElementById("effectSelect");
@@ -410,25 +396,26 @@
       applyEffectPreview();
     }
 
-    // Schedule page
     const createBtn = document.getElementById("createScheduleBtn");
     if (createBtn) createBtn.addEventListener("click", e => { e.preventDefault(); createSchedule(); });
     if (document.getElementById("scheduleListContainer")) loadSchedules();
 
-    // Status page
     if (document.getElementById("status-uptime")) {
       fetchStatusData();
       setInterval(fetchStatusData, 10000);
       setInterval(tickUptime, 1000);
     }
 
-    // Zones page
     const scanBtn = document.getElementById("scanBtn");
     if (scanBtn) scanBtn.addEventListener("click", e => { e.preventDefault(); scanForDisplays(); });
     const addZoneForm = document.getElementById("addZoneForm");
     if (addZoneForm) addZoneForm.addEventListener("submit", addZoneByIp);
     document.querySelectorAll(".delete-zone-btn").forEach(btn => {
       btn.addEventListener("click", e => { e.preventDefault(); deleteZone(btn.dataset.zoneId); });
+    });
+
+    document.querySelectorAll("[data-expand-url]").forEach(btn => {
+      btn.addEventListener("click", () => { window.location = btn.dataset.expandUrl; });
     });
   });
 })();

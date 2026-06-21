@@ -26,14 +26,14 @@ class WebRoutesTest : FunSpec({
         }
     }
 
-    test("GET /schedule returns 200 with Zone and Webhook URL columns") {
+    test("GET /schedule returns 200 with create form and empty schedule container") {
         testApplication {
             application { module() }
             val response = client.get("/schedule") { header(HttpHeaders.Accept, ContentType.Text.Html.toString()) }
             response.status shouldBe HttpStatusCode.OK
             val body = response.bodyAsText()
-            body shouldContain "Zone"
-            body shouldContain "Webhook URL"
+            body shouldContain "scheduleListContainer"
+            body shouldContain "scheduleZoneSelect"
         }
     }
 
