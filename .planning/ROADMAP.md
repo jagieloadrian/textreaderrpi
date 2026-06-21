@@ -8,7 +8,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-05-28) → [Archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Refactor + Fixes + UI + New Features** — Phases 6–13 (shipped 2026-06-21) → [Archive](milestones/v1.1-ROADMAP.md)
-- 📋 **v1.2** — Phases 14+ (planned)
+- 📋 **v1.2 Firmware + Features + Refactor + Ops** — Phases 14–20 (planned)
 
 ---
 
@@ -37,12 +37,17 @@
 - [x] Phase 11.2: Code Quality Cleanup (3 plans) — completed 2026-06-16
 - [x] Phase 12: Observability Gap Closures (3 plans) — completed 2026-06-18
 - [x] Phase 13: UI/UX Refresh (4 plans) — completed 2026-06-21
-
 </details>
 
-### 📋 v1.2 (Planned)
+### 📋 v1.2 Firmware + Features + Refactor + Ops (Planned)
 
-- [ ] Phase 14: TBD — defined via `/gsd-new-milestone`
+- [ ] Phase 14: History Enhancements — full-text search + CSV export
+- [ ] Phase 15: SSE Live Feed — real-time display events in browser
+- [ ] Phase 16: Zone Management — zone creation form + firmware WebSocket endpoint
+- [ ] Phase 17: Firmware Skeletons — RPi Pico (C/pico-sdk) + ESP32 (C++/Arduino)
+- [ ] Phase 18: Kubernetes + Helm — `.devops/helm/textreaderrpi/` chart
+- [ ] Phase 19: DRY/YAGNI Refactoring — HistoryFilter, test base helpers
+- [ ] Phase 20: Cleanup + Docs — .planning/ compression, delete docs/, update README
 
 ---
 
@@ -64,4 +69,10 @@
 | 11.2 | Code Quality Cleanup | v1.1 | 3/3 | ✅ Complete | 2026-06-16 |
 | 12 | Observability Gap Closures | v1.1 | 3/3 | ✅ Complete | 2026-06-18 |
 | 13 | UI/UX Refresh | v1.1 | 4/4 | ✅ Complete | 2026-06-21 |
-| 14+ | TBD | v1.2 | 0/? | Not started | — |
+| 14 | History Enhancements | v1.2 | 0/? | Not started | — |
+| 15 | SSE Live Feed | v1.2 | 0/? | Not started | — |
+| 16 | Zone Management | v1.2 | 0/? | Not started | — |
+| 17 | Firmware Skeletons | v1.2 | 0/? | Not started | — |
+| 18 | Kubernetes + Helm | v1.2 | 0/? | Not started | — |
+| 19 | DRY/YAGNI Refactoring | v1.2 | 0/? | Not started | — |
+| 20 | Cleanup + Docs | v1.2 | 0/? | Not started | — |
