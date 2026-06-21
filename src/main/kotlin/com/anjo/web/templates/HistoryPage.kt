@@ -10,6 +10,7 @@ import kotlinx.html.InputType
 import kotlinx.html.a
 import kotlinx.html.button
 import kotlinx.html.details
+import kotlinx.html.div
 import kotlinx.html.form
 import kotlinx.html.h2
 import kotlinx.html.id
@@ -82,34 +83,47 @@ fun FlowContent.historyPage(
             }
         }
         button { type = ButtonType.submit; +"Apply Filters" }
-        a(href = "?expand=all&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}") { +"Expand all" }
-        a(href = "?effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}") { +"Collapse all" }
+        button {
+            type = ButtonType.button
+            attributes["onclick"] = "window.location='?expand=all&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}'"
+            attributes["class"] = "secondary"
+            +"Expand all"
+        }
+        button {
+            type = ButtonType.button
+            attributes["onclick"] = "window.location='?effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}'"
+            attributes["class"] = "secondary outline"
+            +"Collapse all"
+        }
     }
 
     if (items.isEmpty()) {
         p { +"No display events recorded yet. Send text via the home page to see history here." }
     } else {
-        for (item in items) {
-            details {
-                if (expandAll) attributes["open"] = ""
-                summary {
-                    +(item.text.take(60).let { if (item.text.length > 60) "$it…" else it })
-                    span { attributes["role"] = "note"; +item.effect }
-                    +item.displayedAt
+        div {
+            attributes["class"] = "history-grid"
+            for (item in items) {
+                val shortDate = item.displayedAt.replace('T', ' ').take(16)
+                details {
+                    if (expandAll) attributes["open"] = ""
+                    summary {
+                        strong { +(item.text.take(50).let { if (item.text.length > 50) "$it…" else it }) }
+                        span { attributes["class"] = "history-meta"; +"${item.effect} · $shortDate" }
+                    }
+                    p { strong { +"Text:" }; +" ${item.text}" }
+                    p { strong { +"Effect:" }; +" ${item.effect}" }
+                    p { strong { +"Source:" }; +" ${item.source}" }
+                    if (item.source == "SCHEDULED" && item.scheduleId != null) {
+                        p { strong { +"Schedule:" }; +" "; a(href = "/schedule?id=${item.scheduleId}") { +item.scheduleId.take(8) } }
+                    }
+                    if (item.zoneId != null) {
+                        p { strong { +"Zone:" }; +" ${item.zoneId}" }
+                    }
+                    if (item.webhookStatus != null) {
+                        p { strong { +"Webhook:" }; +" ${item.webhookStatus}" }
+                    }
+                    p { strong { +"Displayed at:" }; +" $shortDate" }
                 }
-                p { strong { +"Full text:" }; +item.text }
-                p { strong { +"Effect:" }; +item.effect }
-                p { strong { +"Source:" }; +item.source }
-                if (item.source == "SCHEDULED" && item.scheduleId != null) {
-                    p { strong { +"Schedule:" }; a(href = "/schedule?id=${item.scheduleId}") { +item.scheduleId.take(8) } }
-                }
-                if (item.zoneId != null) {
-                    p { strong { +"Zone:" }; +item.zoneId }
-                }
-                if (item.webhookStatus != null) {
-                    p { strong { +"Webhook:" }; +item.webhookStatus }
-                }
-                p { strong { +"Displayed at:" }; +item.displayedAt }
             }
         }
     }

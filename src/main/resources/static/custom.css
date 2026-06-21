@@ -156,6 +156,7 @@ aside nav a[aria-current="page"] {
   animation: scroll-preview 4s linear infinite;
   white-space: nowrap;
   display: inline-block;
+  will-change: transform;
 }
 
 .effect-blink {
@@ -163,8 +164,8 @@ aside nav a[aria-current="page"] {
 }
 
 .effect-reverse {
-  animation: reverse-preview 2s step-start infinite;
   display: inline-block;
+  transform: scaleX(-1);
 }
 
 .effect-fade {
@@ -172,8 +173,8 @@ aside nav a[aria-current="page"] {
 }
 
 @keyframes scroll-preview {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
+  0% { transform: translateX(200%); }
+  100% { transform: translateX(-200%); }
 }
 
 @keyframes blink-preview {
@@ -181,12 +182,6 @@ aside nav a[aria-current="page"] {
   50%, 100% { opacity: 0; }
 }
 
-@keyframes reverse-preview {
-  0% { transform: scaleX(1); }
-  49% { transform: scaleX(1); }
-  50% { transform: scaleX(-1); }
-  100% { transform: scaleX(-1); }
-}
 
 @keyframes fade-preview {
   0%, 100% { opacity: 0; }
@@ -196,4 +191,39 @@ aside nav a[aria-current="page"] {
 .zone-card--discovered {
   background-color: var(--md-sys-color-secondary-container);
   color: var(--md-sys-color-on-secondary-container);
+}
+
+.zones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.history-grid details {
+  background: var(--md-sys-color-surface-variant);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.history-grid details summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.history-grid details summary::-webkit-details-marker {
+  display: none;
+}
+
+.history-meta {
+  font-size: 0.8rem;
+  opacity: 0.7;
 }

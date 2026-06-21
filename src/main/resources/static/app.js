@@ -50,20 +50,23 @@
   function mirrorPreviewText() {
     const input = document.getElementById("textInput");
     const preview = document.getElementById("effectPreview");
-    if (!input || !preview) return;
-    preview.textContent = input.value;
+    const span = document.getElementById("effectPreviewText");
+    if (!input || !preview || !span) return;
+    const text = input.value;
+    span.textContent = text;
+    preview.style.visibility = text ? "visible" : "hidden";
   }
 
   function applyEffectPreview() {
-    const preview = document.getElementById("effectPreview");
+    const span = document.getElementById("effectPreviewText");
     const effectSelect = document.getElementById("effectSelect");
-    if (!preview || !effectSelect) return;
-    preview.classList.remove("effect-scroll", "effect-blink", "effect-reverse", "effect-fade");
+    if (!span || !effectSelect) return;
+    span.classList.remove("effect-scroll", "effect-blink", "effect-reverse", "effect-fade");
     const effect = effectSelect.value.toLowerCase();
-    if (effect === "scroll") preview.classList.add("effect-scroll");
-    else if (effect === "blink") preview.classList.add("effect-blink");
-    else if (effect === "reverse") preview.classList.add("effect-reverse");
-    else if (effect === "fade") preview.classList.add("effect-fade");
+    if (effect === "scroll") span.classList.add("effect-scroll");
+    else if (effect === "blink") span.classList.add("effect-blink");
+    else if (effect === "reverse") span.classList.add("effect-reverse");
+    else if (effect === "fade") span.classList.add("effect-fade");
   }
 
   async function submitForm() {
@@ -97,6 +100,24 @@
   }
 
   // ─── Status: fetch and poll ───────────────────────────────────────────────
+  function formatUptime(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const d = Math.floor(totalSec / 86400);
+    const h = Math.floor((totalSec % 86400) / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    if (d > 0) return `${d}d ${h}h ${m}m`;
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  }
+
+  function formatBytes(bytes) {
+    if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(1) + " GB";
+    if (bytes >= 1048576) return Math.round(bytes / 1048576) + " MB";
+    return Math.round(bytes / 1024) + " KB";
+  }
+
   async function fetchStatusData() {
     try {
       const [detailRes, metricsRes] = await Promise.all([
@@ -109,9 +130,9 @@
           const el = document.getElementById(id);
           if (el) el.textContent = val;
         };
-        setSpan("status-uptime", detail.uptime);
-        setSpan("status-memory-used", detail.memoryUsed);
-        setSpan("status-memory-max", detail.memoryMax);
+        setSpan("status-uptime", formatUptime(detail.uptime));
+        setSpan("status-memory-used", formatBytes(detail.memoryUsed));
+        setSpan("status-memory-max", formatBytes(detail.memoryMax));
         setSpan("status-display", detail.displayStatus);
         setSpan("status-failures", detail.totalFailures);
       } else {

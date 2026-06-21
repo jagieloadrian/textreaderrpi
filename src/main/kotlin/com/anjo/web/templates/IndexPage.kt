@@ -11,6 +11,7 @@ import kotlinx.html.label
 import kotlinx.html.option
 import kotlinx.html.p
 import kotlinx.html.select
+import kotlinx.html.span
 import kotlinx.html.textArea
 
 class IndexPage(private val zones: List<ZoneStatus>) {
@@ -77,6 +78,8 @@ class IndexPage(private val zones: List<ZoneStatus>) {
             div {
                 id = "effectPreview"
                 attributes["class"] = "effect-preview"
+                attributes["style"] = "visibility: hidden"
+                span { id = "effectPreviewText" }
             }
         }
     }
