@@ -3,6 +3,7 @@ package com.anjo.service.effect
 import com.anjo.driver.DisplayDriver
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 interface EffectRenderer {
     suspend fun render(text: String, driver: DisplayDriver)
@@ -15,9 +16,9 @@ class BlinkEffect(
     override suspend fun render(text: String, driver: DisplayDriver) {
         driver.displayStatic(text)
         repeat(blinkCount) {
-            delay(blinkIntervalMs)
+            delay(blinkIntervalMs.milliseconds)
             driver.setBrightness(0)
-            delay(blinkIntervalMs)
+            delay(blinkIntervalMs.milliseconds)
             driver.setBrightness(15)
         }
         driver.setBrightness(15)
@@ -30,7 +31,7 @@ class FadeEffect(private val stepMs: Long = 100L) : EffectRenderer {
         driver.setBrightness(0)
         for (level in 0..15) {
             driver.setBrightness(level)
-            delay(stepMs)
+            delay(stepMs.milliseconds)
         }
         coroutineScope { driver.scrollText(this, text) }
     }

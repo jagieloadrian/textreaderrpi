@@ -1,6 +1,9 @@
 package com.anjo.service
 
+import com.anjo.config.model.MetricsConfig
 import com.anjo.config.model.RetryConfig
+import com.anjo.model.HardwareMetrics
+import com.codahale.metrics.MetricRegistry
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
@@ -54,5 +57,30 @@ class RetryPolicyTest : FunSpec({
         config.initialDelayMs shouldBe 1000L
         config.maxDelayMs shouldBe 30000L
         config.factor shouldBe 2.0
+    }
+
+    test("recoveryRetryCounter increments on retry but not displayFailureCounter when recovery succeeds") {
+        val registry = MetricRegistry()
+        val hardwareMetrics = HardwareMetrics.from(registry, MetricsConfig(enabled = true))
+        var callCount = 0
+        retryWithBackoff(RetryConfig(maxAttempts = 3, initialDelayMs = 1), hardwareMetrics) {
+            callCount++
+            if (callCount < 2) throw RuntimeException("transient")
+            "ok"
+        }
+        hardwareMetrics.recoveryRetryCounter!!.count shouldBe 1
+        hardwareMetrics.displayFailureCounter!!.count shouldBe 0
+    }
+
+    test("displayFailureCounter increments exactly once on final exhaustion") {
+        val registry = MetricRegistry()
+        val hardwareMetrics = HardwareMetrics.from(registry, MetricsConfig(enabled = true))
+        shouldThrow<RuntimeException> {
+            retryWithBackoff(RetryConfig(maxAttempts = 3, initialDelayMs = 1), hardwareMetrics) {
+                throw RuntimeException("always fails")
+            }
+        }
+        hardwareMetrics.displayFailureCounter!!.count shouldBe 1
+        hardwareMetrics.recoveryRetryCounter!!.count shouldBe 2
     }
 })

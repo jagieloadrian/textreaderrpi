@@ -37,7 +37,12 @@ class LcdDisplayTest : FunSpec({
 
     test("should support write flow via display driver contract") {
         val driver = mockk<DisplayDriver>(relaxed = true)
-        every { driver.status() } returns DisplayStatus(false, true, "line1", null)
+        every { driver.status() } returns DisplayStatus(
+            isActive = false,
+            hardwareAvailable = true,
+            currentMessage = "line1",
+            error = null
+        )
         driver.clear()
         driver.write("line1")
         val status = driver.status()

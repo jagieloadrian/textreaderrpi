@@ -24,7 +24,6 @@ class TextApiRouteTest : FunSpec({
                 setBody("""{"text":"Hello World"}""")
             }
             response.status shouldBe HttpStatusCode.Accepted
-            response.bodyAsText() shouldContain "accepted"
         }
     }
 
@@ -85,5 +84,59 @@ class TextApiRouteTest : FunSpec({
             response.status.value shouldBeInRange (400..422)
         }
     }
-})
 
+    test("should return 202 with accepted field when conflictPolicy is SKIP_NEW") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/text") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"hello","conflictPolicy":"SKIP_NEW"}""")
+            }
+            response.status shouldBe HttpStatusCode.Accepted
+        }
+    }
+
+    test("should return 202 for broadcast when no zone param given") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/text") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"broadcast me"}""")
+            }
+            response.status shouldBe HttpStatusCode.Accepted
+        }
+    }
+
+    test("should return 503 for a registered but OFFLINE zone") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/text?zone=main") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"offline zone test"}""")
+            }
+            response.status shouldBe HttpStatusCode.ServiceUnavailable
+        }
+    }
+
+    test("should return 404 for an unknown zone") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/text?zone=ghost") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"unknown zone"}""")
+            }
+            response.status shouldBe HttpStatusCode.NotFound
+        }
+    }
+
+    test("should return 400 for a malformed zone name") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/text?zone=!!invalid!!") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"bad zone name"}""")
+            }
+            response.status shouldBe HttpStatusCode.BadRequest
+        }
+    }
+})

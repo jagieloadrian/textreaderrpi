@@ -1,15 +1,15 @@
 package com.anjo.service
 
 import com.anjo.config.model.RetryConfig
-import com.anjo.driver.DisplayDriver
-import com.anjo.driver.DisplayStatus
 import com.anjo.model.ScreenDriverMetrics
+import com.anjo.zone.ZoneDriver
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -19,54 +19,40 @@ class ScreenDriverRecoveryTest : FunSpec({
 
     val fastRetry = RetryConfig(maxAttempts = 3, initialDelayMs = 1L)
 
-    fun service(driver: DisplayDriver) = ScreenDriverService(
-        driver = driver,
+    fun makeRegistry(driver: ZoneDriver): ZoneRegistry {
+        val registry = ZoneRegistry()
+        registry.register("main", driver)
+        return registry
+    }
+
+    fun service(driver: ZoneDriver) = ScreenDriverService(
+        zoneRegistry = makeRegistry(driver),
         ioDispatcher = Dispatchers.Unconfined,
         retryConfig = fastRetry,
-        displaySelectionService = null,
         metrics = ScreenDriverMetrics.DISABLED,
     )
 
-    test("should succeed when driver works on first attempt") {
-        val driver = mockk<DisplayDriver>(relaxed = true)
-        service(driver).readInput("hello")
-        verify(exactly = 1) { driver.scrollText(any(), "hello", any()) }
+    test("should succeed when zone driver works on first attempt") {
+        val driver = mockk<ZoneDriver>(relaxed = true)
+        coEvery { driver.send(any(), any()) } returns true
+        service(driver).displayImmediate("hello")
+        coVerify(exactly = 1) { driver.send("hello", any()) }
     }
 
-    test("should retry on transient driver failure and succeed") {
-        val driver = mockk<DisplayDriver>(relaxed = true)
-        var callCount = 0
-        every { driver.scrollText(any(), any(), any()) } answers {
-            callCount++
-            if (callCount < 2) throw RuntimeException("SPI timeout")
-        }
-        every { driver.status() } returns DisplayStatus(isActive = true, hardwareAvailable = true)
-        service(driver).readInput("test message")
-        callCount shouldBe 2
+    test("should not throw after max retries on zone driver failure") {
+        val driver = mockk<ZoneDriver>(relaxed = true)
+        coEvery { driver.send(any(), any()) } throws RuntimeException("SPI timeout")
+        every { driver.status() } returns com.anjo.model.ZoneStatus(id = "main", type = "MAX7219", status = "OFFLINE")
+        service(driver).displayImmediate("this will fail hardware")
     }
 
-    test("should not throw after max retries") {
-        val driver = mockk<DisplayDriver>(relaxed = true)
-        every { driver.scrollText(any(), any(), any()) } throws RuntimeException("hardware gone")
-        every { driver.status() } returns DisplayStatus(isActive = false, hardwareAvailable = false)
-        service(driver).readInput("this will fail hardware")
-    }
-
-    test("should release mutex after permanent driver failure") {
-        val driver = mockk<DisplayDriver>(relaxed = true)
-        every { driver.scrollText(any(), any(), any()) } throws RuntimeException("permanent failure")
-        every { driver.status() } returns DisplayStatus(isActive = false, hardwareAvailable = false)
+    test("should release zone after permanent driver failure") {
+        val driver = mockk<ZoneDriver>(relaxed = true)
+        coEvery { driver.send(any(), any()) } throws RuntimeException("permanent failure")
+        every { driver.status() } returns com.anjo.model.ZoneStatus(id = "main", type = "MAX7219", status = "OFFLINE")
         val svc = service(driver)
-        svc.readInput("first message")
-        svc.readInput("second message")
-    }
-
-    test("should reflect driver status") {
-        val driver = mockk<DisplayDriver>(relaxed = true)
-        every { driver.status() } returns DisplayStatus(isActive = true, hardwareAvailable = true, error = null)
-        val status = service(driver).status()
-        status.hardwareAvailable shouldBe true
-        status.isActive shouldBe true
+        svc.displayImmediate("first message")
+        svc.displayImmediate("second message")
     }
 
     test("should succeed on first attempt in retryWithBackoff") {

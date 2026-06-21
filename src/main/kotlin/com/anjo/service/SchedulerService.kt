@@ -1,6 +1,7 @@
 package com.anjo.service
 
 import com.anjo.db.ScheduleRepository
+import com.anjo.model.ConflictPolicy
 import com.anjo.model.Schedule
 import com.anjo.model.TriggerType
 import com.cronutils.model.CronType
@@ -19,12 +20,13 @@ import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.ZonedDateTime
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.milliseconds
 
 class SchedulerService(
     private val repository: ScheduleRepository,
     private val screenService: ScreenDriverService,
-    private val effectFactory: EffectRendererFactory,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
+    private val webhookService: WebhookService
 ) {
     private val log = LoggerFactory.getLogger(SchedulerService::class.java)
     private val activeJobs = ConcurrentHashMap<String, Job>()
@@ -59,33 +61,40 @@ class SchedulerService(
             TriggerType.CRON -> launchCron(schedule)
         }
         if (job != null) {
-            log.debug("Coroutine launched for schedule id=${schedule.id} type=${schedule.triggerType}")
+            log.debug("Coroutine launched for schedule id={} type={}", schedule.id, schedule.triggerType)
             activeJobs[schedule.id] = job
         }
     }
 
     fun cancel(id: String) {
-        activeJobs.remove(id)?.cancel()
-        scope.launch {
-            try {
-                repository.updateStatus(id, "DONE")
-            } catch (_: Exception) {}
+        val removed = activeJobs.remove(id)?.also { it.cancel() }
+        if (removed != null) {
+            scope.launch {
+                try {
+                    repository.updateStatus(id, "DONE")
+                } catch (e: Exception) {
+                    log.warn("Failed to persist DONE for cancelled schedule $id: ${e.message}", e)
+                }
+            }
         }
     }
 
 
     private suspend fun tickLoop() {
+        var consecutiveErrors = 0
         while (scope.isActive) {
             try {
-                delay(60_000L)
+                delay(60_000L.milliseconds)
                 val active = repository.findAllActive()
                     .sortedWith(compareByDescending<Schedule> { it.priority }.thenBy { it.createdAt ?: "" })
                     .filter { !activeJobs.containsKey(it.id) }
                 active.forEach { schedule(it) }
+                consecutiveErrors = 0
             } catch (_: CancellationException) {
                 break
             } catch (e: Exception) {
-                log.error("SchedulerService tick error: ${e.message}", e)
+                consecutiveErrors++
+                log.error("SchedulerService tick error ($consecutiveErrors consecutive): ${e.message}", e)
             }
         }
     }
@@ -100,9 +109,9 @@ class SchedulerService(
         return scope.launch {
             val now = System.currentTimeMillis()
             val delayMs = targetMs - now
-            if (delayMs > 0) delay(delayMs)
+            if (delayMs > 0) delay(delayMs.milliseconds)
             fire(schedule)
-            repository.updateStatus(schedule.id, "DONE")
+            repository.updateFiredAtAndDone(schedule.id, Instant.now().toString())
             activeJobs.remove(schedule.id)
         }
     }
@@ -116,18 +125,31 @@ class SchedulerService(
         return scope.launch {
             var runs = 0
             while (isActive) {
-                delay(intervalMs)
-                val expiresAt = schedule.expiresAt
-                if (expiresAt != null && Instant.now().isAfter(Instant.parse(expiresAt))) break
-                val maxRuns = schedule.maxRuns
-                if (maxRuns != null && runs >= maxRuns) break
-                fire(schedule)
-                runs++
+                delay(intervalMs.milliseconds)
+                if (checkExpiry(schedule)) break
+                if (checkMaxRuns(runs, schedule)) break
+                val displayed = fire(schedule)
+                if (displayed) runs++
             }
             repository.updateStatus(schedule.id, "DONE")
             activeJobs.remove(schedule.id)
         }
     }
+
+    private suspend fun checkExpiry(schedule: Schedule): Boolean {
+        val expiresAt = schedule.expiresAt ?: return false
+        val expiresInstant = try {
+            Instant.parse(expiresAt)
+        } catch (e: Exception) {
+            log.error("Invalid expiresAt for schedule ${schedule.id}: $expiresAt", e)
+            repository.updateStatus(schedule.id, "ERROR")
+            return true
+        }
+        return Instant.now().isAfter(expiresInstant)
+    }
+
+    private fun checkMaxRuns(runs: Int, schedule: Schedule): Boolean =
+        schedule.maxRuns != null && runs >= schedule.maxRuns
 
     private fun launchCron(schedule: Schedule): Job? {
         val cron = try {
@@ -145,19 +167,25 @@ class SchedulerService(
                     break
                 }
                 val delayMs = next.toInstant().toEpochMilli() - System.currentTimeMillis()
-                if (delayMs > 0) delay(delayMs)
+                if (delayMs > 0) delay(delayMs.milliseconds)
                 fire(schedule)
             }
         }
     }
 
-    private suspend fun fire(schedule: Schedule) {
-        try {
+    private suspend fun fire(schedule: Schedule): Boolean {
+        return try {
             log.info("Firing schedule id=${schedule.id} text='${schedule.text.take(30)}' effect=${schedule.effect}")
-            val renderer = effectFactory.create(schedule.effect)
-            screenService.displayScheduled(schedule.text, schedule.id, renderer)
+            val policy = schedule.conflictPolicy ?: ConflictPolicy.INTERRUPT
+            val webhookStatus = if (webhookService.willSend(schedule)) "sent" else "skipped"
+            val displayed = screenService.displayScheduled(schedule.text, schedule.id, schedule.effect, policy, webhookStatus)
+            if (displayed) {
+                webhookService.send(schedule, Instant.now())
+            }
+            displayed
         } catch (e: Exception) {
             log.error("Failed to fire schedule ${schedule.id}: ${e.message}", e)
+            false
         }
     }
 

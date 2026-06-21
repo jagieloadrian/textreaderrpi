@@ -31,6 +31,7 @@ fun Application.configureMonitoring() {
 
         healthChecks {
             check("appAlive") { true }
+            check("displayAvailable") { screenDriverService.status().hardwareAvailable }
         }
 
         readyChecks {

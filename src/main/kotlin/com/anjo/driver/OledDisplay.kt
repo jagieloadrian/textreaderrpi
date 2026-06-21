@@ -1,12 +1,13 @@
 package com.anjo.driver
 
+import com.anjo.utils.Font
 import com.pi4j.context.Context
 import com.pi4j.io.i2c.I2C
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class OledDisplay(
     private val ctx: Context,
@@ -14,28 +15,24 @@ class OledDisplay(
     private val busNumber: Int = 1,
     private val width: Int = 128,
     private val height: Int = 64,
-) : DisplayDriver {
+) : AbstractDisplayDriver() {
 
-    private val i2c: I2C?
-    private var job: Job? = null
-    private var lastMessage: String? = null
-    private var lastError: String? = null
+    private val i2c: I2C? = try {
+        val config = I2C.newConfigBuilder(ctx)
+            .id("i2c-oled")
+            .name("I2C OLED Display")
+            .bus(busNumber)
+            .device(i2cAddress)
+            .build()
+        ctx.create(config)
+    } catch (e: Exception) {
+        lastError = "I2C initialization failed: ${e.message}"
+        null
+    }
 
     private val charsPerLine = width / 8
 
     init {
-        i2c = try {
-            val config = I2C.newConfigBuilder(ctx)
-                .id("i2c-oled")
-                .name("I2C OLED Display")
-                .bus(busNumber)
-                .device(i2cAddress)
-                .build()
-            ctx.create(config)
-        } catch (e: Exception) {
-            lastError = "I2C initialization failed: ${e.message}"
-            null
-        }
 
         if (i2c != null) {
             try {
@@ -71,11 +68,15 @@ class OledDisplay(
         }
     }
 
-    private fun renderFrame(frame: String) {
-        sendCommand(0xB0)
-        sendCommand(0x00)
-        sendCommand(0x10)
-        frame.take(charsPerLine).forEach { sendData(it.code and 0xFF) }
+    private fun renderText(text: String) {
+        val columns = mutableListOf<Int>()
+        for (c in text) {
+            val glyph = Font.asciiFont[c] ?: Font.asciiFont[' '] ?: ByteArray(5)
+            glyph.forEach { columns.add(it.toInt() and 0xFF) }
+            columns.add(0) // inter-character gap
+        }
+        sendCommand(0xB0); sendCommand(0x00); sendCommand(0x10)
+        columns.take(width).forEach { sendData(it) }
     }
 
     override fun clear() {
@@ -94,7 +95,7 @@ class OledDisplay(
         try {
             clearHardware()
             lastMessage = text
-            renderFrame(text)
+            renderText(text)
         } catch (e: Exception) {
             lastError = "Write failed: ${e.message}"
         }
@@ -109,9 +110,9 @@ class OledDisplay(
                 val padded = " ".repeat(charsPerLine) + text + " ".repeat(charsPerLine)
                 var index = 0
                 while (isActive && index <= padded.length - charsPerLine) {
-                    renderFrame(padded.substring(index, index + charsPerLine))
+                    renderText(padded.substring(index, index + charsPerLine))
                     index++
-                    delay(speedMs)
+                    delay(speedMs.milliseconds)
                 }
                 clearHardware()
             } catch (e: Exception) {
@@ -120,18 +121,7 @@ class OledDisplay(
         }
     }
 
-    override fun status(): DisplayStatus {
-        return DisplayStatus(
-            isActive = job?.isActive ?: false,
-            hardwareAvailable = i2c != null && lastError == null,
-            currentMessage = lastMessage,
-            error = lastError,
-        )
-    }
-
-    override fun stop() {
-        job?.cancel()
-    }
+    override fun isHardwareAvailable() = i2c != null && lastError == null
 
     override suspend fun setBrightness(level: Int) {
         // SSD1306 contrast register 0x81 maps 0-15 to 0-255

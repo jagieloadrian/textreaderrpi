@@ -8,7 +8,6 @@ import com.pi4j.io.spi.SpiChipSelect
 import com.pi4j.io.spi.SpiMode
 import com.pi4j.plugin.linuxfs.provider.spi.LinuxFsSpiProviderImpl
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -17,7 +16,8 @@ import kotlin.time.Duration.Companion.milliseconds
 class Max7219Matrix(
     private val ctx: Context,
     private val numDevices: Int = 2,
-) : DisplayDriver {
+    private val zoneId: Int = 0,
+) : AbstractDisplayDriver() {
 
     companion object {
         private const val REG_DISPLAY_TEST = 0x0F
@@ -25,30 +25,51 @@ class Max7219Matrix(
         private const val REG_SCAN_LIMIT   = 0x0B
         private const val REG_INTENSITY    = 0x0A
         private const val REG_DECODE_MODE  = 0x09
+
+        internal fun buildPacket(bitmap: ByteArray, offset: Int, numDevices: Int, row: Int): ByteArray {
+            val packet = ByteArray(numDevices * 2)
+            for (d in 0 until numDevices) {
+                val physicalD = numDevices - 1 - d
+                var columnByte = 0
+                for (col in 0 until 8) {
+                    val globalCol = offset + (physicalD * 8) + col
+                    val bit = if (globalCol < bitmap.size) {
+                        bitmap[globalCol].toInt() and (1 shl row) != 0
+                    } else false
+                    columnByte = (columnByte shl 1) or (if (bit) 1 else 0)
+                }
+                packet[d * 2]     = (row + 1).toByte()
+                packet[d * 2 + 1] = columnByte.toByte()
+            }
+            return packet
+        }
     }
 
-    private val spi: Spi
-    private var job: Job? = null
-    private var buffer = Array(numDevices) { ByteArray(8) }
-    private var lastMessage: String? = null
-    private var lastError: String? = null
-
-    init {
+    private val spi: Spi? = try {
         val config = Spi.newConfigBuilder(ctx)
-            .id("max7219")
-            .name("MAX7219 SPI")
+            .id("max7219-zone-$zoneId")
+            .name("MAX7219 SPI Zone $zoneId")
             .bus(SpiBus.BUS_0)
             .chipSelect(SpiChipSelect.CS_0)
             .baud(1_000_000)
             .mode(SpiMode.MODE_0)
             .provider(LinuxFsSpiProviderImpl::class.java)
             .build()
+        ctx.create(config)
+    } catch (e: Exception) {
+        lastError = "SPI initialization failed: ${e.message}"
+        null
+    }
+    private var buffer = Array(numDevices) { ByteArray(8) }
 
-        spi = ctx.create(config)
-        try {
-            initialize()
-        } catch (e: Exception) {
-            lastError = "Initialization failed: ${e.message}"
+    init {
+
+        if (spi != null) {
+            try {
+                initialize()
+            } catch (e: Exception) {
+                lastError = "Initialization failed: ${e.message}"
+            }
         }
     }
 
@@ -62,6 +83,7 @@ class Max7219Matrix(
     }
 
     override fun clear() {
+        stop()                          // cancel scroll job first
         try {
             for (row in 1..8) sendCommand(row, 0x00)
             buffer = Array(numDevices) { ByteArray(8) }
@@ -77,7 +99,7 @@ class Max7219Matrix(
         clear()
         lastMessage = text
         val bitmap = buildBitmap(text)
-        if (bitmap.size / 8 >= numDevices * 8) render(bitmap, 0)
+        render(bitmap, 0)
     }
 
     override fun scrollText(scope: CoroutineScope, text: String, speedMs: Long) {
@@ -89,6 +111,10 @@ class Max7219Matrix(
         val maxOffset = bitmap.size - visibleColumns
 
         job = scope.launch {
+            if (maxOffset < 0) {
+                render(bitmap, 0)   // text fits statically; display without scrolling
+                return@launch
+            }
             var offset = 0
             while (isActive && offset <= maxOffset) {
                 render(bitmap, offset)
@@ -99,18 +125,7 @@ class Max7219Matrix(
         }
     }
 
-    override fun status(): DisplayStatus {
-        return DisplayStatus(
-            isActive = job?.isActive ?: false,
-            hardwareAvailable = lastError == null,
-            currentMessage = lastMessage,
-            error = lastError,
-        )
-    }
-
-    override fun stop() {
-        job?.cancel()
-    }
+    override fun isHardwareAvailable() = spi != null && lastError == null
 
     override suspend fun setBrightness(level: Int) {
         sendCommand(REG_INTENSITY, level.coerceIn(0, 15))
@@ -120,7 +135,7 @@ class Max7219Matrix(
         stop()
         lastMessage = text
         val bitmap = buildBitmap(text)
-        if (bitmap.size / 8 >= numDevices) render(bitmap, 0)
+        render(bitmap, 0)
     }
 
     private fun sendCommand(register: Int, data: Int) {
@@ -129,32 +144,12 @@ class Max7219Matrix(
             packet[i * 2]     = register.toByte()
             packet[i * 2 + 1] = data.toByte()
         }
-        spi.write(packet)
+        spi?.write(packet)
     }
 
     private fun render(bitmap: ByteArray, offset: Int) {
-//        val visibleWidth = numDevices * 8  // 16
-
         for (row in 0 until 8) {
-            val packet = ByteArray(numDevices * 2)
-
-            for (d in 0 until numDevices) {
-                var columnByte = 0
-
-                for (col in 0 until 8) {
-                    val globalCol = offset + (d * 8) + col
-                    val bit = if (globalCol < bitmap.size) {
-                        bitmap[globalCol].toInt() and (1 shl row) != 0
-                    } else false
-
-                    columnByte = (columnByte shl 1) or (if (bit) 1 else 0)
-                }
-
-                packet[d * 2] = (row + 1).toByte()
-                packet[d * 2 + 1] = columnByte.toByte()
-            }
-
-            spi.write(packet)
+            spi?.write(buildPacket(bitmap, offset, numDevices, row))
         }
     }
 
@@ -162,12 +157,13 @@ class Max7219Matrix(
         val columns = mutableListOf<Byte>()
 
         for (c in text) {
-            val glyph = Font.asciiFont[c] ?: Font.asciiFont[' ']!!
+            val glyph = Font.getChar(c)
             columns.addAll(glyph.toList())
             columns.add(0)
         }
 
-        repeat(16) { columns.add(0) }
+        val trailingPad = numDevices * 8   // one full display width of blank columns
+        repeat(trailingPad) { columns.add(0) }
 
         return columns.toByteArray()
     }

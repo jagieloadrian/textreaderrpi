@@ -17,6 +17,16 @@ kotlin {
 }
 
 dependencies {
+    // Ktor client
+    implementation(ktorLibs.ktor.client.core)
+    implementation(ktorLibs.ktor.client.cio)
+    implementation(ktorLibs.ktor.client.content.negotiation)
+    implementation(ktorLibs.ktor.client.websockets)
+    testImplementation(ktorLibs.ktor.client.mock)
+
+    // Network discovery
+    implementation(ktorLibs.jmdns)
+
     // Core Ktor
     implementation(ktorLibs.ktor.server.core)
     implementation(ktorLibs.ktor.server.di)
@@ -63,6 +73,7 @@ dependencies {
     implementation(ktorLibs.exposed.jdbc)
     implementation(ktorLibs.exposed.java.time)
     implementation(ktorLibs.hikaricp)
+    implementation(ktorLibs.flyway.core)
     implementation(ktorLibs.cron.utils)
     // JDBC drivers — loaded at runtime based on application.yaml driver setting
     runtimeOnly(ktorLibs.h2)
@@ -86,6 +97,7 @@ jacoco {
 tasks.test {
     useJUnitPlatform()
     jvmArgs("-Xmx768m")
+    systemProperty("discovery.enabled", "false")
     jacoco {
         excludes += setOf(
             $$"com.anjo.model.*$serializer*",

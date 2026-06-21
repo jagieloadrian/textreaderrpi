@@ -2,12 +2,19 @@ package com.anjo.routing
 
 import com.anjo.config.model.ApiConfig
 import com.anjo.db.ScheduleRepository
+import com.anjo.db.ZoneRepository
 import com.anjo.di.installApiRateLimiting
+import com.anjo.routing.ui.historyUIRoutes
 import com.anjo.routing.ui.scheduleUIRoutes
 import com.anjo.routing.ui.webRoutes
+import com.anjo.routing.ui.zonesUIRoutes
+import com.anjo.model.HardwareMetrics
+import com.anjo.service.HistoryService
 import com.anjo.service.MetricsCollector
+import com.anjo.service.NetworkDiscoveryService
 import com.anjo.service.SchedulerService
 import com.anjo.service.ScreenDriverService
+import com.anjo.service.ZoneRegistry
 import io.ktor.http.ContentType
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application
@@ -24,22 +31,32 @@ import io.ktor.server.routing.routingRoot
 fun Application.configureRouting() {
     install(AutoHeadResponse)
     val screenDriverService: ScreenDriverService by dependencies
+    val zoneRegistry: ZoneRegistry by dependencies
     val apiConfig: ApiConfig by dependencies
     val metricsCollector: MetricsCollector by dependencies
     val scheduleRepository: ScheduleRepository by dependencies
     val schedulerService: SchedulerService by dependencies
+    val historyService: HistoryService by dependencies
+    val networkDiscoveryService: NetworkDiscoveryService by dependencies
+    val zoneRepository: ZoneRepository by dependencies
+    val hardwareMetrics: HardwareMetrics by dependencies
 
     routing {
         staticResources("/static", "static")
-        webRoutes(screenDriverService)
-        scheduleUIRoutes(scheduleRepository)
+        webRoutes(zoneRegistry)
+        scheduleUIRoutes(zoneRegistry)
+        historyUIRoutes(historyService, zoneRegistry)
+        zonesUIRoutes(zoneRegistry, zoneRepository)
         metricsRoutes(metricsCollector, apiConfig.metricsRateLimitPerMinute)
+        healthRoutes(zoneRegistry, hardwareMetrics, apiConfig.metricsRateLimitPerMinute)
 
         route("/api/v1") {
             installApiRateLimiting(apiConfig.rateLimitPerMinute)
             textRoutes(screenDriverService)
             displayRoutes(screenDriverService)
             scheduleRoutes(scheduleRepository, schedulerService)
+            historyRoutes(historyService)
+            zoneRoutes(zoneRegistry, networkDiscoveryService, zoneRepository)
         }
 
         swaggerUI(path = "openapi") {

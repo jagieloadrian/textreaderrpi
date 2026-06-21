@@ -4,6 +4,7 @@ import com.anjo.module
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -124,10 +125,44 @@ class ScheduleRoutesTest : FunSpec({
             body shouldContain "roundtrip test"
 
             val id = Regex(""""id"\s*:\s*"([^"]+)"""").find(body)?.groupValues?.get(1)
-            if (id != null && id.isNotEmpty()) {
+            if (!id.isNullOrEmpty()) {
                 client.get("/api/v1/schedule/$id").status shouldBe HttpStatusCode.OK
                 client.delete("/api/v1/schedule/$id").status shouldBe HttpStatusCode.NoContent
             }
+        }
+    }
+
+    test("should not persist any row when CRON expression is invalid") {
+        testApplication {
+            application { module() }
+            client.post("/api/v1/schedule") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"bad cron schedule","triggerType":"CRON","triggerValue":"not a cron","effect":"SCROLL","priority":0}""")
+            }
+            val listBody = client.get("/api/v1/schedule").bodyAsText()
+            listBody shouldNotContain "bad cron schedule"
+        }
+    }
+
+    test("should return 422 for schedule with invalid webhookUrl") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/schedule") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"webhook test","triggerType":"RECURRING","triggerValue":"5m","effect":"SCROLL","priority":0,"webhookUrl":"not-a-url"}""")
+            }
+            response.status shouldBe HttpStatusCode.UnprocessableEntity
+        }
+    }
+
+    test("should return 201 for schedule with valid webhookUrl") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/schedule") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"webhook test","triggerType":"RECURRING","triggerValue":"5m","effect":"SCROLL","priority":0,"webhookUrl":"https://example.com/hook"}""")
+            }
+            response.status shouldBe HttpStatusCode.Created
         }
     }
 })

@@ -6,7 +6,6 @@ import com.anjo.driver.LcdDisplay
 import com.anjo.driver.Max7219Matrix
 import com.anjo.driver.OledDisplay
 import com.pi4j.context.Context
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import org.slf4j.LoggerFactory
 
@@ -18,12 +17,11 @@ class DisplaySelectionService(
     private var currentDriver: DisplayDriver? = null
     private var currentType: String = "UNKNOWN"
     private val displayLock = ReentrantReadWriteLock()
-    private val pendingSwitches = ConcurrentLinkedQueue<String>()
     private val driverCache = mutableMapOf<String, DisplayDriver>()
     private val log = LoggerFactory.getLogger(DisplaySelectionService::class.java)
 
     init {
-        selectDisplayAtStartup(displayConfig.type)
+        selectDisplayAtStartup(displayConfig.type.name)
     }
 
     private fun selectDisplayAtStartup(displayType: String) {
@@ -33,30 +31,12 @@ class DisplaySelectionService(
             currentDriver = driver
             currentType = normalizedType
             log.info("Display initialised: type=$normalizedType")
-            logCurrentData()
         } else {
-            System.err.println("ERROR: Failed to initialize $normalizedType display")
             log.error("Failed to initialize display driver: type=$normalizedType")
         }
     }
 
-    private fun logCurrentData() {
-        ctx.providers().all.forEach { (string, provider) ->
-            log.info("Provider : $string with data type=${provider.describe().description()}")
-        }
-        ctx.platforms().all.forEach { (string, provider) ->
-            log.info("Platform : $string with data type=${provider.describe().description()}")
-        }
-        ctx.properties().all().forEach { (string, provider) ->
-            log.info("Property : $string with data type=${provider}")
-        }
-        ctx.registry().all().forEach { (string, registry) ->
-            log.info("Registry : $string with data type=${registry}")
-        }
-    }
-
     private fun createDriver(displayType: String): DisplayDriver? {
-        // Return cached driver to prevent Pi4J from rejecting duplicate hardware registrations
         driverCache[displayType]?.let { return it }
         return try {
             val driver = driverFactory(displayType, ctx, displayConfig) ?: return null
@@ -64,7 +44,6 @@ class DisplaySelectionService(
             log.debug("Driver created and cached: type=$displayType")
             driver
         } catch (e: Exception) {
-            System.err.println("Failed to create $displayType driver: ${e.message}")
             log.error("Failed to create driver type=$displayType: ${e.message}", e)
             null
         }
@@ -90,12 +69,10 @@ class DisplaySelectionService(
             val newDriver = createDriver(normalizedType)
 
             return if (newDriver != null) {
-                currentDriver?.stop() // stop any ongoing animation
+                currentDriver?.stop()
                 currentDriver = newDriver
                 currentType = normalizedType
-                pendingSwitches.offer(normalizedType)
                 log.info("Driver switched: $normalizedType")
-                logCurrentData()
                 true
             } else {
                 log.warn("Driver switch failed: could not create driver for $normalizedType")
@@ -104,12 +81,6 @@ class DisplaySelectionService(
         } finally {
             displayLock.writeLock().unlock()
         }
-    }
-
-    fun getPendingSwitches(): List<String> = pendingSwitches.toList()
-
-    fun clearPendingSwitches() {
-        pendingSwitches.clear()
     }
 
     fun getCurrentDisplayType(): String {
@@ -124,23 +95,23 @@ class DisplaySelectionService(
     private fun normalizeDisplayType(displayType: String): String = displayType.uppercase()
 
     companion object {
+        private val factoryLog = LoggerFactory.getLogger(DisplaySelectionService::class.java)
+
         private fun defaultDriverFactory(
             displayType: String,
             ctx: Context,
             config: DisplayConfig,
         ): DisplayDriver? {
             return when (displayType) {
-                "MAX7219" -> Max7219Matrix(ctx, config.max7219.numDevices)
+                "MAX7219" -> Max7219Matrix(ctx, config.max7219.numDevices, zoneId = 0)
                 "LCD" -> LcdDisplay(ctx, config.lcd.i2cAddress, config.lcd.busNumber)
                 "OLED" -> OledDisplay(ctx, config.oled.i2cAddress, config.oled.busNumber, config.oled.width, config.oled.height)
 
                 else -> {
-                    System.err.println("Unknown display type: $displayType")
+                    factoryLog.warn("Unknown display type requested: $displayType")
                     null
                 }
             }
         }
     }
 }
-
-

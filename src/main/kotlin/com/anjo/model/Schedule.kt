@@ -2,10 +2,13 @@ package com.anjo.model
 
 import kotlinx.serialization.Serializable
 
+@Serializable
 enum class Effect { SCROLL, BLINK, REVERSE, FADE }
 
-enum class ScheduleStatus { ACTIVE, PAUSED, EXPIRED, DONE }
+@Serializable
+enum class ScheduleStatus { ACTIVE, PAUSED, EXPIRED, DONE, ERROR }
 
+@Serializable
 enum class TriggerType { ONESHOT, RECURRING, CRON }
 
 @Serializable
@@ -19,5 +22,9 @@ data class Schedule(
     val maxRuns: Int? = null,
     val expiresAt: String? = null,
     val createdAt: String? = null,
-    val status: ScheduleStatus = ScheduleStatus.ACTIVE
+    val status: ScheduleStatus = ScheduleStatus.ACTIVE,
+    val conflictPolicy: ConflictPolicy? = null,
+    val firedAt: String? = null,
+    val webhookUrl: String? = null,
+    val zoneId: String? = null
 )

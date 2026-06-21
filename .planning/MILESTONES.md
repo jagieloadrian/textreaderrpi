@@ -2,6 +2,35 @@
 
 ---
 
+## v1.1 Refactor + Fixes + UI + New Features — 2026-06-21
+
+**Phases:** 9 (6–13 incl. 11.2) | **Plans:** 32 | **Commits:** ~142
+**Codebase:** 4,325 LOC main + 3,379 LOC test = 7,704 Kotlin
+**Timeline:** 2026-06-12 → 2026-06-21 (10 days)
+**Known deferred items at close:** 4 (see STATE.md Deferred Items)
+
+### Delivered
+
+Full technical debt payback plus major feature expansion: corrected MAX7219 hardware scroll direction, stabilized the scheduler schema with Flyway migrations and ConflictPolicy enum, conducted a thorough dead-code refactor with DI smoke test coverage (80.7% JaCoCo), added display history/audit log with 1000-row cap, implemented fire-and-forget webhook notifications, delivered multi-zone display routing (local SPI + network WebSocket + UDP/mDNS autodiscovery), closed all three v1.0 observability audit gaps (health/detail, metrics hardware group, HTML error pages), and shipped a Material 3 UI/UX refresh with side navigation and dark mode.
+
+### Key Accomplishments
+
+1. **MAX7219 hardware fix** — SPI packet direction corrected; AbstractDisplayDriver base class eliminated 15 duplicated field declarations across 3 drivers
+2. **Scheduler stabilized** — ConflictPolicy enum (SKIP_NEW/INTERRUPT), ONESHOT crash-safe firedAt update, CRON ERROR persistence, Flyway 9.22.3 migrations
+3. **Full refactor** — DI smoke test, dead config removed, ScreenDriverService renamed, 80.7% JaCoCo; HistoryService decouples routes from repository
+4. **Display history + webhooks** — Every event persisted (1000-row cap); paginated/filterable API + HTML; webhook HTTP POST on schedule fire (5s timeout)
+5. **Multi-zone displays** — ZoneRegistry routes to local SPI and network WebSocket zones; UDP/mDNS autodiscovery; RFC1918 SSRF protection
+6. **Observability gaps closed** — GET /health/detail, /metrics hardware group (4 counters), HTML 404/500 pages (SwaggerUI ordering fixed)
+7. **Material 3 UI** — Side nav, dark mode via prefers-color-scheme, zone selector, effect preview, all v1.1 pages rebuilt
+
+### Archive
+
+- Roadmap: `.planning/milestones/v1.1-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.1-REQUIREMENTS.md`
+- Tag: `v1.1`
+
+---
+
 ## v1.0 MVP — 2026-05-28
 
 **Phases:** 5 | **Plans:** 29 | **Commits:** 100  

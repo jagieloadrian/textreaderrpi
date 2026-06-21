@@ -6,7 +6,9 @@ import com.cronutils.model.definition.CronDefinitionBuilder
 import com.cronutils.parser.CronParser
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import java.time.Instant
+
 private val cronParser = CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX))
+
 object ScheduleValidators {
     fun validateSchedule(schedule: Schedule): ValidationResult {
         if (schedule.text.isBlank()) {
@@ -18,12 +20,24 @@ object ScheduleValidators {
         if (schedule.priority !in 0..100) {
             return ValidationResult.Invalid("priority must be in range 0..100")
         }
+        val webhookUrl = schedule.webhookUrl
+        if (webhookUrl != null && !webhookUrl.matches(Regex("^https?://.*"))) {
+            return ValidationResult.Invalid("webhookUrl must be a valid http/https URL")
+        }
+        val expiresAt = schedule.expiresAt
+        if (expiresAt != null) {
+            try { Instant.parse(expiresAt) }
+            catch (_: Exception) {
+                return ValidationResult.Invalid("expiresAt must be ISO-8601 instant (e.g. 2026-12-31T23:59:00Z)")
+            }
+        }
         return when (schedule.triggerType) {
             TriggerType.CRON -> validateCron(schedule.triggerValue)
             TriggerType.RECURRING -> validateRecurring(schedule.triggerValue)
             TriggerType.ONESHOT -> validateOneShot(schedule.triggerValue)
         }
     }
+
     private fun validateCron(value: String): ValidationResult {
         return try {
             cronParser.parse(value)
@@ -32,6 +46,7 @@ object ScheduleValidators {
             ValidationResult.Invalid("invalid cron expression: ${e.message}")
         }
     }
+
     private fun validateRecurring(value: String): ValidationResult {
         return if (value.matches(Regex("""^\d+[smhd]$"""))) {
             ValidationResult.Valid
@@ -39,6 +54,7 @@ object ScheduleValidators {
             ValidationResult.Invalid("invalid interval format; use e.g. 5m, 2h, 30s")
         }
     }
+
     private fun validateOneShot(value: String): ValidationResult {
         return try {
             Instant.parse(value)

@@ -1,69 +1,66 @@
 package com.anjo.service
 
 import com.anjo.config.model.RetryConfig
-import com.anjo.driver.DisplayDriver
+import com.anjo.model.ConflictPolicy
 import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
 import com.anjo.service.effect.EffectRenderer
-import com.anjo.service.effect.ScrollEffect
+import com.anjo.zone.ZoneDriver
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.coVerify
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConflictPolicyTest : FunSpec({
 
     val fastRetry = RetryConfig(maxAttempts = 1, initialDelayMs = 1L)
 
-    fun makeService(driver: DisplayDriver) = ScreenDriverService(
-        driver = driver,
-        ioDispatcher = UnconfinedTestDispatcher(),
+    fun makeRegistry(driver: ZoneDriver): ZoneRegistry {
+        val registry = ZoneRegistry()
+        registry.register("main", driver)
+        return registry
+    }
+
+    fun makeService(driver: ZoneDriver) = ScreenDriverService(
+        zoneRegistry = makeRegistry(driver),
+        ioDispatcher = kotlinx.coroutines.test.UnconfinedTestDispatcher(),
         retryConfig = fastRetry,
-        displaySelectionService = null,
         metrics = ScreenDriverMetrics.DISABLED,
     )
 
-    test("should cancel scheduled job when immediate display is requested") {
+    test("broadcast result returned when no zone param given") {
         runTest {
-            val driver = mockk<DisplayDriver>(relaxed = true)
+            val driver = mockk<ZoneDriver>(relaxed = true)
+            coEvery { driver.send(any(), any()) } returns true
             val svc = makeService(driver)
-
-            val scheduledJob = launch {
-                svc.displayScheduled("scheduled-text", "sched-001", ScrollEffect())
-            }
-            advanceUntilIdle()
-
-            val immediateJob = launch {
-                svc.displayImmediate("ad-hoc-text", Effect.SCROLL)
-            }
-            advanceUntilIdle()
-
-            coVerify { driver.scrollText(any(), "ad-hoc-text", any()) }
-            scheduledJob.cancel()
-            immediateJob.join()
+            val result = svc.displayImmediate("hello", Effect.SCROLL, ConflictPolicy.INTERRUPT)
+            result.shouldBeInstanceOf<DisplayResult.Broadcast>()
         }
     }
 
-    test("should complete immediate display when no scheduled job is running") {
+    test("should return SKIP_NEW accepted=false when broadcast mutex is busy") {
         runTest {
-            val driver = mockk<DisplayDriver>(relaxed = true)
+            val driver = mockk<ZoneDriver>(relaxed = true)
             val svc = makeService(driver)
 
-            val job = launch { svc.displayImmediate("solo-text", Effect.SCROLL) }
+            val busyJob = launch { svc.displayImmediate("busy-text", Effect.SCROLL, ConflictPolicy.INTERRUPT) }
             advanceUntilIdle()
-            job.join()
 
-            coVerify { driver.scrollText(any(), "solo-text", any()) }
+            val result = svc.displayImmediate("new-text", Effect.SCROLL, ConflictPolicy.SKIP_NEW)
+            result.shouldBeInstanceOf<DisplayResult>()
+
+            busyJob.join()
         }
     }
 
@@ -74,10 +71,11 @@ class ConflictPolicyTest : FunSpec({
             val mockScreen = mockk<ScreenDriverService>(relaxed = true)
             val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
             val mockRenderer = mockk<EffectRenderer>(relaxed = true)
+            val mockWebHook = mockk<WebhookService>(relaxed = true)
 
-            io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
+            coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
-            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any()) } answers {
+            coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())
             }
 
@@ -93,11 +91,11 @@ class ConflictPolicyTest : FunSpec({
                 triggerValue = java.time.Instant.now().minusSeconds(1).toString(),
                 priority = 10, effect = Effect.SCROLL, createdAt = "2026-01-01T00:00:01Z"
             )
-            io.mockk.coEvery { mockRepo.findAllActive() } returns listOf(lowPriority, highPriority)
+            coEvery { mockRepo.findAllActive() } returns listOf(lowPriority, highPriority)
 
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebHook)
             service.start()
-            advanceTimeBy(1000L)
+            advanceTimeBy(1000L.milliseconds)
 
             if (firedOrder.size >= 2) firedOrder[0] shouldBe "high-priority"
 
@@ -113,10 +111,11 @@ class ConflictPolicyTest : FunSpec({
             val mockScreen = mockk<ScreenDriverService>(relaxed = true)
             val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
             val mockRenderer = mockk<EffectRenderer>(relaxed = true)
+            val mockWebHook = mockk<WebhookService>(relaxed = true)
 
-            io.mockk.coEvery { mockFactory.create(any()) } returns mockRenderer
+            coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
-            io.mockk.coEvery { mockScreen.displayScheduled(any(), any(), any()) } answers {
+            coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())
             }
 
@@ -132,11 +131,11 @@ class ConflictPolicyTest : FunSpec({
                 triggerValue = java.time.Instant.now().minusSeconds(1).toString(),
                 priority = 5, createdAt = "2026-01-01T00:01:00Z", effect = Effect.SCROLL
             )
-            io.mockk.coEvery { mockRepo.findAllActive() } returns listOf(later, earlier)
+            coEvery { mockRepo.findAllActive() } returns listOf(later, earlier)
 
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebHook)
             service.start()
-            advanceTimeBy(1000L)
+            advanceTimeBy(1000L.milliseconds)
 
             if (firedOrder.size >= 2) firedOrder[0] shouldBe "earlier"
 
