@@ -37,14 +37,14 @@ object BaseLayout {
             body {
                 div {
                     attributes["class"] = "top-bar"
-                    +"TextReaderRpi"
+                    a(href = "/") { +"TextReaderRpi" }
                     button {
                         id = "navToggle"
                         +"☰"
                     }
                 }
                 aside {
-                    h1 { +"TextReaderRpi" }
+                    h1 { a(href = "/") { +"TextReaderRpi" } }
                     nav {
                         ul {
                             li { a(href = "/") { attributes["aria-current"] = if (activePath == "/") "page" else ""; +"Send Text" } }
