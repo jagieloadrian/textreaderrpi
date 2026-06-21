@@ -67,6 +67,7 @@ object BaseLayout {
                         button {
                             id = "navCollapseBtn"
                             attributes["title"] = "Collapse menu"
+                            attributes["aria-label"] = "Collapse menu"
                             unsafe { raw(svgIconHtml(ICON_COLLAPSE, "collapse-icon")) }
                         }
                     }

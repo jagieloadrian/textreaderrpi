@@ -349,15 +349,15 @@
     try {
       const response = await fetch("/api/v1/zones/" + encodeURIComponent(id), { method: "DELETE" });
       if (response.status === 204) {
-        if (resultDiv) resultDiv.textContent = "Removed. Reloading...";
+        showToast("Zone removed", "success");
         setTimeout(() => { window.location.href = "/zones"; }, 800);
       } else if (response.status === 404) {
-        if (resultDiv) resultDiv.textContent = "Zone not found.";
+        showToast("Zone not found.", "error");
       } else {
-        if (resultDiv) resultDiv.textContent = "Could not remove zone.";
+        showToast("Could not remove zone.", "error");
       }
     } catch (_) {
-      if (resultDiv) resultDiv.textContent = "Could not remove zone.";
+      showToast("Could not remove zone.", "error");
     }
   }
 
