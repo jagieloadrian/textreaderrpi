@@ -20,9 +20,9 @@ progress:
 
 ## Current Position
 
-Phase: 13
-Plan: Not started
-**Next:** /gsd-complete-milestone
+Phase: Milestone complete
+Plan: —
+**Next:** /gsd-new-milestone (start v1.2)
 **Last activity:** 2026-06-21
 
 Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 ✓ | Phase 11 ✓ | Phase 11.2 ✓ | Phase 12 ✓ | Phase 13 ✓ ]`  
@@ -180,6 +180,21 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 - **Compose:** `.devops/containers/docker-compose.yml` — full env var mapping, no build section
 - **Host:** `.devops/host/` — systemd unit + install script
 - **Env template:** `.env.example` at project root + `.devops/containers/.env.example`
+
+---
+
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-06-21:
+
+| Category | Item | Status |
+|----------|------|--------|
+| verification | Phase 08 — 08-VERIFICATION.md | human_needed |
+| verification | Phase 09 — 09-VERIFICATION.md | human_needed |
+| verification | Phase 11 — 11-VERIFICATION.md | human_needed |
+| verification | Phase 12 — 12-VERIFICATION.md | human_needed |
+
+*Note: All 4 are human-verify checkpoints (on-device Pi hardware testing) that could not be run in CI.*
 
 ---
 
