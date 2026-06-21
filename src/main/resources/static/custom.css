@@ -24,16 +24,57 @@ aside {
   background: var(--pico-card-background-color);
   border-right: 1px solid var(--pico-border-color);
   overflow-y: auto;
+  overflow-x: hidden;
   z-index: 2;
-  padding: 16px 8px;
+  padding: 8px;
   box-sizing: border-box;
+  transition: width 0.2s ease;
 }
 
-aside h1 {
-  font-size: 1.2rem;
+.aside-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px 12px;
+  gap: 8px;
+}
+
+.aside-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
   font-weight: 600;
-  padding: 8px 16px 24px;
-  margin: 0;
+  font-size: 1rem;
+  overflow: hidden;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+#navCollapseBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--pico-color);
+  padding: 6px;
+  border-radius: var(--pico-border-radius);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+#navCollapseBtn:hover {
+  background: var(--pico-secondary-background);
+}
+
+.collapse-icon {
+  transition: transform 0.2s ease;
+}
+
+.nav-icon {
+  flex-shrink: 0;
 }
 
 aside h1 a,
@@ -53,11 +94,15 @@ aside nav ul li {
 }
 
 aside nav a {
-  display: block;
-  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
   border-radius: var(--pico-border-radius);
   text-decoration: none;
   color: var(--pico-color);
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 aside nav a:hover {
@@ -67,6 +112,50 @@ aside nav a:hover {
 aside nav a[aria-current="page"] {
   background: var(--pico-primary);
   color: var(--pico-primary-foreground);
+}
+
+/* ── Collapsed sidebar ───────────────────────────────────────────────────── */
+
+body.nav-collapsed aside {
+  width: 52px;
+}
+
+body.nav-collapsed .nav-label {
+  display: none;
+}
+
+body.nav-collapsed .aside-title {
+  justify-content: center;
+}
+
+body.nav-collapsed .aside-header {
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 0 12px;
+  gap: 6px;
+}
+
+body.nav-collapsed #navCollapseBtn {
+  padding: 6px;
+}
+
+body.nav-collapsed .collapse-icon {
+  transform: rotate(180deg);
+}
+
+body.nav-collapsed aside nav a {
+  justify-content: center;
+  padding: 10px;
+}
+
+body.nav-collapsed aside nav a[aria-current="page"] {
+  border-radius: var(--pico-border-radius);
+}
+
+@media (min-width: 960px) {
+  body.nav-collapsed {
+    padding-left: 52px;
+  }
 }
 
 /* ── Mobile top bar ──────────────────────────────────────────────────────── */

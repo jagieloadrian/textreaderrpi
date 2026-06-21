@@ -372,6 +372,16 @@
 
   // ─── Boot ─────────────────────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", () => {
+    // Nav collapse (desktop sidebar toggle)
+    const collapseBtn = document.getElementById("navCollapseBtn");
+    if (collapseBtn) {
+      if (localStorage.getItem("navCollapsed") === "1") document.body.classList.add("nav-collapsed");
+      collapseBtn.addEventListener("click", () => {
+        document.body.classList.toggle("nav-collapsed");
+        localStorage.setItem("navCollapsed", document.body.classList.contains("nav-collapsed") ? "1" : "0");
+      });
+    }
+
     // Nav toggle (mobile hamburger)
     const navToggle = document.getElementById("navToggle");
     if (navToggle) navToggle.addEventListener("click", toggleNav);
