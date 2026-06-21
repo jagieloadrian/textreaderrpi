@@ -42,7 +42,7 @@ class SchedulerServiceTest : FunSpec({
     test("should fire display after target delay for ONESHOT schedule") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "s1", text = "hello",
@@ -64,7 +64,7 @@ class SchedulerServiceTest : FunSpec({
     test("should not fire ONESHOT schedule before target time") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "s2", text = "early",
@@ -84,7 +84,7 @@ class SchedulerServiceTest : FunSpec({
     test("should fire RECURRING schedule at each interval") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "s3", text = "recurring",
@@ -103,7 +103,7 @@ class SchedulerServiceTest : FunSpec({
     test("should not write DONE to repository when scheduling new job") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "s-new", text = "new",
@@ -121,7 +121,7 @@ class SchedulerServiceTest : FunSpec({
     test("should not mark DONE when rescheduling same id") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "s-re", text = "reschedule",
@@ -140,7 +140,7 @@ class SchedulerServiceTest : FunSpec({
     test("should write DONE to repository and stop coroutine on cancel") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "s-cxl", text = "to cancel",
@@ -162,7 +162,7 @@ class SchedulerServiceTest : FunSpec({
     test("should stop recurring schedule before first fire when cancelled") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "s5", text = "cancelme",
@@ -184,7 +184,7 @@ class SchedulerServiceTest : FunSpec({
     test("should fire CRON schedule at next computed cron time") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "s-cron", text = "cron-text",
@@ -206,7 +206,7 @@ class SchedulerServiceTest : FunSpec({
     test("should not schedule ERROR-status schedules returned by repository") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val activeSchedule = Schedule(
                 id = "active-1", text = "active text",
@@ -229,7 +229,7 @@ class SchedulerServiceTest : FunSpec({
     test("should not count SKIP_NEW skip toward maxRuns on RECURRING schedule") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } returns true
 
@@ -252,7 +252,7 @@ class SchedulerServiceTest : FunSpec({
     test("should stop RECURRING schedule after maxRuns") {
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "s4", text = "bounded",
@@ -272,7 +272,7 @@ class SchedulerServiceTest : FunSpec({
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
             every { mockWebhook.willSend(any()) } returns true
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope, webhookService = mockWebhook)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "wh-ok", text = "hook-text",
@@ -295,7 +295,7 @@ class SchedulerServiceTest : FunSpec({
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
             coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } returns false
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope, webhookService = mockWebhook)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "wh-skip", text = "skip-text",
@@ -317,7 +317,7 @@ class SchedulerServiceTest : FunSpec({
         runTest {
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
             every { mockWebhook.willSend(any()) } returns false
-            val service = SchedulerService(mockRepo, mockScreen, mockFactory, testScope, webhookService = mockWebhook)
+            val service = SchedulerService(mockRepo, mockScreen, testScope, mockWebhook)
 
             val schedule = Schedule(
                 id = "wh-no-url", text = "no-url-text",
