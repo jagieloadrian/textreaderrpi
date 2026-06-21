@@ -1,13 +1,13 @@
 # TextReaderRpi - Development Roadmap
 
-**Last Updated:** 2026-06-20
+**Last Updated:** 2026-06-21
 
 ---
 
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-05-28) → [Archive](milestones/v1.0-ROADMAP.md)
-- 🚧 **v1.1 Refactor + Fixes + UI + New Features** — Phases 6–12 (in progress)
+- ✅ **v1.1 Refactor + Fixes + UI + New Features** — Phases 6–13 (complete 2026-06-21)
 
 ---
 
