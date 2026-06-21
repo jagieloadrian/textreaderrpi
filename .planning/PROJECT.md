@@ -2,9 +2,9 @@
 
 **Project Name:** TextReaderRpi  
 **Created:** 2025-01-25  
-**Status:** v1.1 — In Progress
+**Status:** v1.1 — Complete (2026-06-21)
 
-## Current Milestone: v1.1 Refactor + Fixes + UI + New Features
+## Milestone: v1.1 Refactor + Fixes + UI + New Features (Complete 2026-06-21)
 
 **Goal:** Spłacić dług techniczny z v1.0, przeprowadzić pełny refactor aplikacji, naprawić bugi hardware (MAX7219), odświeżyć UI/UX oraz dodać nowe funkcjonalności (historia, multi-zone, scheduler rewrite, webhooks).
 
@@ -26,7 +26,7 @@ Wyświetlać text na ekranie podpietym do rasbperry pi (za pomoca pi4j), który 
 
 ## What This Is
 
-A production-ready Raspberry Pi text display system. Text submitted through a responsive web UI is routed through a scheduling engine, processed via an effect pipeline (SCROLL/BLINK/REVERSE/FADE), and rendered on pluggable hardware drivers (MAX7219, LCD, OLED). The system is fully observable, rate-limited, Docker-ready, and configurable via environment variables.
+A production-ready Raspberry Pi text display system with Material 3 UI. Text submitted through a responsive multi-zone web interface is routed to named hardware or network displays, processed via an effect pipeline (SCROLL/BLINK/REVERSE/FADE), and rendered on pluggable hardware drivers (MAX7219, LCD, OLED). The system is fully observable (health/detail, metrics hardware group, HTML error pages), schedules with webhook callbacks, records full display history, and supports multi-zone discovery and routing. Configurable via environment variables, Docker-ready.
 
 ## Core Value
 
@@ -64,29 +64,29 @@ Simple, reliable one-way display control from any browser on the home network.
 - ✓ Full env var config (25 settings) — v1.0
 - ✓ Docker image build via Gradle — v1.0
 
-### Active (v1.1)
+### Validated (v1.1)
 
 **Gap closures from v1.0 audit:**
-- [ ] Implement `GET /health/detail` — KHealth extended payload (uptime, memory, display status, error counts) — REQ-OBS-03
-- [ ] Fix Ktor 3.5.0 SwaggerUI routing catch-all — HTML 404/500 error pages unreachable for browser GET routes — REQ-DISP-06
-- [ ] Add `/metrics` hardware group — display failures, recovery retries, resource slot utilization — REQ-OBS-01
-- [ ] Implement `SKIP_NEW` conflict policy — add `ConflictPolicy` enum, conditional logic in `displayImmediate()` — REQ-CONFLICT-01
+- ✓ `GET /health/detail` — uptime, memory, display status, error counts — Phase 12
+- ✓ HTML 404/500 error pages (Ktor 3.5.0 SwaggerUI routing fixed) — Phase 12
+- ✓ `/metrics` hardware group — display failures, recovery retries, resource slot utilization — Phase 12
+- ✓ `SKIP_NEW` conflict policy — ConflictPolicy enum, conditional logic in `displayImmediate()` — Phase 7
 
 **Hardware fixes:**
-- [ ] MAX7219 chain order fix — scroll starts from wrong module (right before left)
-- [ ] Pełny refactor warstwy driverów (MAX7219, LCD, OLED, OfflineDriver)
+- ✓ MAX7219 chain order fix — scroll direction corrected, SPI packet direction fixed — Phase 6
+- ✓ Full driver layer refactor (AbstractDisplayDriver base class) — Phase 6
 
 **Refactor:**
-- [ ] Uproszczenie i oczyszczenie całej aplikacji (usunięcie workaroundów, poprawa czytelności)
+- ✓ Application simplified and cleaned (DI smoke test, dead code removed, service nesting reduced) — Phase 8, 11.2
 
 **UI/UX:**
-- [ ] Odświeżenie wyglądu i user experience
+- ✓ Material 3 dark/light theme, side navigation, all v1.1 pages deployed — Phase 13
 
 **New features:**
-- [ ] Historia wyświetlanych tekstów (audit log)
-- [ ] Przepisanie schedulera — coroutines zamiast Flaxoos JDBC
-- [ ] Multi-zone — wiele wyświetlaczy jednocześnie
-- [ ] Webhooks / push notifications on schedule fire
+- ✓ Display history + audit log (persisted, paginated, filterable) — Phase 9
+- ✓ Scheduler schema stabilized (ConflictPolicy, firedAt, CRON validation, Flyway) — Phase 7
+- ✓ Multi-zone displays (local + network discovery, zone routing) — Phase 11
+- ✓ Webhooks — HTTP POST notifications on schedule fire — Phase 10
 
 ### Out of Scope
 
@@ -126,6 +126,12 @@ Simple, reliable one-way display control from any browser on the home network.
 | Exposed 1.3.0 (`org.jetbrains.exposed.v1.*`) | ✓ Good — latest stable with API alignment | 5 |
 | Flaxoos JDBC task scheduler | ⚠️ Revisit — cluster-safe but adds `task_locks` table complexity for single-node Pi | 5 |
 | `${VAR:default}` env var config pattern | ✓ Good — all 25 settings overridable without code changes | 5 |
+| Flyway 9.22.3 for migrations (baselineOnMigrate) | ✓ Good — handles existing Pi installs; 9.x community license | 7 |
+| Single shared Pi4J context + unique string IDs per zone | ✓ Good — avoids SPI registration collision on startup | 11 |
+| ZoneStatus in-memory only (not persisted) | ✓ Good — avoids stale offline status across restarts | 11 |
+| HistoryService layer between routes and repository | ✓ Good — prevents direct repository access from routes | 11.2 |
+| Material 3 CSS custom properties (no data-theme attribute) | ✓ Good — OS dark/light mode via prefers-color-scheme media query | 13 |
+| SSR zone selectors (not client-fetched) | ✓ Good — zones available on page load without extra fetch | 13 |
 
 ## Constraints
 
@@ -153,7 +159,7 @@ This document evolves at phase transitions and milestone boundaries.
 
 ## Next Steps
 
-- `/gsd-plan-phase 6` — start planning Phase 6 (first phase of v1.1)
+- `/gsd-complete-milestone v1.1` — archive milestone and start planning v1.2
 
 ---
-*Last updated: 2026-06-16 — Phase 10 complete (webhooks). Fire-and-forget webhook dispatch on scheduled events, webhook_status in display_history, /history UI surfacing. Next: Phase 11 multi-zone displays.*
+*Last updated: 2026-06-21 after Phase 13 (UI/UX Refresh). Milestone v1.1 complete — all 9 phases, 32 plans done. Material 3 UI, multi-zone, history, webhooks, and observability all shipped.*

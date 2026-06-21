@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Refactor + Fixes + UI + New Features
-status: complete
-last_updated: "2026-06-21T05:20:00.000Z"
+status: completed
+last_updated: "2026-06-21T04:26:57.642Z"
 last_activity: 2026-06-21
 progress:
   total_phases: 9
@@ -16,17 +16,17 @@ progress:
 # Project State & Memory
 
 **Last Updated:** 2026-06-21  
-**Status:** Milestone v1.1 complete — all 9 phases done
+**Status:** Milestone complete
 
 ## Current Position
 
-Phase: 13 (ui-ux-refresh) — COMPLETE, 4 plans (4 complete)
-Plan: 4 of 4
+Phase: 13
+Plan: Not started
 **Next:** /gsd-complete-milestone
-**Last activity:** 2026-06-20
+**Last activity:** 2026-06-21
 
-Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 ✓ | Phase 11 ✓ | Phase 11.2 ✓ | Phase 12 ✓ | Phase 13 → ]`  
-`████████████████████████████████████████████████░░` 89% (8/9 phases)
+Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 ✓ | Phase 11 ✓ | Phase 11.2 ✓ | Phase 12 ✓ | Phase 13 ✓ ]`  
+`[████████████████████] 32/32 plans (100%)`
 
 ---
 
@@ -87,7 +87,7 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 | 11 | Multi-Zone Displays | ZONE-01 through ZONE-08 | COMPLETE ✓ |
 | 11.2 | Code Quality Cleanup | REF-11.2 | COMPLETE ✓ |
 | 12 | Observability Gap Closures + UI/UX Refresh | OBS-01, OBS-02, OBS-03 | COMPLETE ✓ |
-| 13 | UI/UX Refresh | UI-01 through UI-08 | Not started |
+| 13 | UI/UX Refresh | UI-01 through UI-08 | COMPLETE ✓ |
 
 ---
 
@@ -270,3 +270,7 @@ Progress: `[ Phase 6 ✓ | Phase 7 ✓ | Phase 8 ✓ | Phase 9 ✓ | Phase 10 �
 - [Phase 13 P02]: HistoryPage zone select first option uses value=ALL consistent with effect/source filter convention
 - [Phase 13 P02]: HistoryRepository zone andWhere guard checks (effect != null || source != null) to decide andWhere vs where
 - [Phase ?]: ZoneRegistry injected into UI routes via existing DI binding — no new DI binding needed
+- [Phase 13 P01]: Dark palette in :root (default), light overrides only under @media (prefers-color-scheme: light) — no data-theme attribute; fully CSS-driven
+- [Phase 13 P01]: headExtra defaults to null so all existing page callers compile unchanged
+- [Phase 13 P03]: fetchStatusData uses Promise.all([/health/detail, /metrics]) on DOMContentLoaded + setInterval(10000); spans use .textContent (not innerHTML) — XSS-safe
+- [Phase 13 P03]: applyEffectPreview removes all four effect classes then adds matching class; escHtml() wraps zoneId/webhookUrl in JS-rendered schedule rows
