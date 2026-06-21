@@ -83,17 +83,20 @@ fun FlowContent.historyPage(
             }
         }
         button { type = ButtonType.submit; +"Apply Filters" }
-        button {
-            type = ButtonType.button
-            attributes["onclick"] = "window.location='?expand=all&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}'"
-            attributes["class"] = "secondary"
-            +"Expand all"
-        }
-        button {
-            type = ButtonType.button
-            attributes["onclick"] = "window.location='?effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}'"
-            attributes["class"] = "secondary outline"
-            +"Collapse all"
+        div {
+            attributes["class"] = "history-expand-btns"
+            button {
+                type = ButtonType.button
+                attributes["onclick"] = "window.location='?expand=all&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}'"
+                attributes["class"] = if (expandAll) "secondary" else "secondary outline"
+                +"Expand all"
+            }
+            button {
+                type = ButtonType.button
+                attributes["onclick"] = "window.location='?effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}'"
+                attributes["class"] = if (!expandAll) "secondary" else "secondary outline"
+                +"Collapse all"
+            }
         }
     }
 

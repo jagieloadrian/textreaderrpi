@@ -200,6 +200,12 @@ aside nav a[aria-current="page"] {
   gap: 16px;
 }
 
+.history-expand-btns {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .history-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
