@@ -2,9 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
+current_phase: 14
 status: planning
-last_updated: "2026-06-22T00:00:00.000Z"
+stopped_at: Phase 14 context gathered
+last_updated: "2026-06-22T07:18:51.688Z"
 last_activity: 2026-06-22
+last_activity_desc: v1.2 roadmap created (7 phases, 13 requirements)
 progress:
   total_phases: 7
   completed_phases: 0
@@ -229,3 +232,9 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 13 P01 | 2 minutes | 2 tasks | 2 files |
 | Phase 13 P02 | 3 minutes | 2 tasks | 7 files |
 | Phase 13 P03 | 6 minutes | 2 tasks | 6 files |
+
+## Session
+
+**Last session:** 2026-06-22T07:18:51.677Z
+**Stopped at:** Phase 14 context gathered
+**Resume file:** .planning/phases/14-history-enhancements/14-CONTEXT.md
