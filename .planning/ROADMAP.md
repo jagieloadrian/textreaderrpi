@@ -37,6 +37,7 @@
 - [x] Phase 11.2: Code Quality Cleanup (3 plans) — completed 2026-06-16
 - [x] Phase 12: Observability Gap Closures (3 plans) — completed 2026-06-18
 - [x] Phase 13: UI/UX Refresh (4 plans) — completed 2026-06-21
+
 </details>
 
 ### 📋 v1.2 Firmware + Features + Refactor + Ops (Planned)
@@ -54,85 +55,107 @@
 ## Phase Details
 
 ### Phase 14: History Enhancements
+
 **Goal**: Users can search display history by text content and export filtered results to CSV.
 **Depends on**: Phase 13 (history page and API are complete)
 **Requirements**: HIST-04, HIST-05, HIST-06
 **Success Criteria** (what must be TRUE):
+
   1. User types a search term in the history page search box and the results list shows only entries whose text contains that term, with the matched portion highlighted in `<mark>` tags
   2. User submits `GET /api/v1/history?search=foo` and receives only matching entries (case-insensitive)
   3. User clicks "Export CSV" on the history page and the browser downloads a `.csv` file containing all currently-filtered history rows in RFC 4180 format with a `Content-Disposition: attachment` header
   4. Search terms containing SQL wildcard characters (`%`, `_`) are stripped before the LIKE query executes (no injection)
-**Plans**: 3 plans
-- [ ] 14-01-PLAN.md — HistoryFilter, HistoryValidators sanitizer, kotlin-csv dep, repository search/findAll, service exportCsv
+
+**Plans**: 1/3 plans executed
+
+- [x] 14-01-PLAN.md — HistoryFilter, HistoryValidators sanitizer, kotlin-csv dep, repository search/findAll, service exportCsv
 - [ ] 14-02-PLAN.md — API: search param + GET /api/v1/history/export CSV download endpoint
 - [ ] 14-03-PLAN.md — UI: highlightText `<mark>` helper, search input, Export CSV link, sticky search
 
 ### Phase 15: SSE Live Feed
+
 **Goal**: Users can watch the currently-displayed text update in real time on the status page without reloading.
 **Depends on**: Phase 14
 **Requirements**: LIVE-01, LIVE-02, LIVE-03
 **Success Criteria** (what must be TRUE):
+
   1. User opens `GET /api/v1/live` in a browser or `curl --no-buffer` and receives a continuous SSE stream; each time text is sent to a display a `data:` event arrives within one second
   2. Status page shows the most recently displayed text updating live via an `EventSource` widget — no manual refresh needed
   3. An SSE connection open for more than 30 seconds without display activity receives a heartbeat comment frame (`: keep-alive`) so proxy servers do not close it
   4. A new SSE subscriber immediately receives the last five events (replay=5) without waiting for the next display action
+
 **Plans**: TBD (estimated 3 plans)
 **UI hint**: yes
 
 ### Phase 16: Zone Management
+
 **Goal**: Users can create new network zones through the UI without restarting the server, and firmware devices can connect as zones via WebSocket.
 **Depends on**: Phase 15 (ktor-server-websockets installed in this phase unblocks firmware driver)
 **Requirements**: ZONE-09, ZONE-10
 **Success Criteria** (what must be TRUE):
+
   1. User fills in the "Add Zone" form on `/zones` with a name, IP, and display type and submits it; the new zone appears immediately in the zone list without a server restart
   2. Submitting the "Add Zone" form with a local hardware display type (e.g. MAX7219) returns a 422 error explaining that local hardware types must be configured at startup
   3. A Pico or ESP32 device that opens `GET /ws/zone/{id}` is registered in ZoneRegistry as a FirmwareZoneDriver; text sent to that zone ID appears in the device's serial monitor output
   4. When the firmware device disconnects, the zone transitions to OFFLINE status and subsequent sends to that zone return a graceful error rather than a crash
+
 **Plans**: TBD (estimated 3 plans)
 **UI hint**: yes
 
 ### Phase 17: Firmware Skeletons
+
 **Goal**: Working C/C++ firmware skeletons for RPi Pico W and ESP32 connect to the server, receive text+effect JSON over WebSocket, and render it on an attached MAX7219.
 **Depends on**: Phase 16 (server-side WebSocket endpoint `GET /ws/zone/{id}` must exist)
 **Requirements**: FW-01, FW-02
 **Success Criteria** (what must be TRUE):
+
   1. Flashing `firmware/pico/build/textreader.uf2` onto a Pico W (with correct WiFi credentials and server URL set in `config.h`) causes it to connect to the server WebSocket, receive the string "Hello", and scroll it on the attached MAX7219
   2. Building and flashing `firmware/esp32/` via PlatformIO onto an ESP32 board causes it to connect to the server WebSocket, receive a text+effect JSON payload, and render it on the attached MAX7219
   3. Both firmware projects have a `README.md` inside their directory describing the build tool, wiring diagram reference, and flash procedure
   4. If the WiFi or server connection drops, each firmware implementation attempts reconnection automatically rather than hanging
+
 **Plans**: TBD (estimated 4 plans)
 
 ### Phase 18: Kubernetes + Helm
+
 **Goal**: TextReaderRpi can be deployed to a Kubernetes cluster using a Helm chart with hardware-access and resource controls.
 **Depends on**: Phase 13 (stable Docker image with all v1.2 features is prerequisite)
 **Requirements**: OPS-01
 **Success Criteria** (what must be TRUE):
+
   1. Running `helm install textreaderrpi .devops/helm/textreaderrpi/` on a K8s cluster starts a pod that passes both `/health` and `/health/ready` liveness/readiness probes
   2. The chart's `values.yaml` exposes a `hardwareAccess.enabled` toggle; when false the pod starts without GPIO/SPI device mounts and falls back to OfflineDisplayDriver without crashing
   3. The JVM heap in the Deployment spec is capped at `-Xmx220m`, keeping memory within the 256 MB project constraint
   4. `helm lint` passes with no errors or warnings on the chart directory
+
 **Plans**: TBD (estimated 2 plans)
 
 ### Phase 19: DRY/YAGNI Refactoring
+
 **Goal**: Main code and test suite have no significant duplication — shared helpers extracted, repeated patterns eliminated.
 **Depends on**: Phase 17 (all v1.2 features complete so refactoring scope is final)
 **Requirements**: REF-05
 **Success Criteria** (what must be TRUE):
+
   1. A `HistoryFilter` data class (or equivalent) consolidates the repeated `search`, `zone`, `effect`, `source` parameter groups that currently appear in multiple route handlers and repository calls
   2. Test files share a common base helper or companion object for repeated setup patterns (e.g. `testApplication` bootstrapping, standard fixture builders) with no copy-paste duplication longer than 5 lines across test classes
   3. JaCoCo line coverage gate remains at 70% or above after all deduplication changes
   4. The build compiles with zero warnings introduced by the refactoring pass
+
 **Plans**: TBD (estimated 2 plans)
 
 ### Phase 20: Cleanup + Docs
+
 **Goal**: The repository is clean — `.planning/` is compressed to decisions only, `docs/` is deleted, and README reflects the v1.2 system.
 **Depends on**: Phase 19 (all features and refactoring complete before documentation is written)
 **Requirements**: CLEAN-01, DOCS-01
 **Success Criteria** (what must be TRUE):
+
   1. The `docs/` directory no longer exists in the repository (deleted and committed)
   2. `.planning/STATE.md` and `.planning/MILESTONES.md` contain only decisions, summaries, and conventions — no informational noise or raw log data from intermediate planning sessions
   3. `README.md` lists all v1.2 endpoints (including `/api/v1/live`, `/api/v1/history/export`, `/ws/zone/{id}`), includes a firmware flash quick-start section for Pico and ESP32, and has a Kubernetes/Helm deployment section
   4. `README.md` accurately reflects the current project state with no references to features that were deferred or removed
+
 **Plans**: TBD (estimated 2 plans)
 
 ---
