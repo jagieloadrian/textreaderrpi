@@ -3,6 +3,7 @@ package com.anjo.service
 import com.anjo.config.model.RetryConfig
 import com.anjo.db.HistoryRepository
 import com.anjo.model.ConflictPolicy
+import com.anjo.model.HistoryFilter
 import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
 import com.anjo.module
@@ -31,7 +32,7 @@ class HistoryRecordingTest : FunSpec({
             val historyRepo = deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
             screenService.displayImmediate("rec-test", Effect.SCROLL, ConflictPolicy.INTERRUPT)
             screenService.awaitCurrentJob()
-            val (items, total) = historyRepo.findPaginated(1, 50)
+            val (items, total) = historyRepo.findPaginated(HistoryFilter(null, null, null, null), 1, 50)
             (total >= 1L) shouldBe true
             val record = items.find { it.text == "rec-test" }
             record shouldNotBe null
@@ -49,7 +50,7 @@ class HistoryRecordingTest : FunSpec({
             val screenService = deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>())
             val historyRepo = deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
             screenService.displayScheduled("sched-test", "sched-id-1", Effect.SCROLL, ConflictPolicy.INTERRUPT, "sent")
-            val (items, _) = historyRepo.findPaginated(1, 50)
+            val (items, _) = historyRepo.findPaginated(HistoryFilter(null, null, null, null), 1, 50)
             val record = items.find { it.scheduleId == "sched-id-1" }
             record shouldNotBe null
             record?.source shouldBe "SCHEDULED"
@@ -65,11 +66,11 @@ class HistoryRecordingTest : FunSpec({
             val deps = application.dependencies
             val screenService = deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>())
             val historyRepo = deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
-            val (_, beforeTotal) = historyRepo.findPaginated(1, 50)
+            val (_, beforeTotal) = historyRepo.findPaginated(HistoryFilter(null, null, null, null), 1, 50)
             val result = screenService.displayImmediate("rendered", Effect.SCROLL, ConflictPolicy.INTERRUPT)
             result.shouldBeInstanceOf<DisplayResult.Broadcast>()
             screenService.awaitCurrentJob()
-            val (_, afterTotal) = historyRepo.findPaginated(1, 50)
+            val (_, afterTotal) = historyRepo.findPaginated(HistoryFilter(null, null, null, null), 1, 50)
             (afterTotal >= beforeTotal) shouldBe true
         }
     }

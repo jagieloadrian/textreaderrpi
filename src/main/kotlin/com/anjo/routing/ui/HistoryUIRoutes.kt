@@ -1,5 +1,6 @@
 package com.anjo.routing.ui
 
+import com.anjo.model.HistoryFilter
 import com.anjo.service.HistoryService
 import com.anjo.service.ZoneRegistry
 import com.anjo.web.templates.BaseLayout
@@ -24,7 +25,8 @@ fun Route.historyUIRoutes(historyService: HistoryService, zoneRegistry: ZoneRegi
         val effectFilter = effect.takeIf { it.isNotEmpty() && it != "ALL" }
         val sourceFilter = source.takeIf { it.isNotEmpty() && it != "ALL" }
         val zoneFilter = zone.takeIf { it.isNotEmpty() && it != "ALL" }
-        val (items, total) = historyService.findPaginated(page, size, effectFilter, sourceFilter, zoneFilter)
+        val filter = HistoryFilter(effect = effectFilter, source = sourceFilter, zone = zoneFilter, search = null)
+        val (items, total) = historyService.findPaginated(filter, page, size)
         val html = BaseLayout.render(pageTitle = "History — TextReaderRpi", activePath = "/history") {
             historyPage(items, page, rawSize, total, expandAll, effect, source, zone, zoneRegistry.listAll())
         }

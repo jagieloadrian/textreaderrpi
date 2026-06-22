@@ -1,5 +1,6 @@
 package com.anjo.routing
 
+import com.anjo.model.HistoryFilter
 import com.anjo.model.HistoryPageResponse
 import com.anjo.service.HistoryService
 import io.ktor.server.response.respond
@@ -12,7 +13,8 @@ fun Route.historyRoutes(historyService: HistoryService) {
         val size = call.request.queryParameters["size"]?.toIntOrNull()?.coerceIn(1, 200) ?: 20
         val effect = call.request.queryParameters["effect"]?.uppercase()?.takeIf { it.isNotEmpty() && it != "ALL" }
         val source = call.request.queryParameters["source"]?.uppercase()?.takeIf { it.isNotEmpty() && it != "ALL" }
-        val (items, total) = historyService.findPaginated(page, size, effect, source)
+        val filter = HistoryFilter(effect = effect, source = source, zone = null, search = null)
+        val (items, total) = historyService.findPaginated(filter, page, size)
         call.respond(HistoryPageResponse(items, page, size, total))
     }
 }
