@@ -14,6 +14,7 @@ import io.ktor.server.plugins.di.DependencyKey
 import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.plugins.di.getBlocking
 import io.ktor.server.testing.testApplication
+import io.kotest.matchers.string.shouldStartWith
 
 class HistoryRoutesTest : FunSpec({
 
@@ -74,6 +75,66 @@ class HistoryRoutesTest : FunSpec({
             val body = client.get("/api/v1/history?source=IMMEDIATE").bodyAsText()
             body shouldContain "IMMEDIATE"
             body shouldNotContain "SCHEDULED"
+        }
+    }
+
+    test("GET /api/v1/history?search=hello returns only records whose text contains hello") {
+        testApplication {
+            application { module() }
+            client.get("/health")
+            val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
+            historyRepository.insert(HistoryRecord(text = "hello world", effect = "SCROLL", source = "IMMEDIATE"))
+            historyRepository.insert(HistoryRecord(text = "world only", effect = "SCROLL", source = "IMMEDIATE"))
+            val body = client.get("/api/v1/history?search=hello").bodyAsText()
+            body shouldContain "hello world"
+            body shouldNotContain "world only"
+        }
+    }
+
+    test("GET /api/v1/history search is case-insensitive") {
+        testApplication {
+            application { module() }
+            client.get("/health")
+            val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
+            historyRepository.insert(HistoryRecord(text = "hello world", effect = "SCROLL", source = "IMMEDIATE"))
+            historyRepository.insert(HistoryRecord(text = "world only", effect = "SCROLL", source = "IMMEDIATE"))
+            val body = client.get("/api/v1/history?search=HELLO").bodyAsText()
+            body shouldContain "hello world"
+            body shouldNotContain "world only"
+        }
+    }
+
+    test("GET /api/v1/history/export returns 200 with Content-Disposition attachment header") {
+        testApplication {
+            application { module() }
+            client.get("/health")
+            val response = client.get("/api/v1/history/export")
+            response.status shouldBe HttpStatusCode.OK
+            val disposition = response.headers["Content-Disposition"] ?: ""
+            disposition shouldContain "attachment"
+            disposition shouldContain "filename=\"history.csv\""
+        }
+    }
+
+    test("GET /api/v1/history/export body first line equals the CSV header row") {
+        testApplication {
+            application { module() }
+            client.get("/health")
+            val body = client.get("/api/v1/history/export").bodyAsText()
+            body shouldStartWith "id,Text,Effect,Source,Zone ID,Schedule ID,Displayed At,Webhook Status"
+        }
+    }
+
+    test("GET /api/v1/history/export with effect=SCROLL excludes BLINK rows from CSV body") {
+        testApplication {
+            application { module() }
+            client.get("/health")
+            val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
+            historyRepository.insert(HistoryRecord(text = "scroll-row", effect = "SCROLL", source = "IMMEDIATE"))
+            historyRepository.insert(HistoryRecord(text = "blink-row", effect = "BLINK", source = "IMMEDIATE"))
+            val body = client.get("/api/v1/history/export?effect=SCROLL").bodyAsText()
+            body shouldContain "scroll-row"
+            body shouldNotContain "blink-row"
         }
     }
 })
