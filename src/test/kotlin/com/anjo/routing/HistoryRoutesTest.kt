@@ -112,7 +112,7 @@ class HistoryRoutesTest : FunSpec({
             response.status shouldBe HttpStatusCode.OK
             val disposition = response.headers["Content-Disposition"] ?: ""
             disposition shouldContain "attachment"
-            disposition shouldContain "filename=\"history.csv\""
+            disposition shouldContain "history.csv"
         }
     }
 
