@@ -84,13 +84,13 @@
   3. An SSE connection open for more than 30 seconds without display activity receives a heartbeat comment frame (`: keep-alive`) so proxy servers do not close it
   4. A new SSE subscriber immediately receives the last five events (replay=5) without waiting for the next display action
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 **UI hint**: yes
 
 Plans:
 **Wave 1**
 
-- [ ] 15-01-PLAN.md — DisplayEvent model + DisplayEventBus (SharedFlow replay=5) + emit wiring in ScreenDriverService + DI + Wave-0 tests (LIVE-01)
+- [x] 15-01-PLAN.md — DisplayEvent model + DisplayEventBus (SharedFlow replay=5) + emit wiring in ScreenDriverService + DI + Wave-0 tests (LIVE-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
