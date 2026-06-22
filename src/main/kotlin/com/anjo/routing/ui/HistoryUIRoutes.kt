@@ -12,7 +12,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import java.net.URLEncoder
 
-private const val MAX_UI_SIZE = 1000L
+private const val MAX_UI_SIZE = 1000
 
 private fun String.urlEncode(): String = URLEncoder.encode(this, "UTF-8")
 
@@ -21,7 +21,7 @@ fun Route.historyUIRoutes(historyService: HistoryService, zoneRegistry: ZoneRegi
         val page = call.request.queryParameters["page"]?.toIntOrNull()?.coerceAtLeast(1) ?: 1
         val rawSize = call.request.queryParameters["size"] ?: "20"
         val sizeAll = rawSize.lowercase() == "all"
-        val size = if (sizeAll) MAX_UI_SIZE.toInt() else rawSize.toIntOrNull()?.coerceAtLeast(1) ?: 20
+        val size = if (sizeAll) MAX_UI_SIZE else rawSize.toIntOrNull()?.coerceIn(1, MAX_UI_SIZE) ?: 20
         val effect = call.request.queryParameters["effect"].orEmpty()
         val source = call.request.queryParameters["source"].orEmpty()
         val zone = call.request.queryParameters["zone"].orEmpty()
@@ -33,7 +33,8 @@ fun Route.historyUIRoutes(historyService: HistoryService, zoneRegistry: ZoneRegi
         val searchFilter = HistoryValidators.sanitizeSearchTerm(rawSearch).takeIf { it.isNotBlank() }
         val filter = HistoryFilter(effect = effectFilter, source = sourceFilter, zone = zoneFilter, search = searchFilter)
         val (items, total) = historyService.findPaginated(filter, page, size)
-        val exportHref = "/api/v1/history/export?effect=${effect.urlEncode()}&source=${source.urlEncode()}&zone=${zone.urlEncode()}&search=${rawSearch.urlEncode()}"
+        val sanitizedSearch = HistoryValidators.sanitizeSearchTerm(rawSearch)
+        val exportHref = "/api/v1/history/export?effect=${effect.urlEncode()}&source=${source.urlEncode()}&zone=${zone.urlEncode()}&search=${sanitizedSearch.urlEncode()}"
         val html = BaseLayout.render(pageTitle = "History — TextReaderRpi", activePath = "/history") {
             historyPage(items, page, rawSize, total, expandAll, effect, source, zone, zoneRegistry.listAll(), rawSearch, exportHref)
         }
