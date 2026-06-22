@@ -17,6 +17,7 @@ import kotlinx.html.id
 import kotlinx.html.input
 import kotlinx.html.label
 import kotlinx.html.li
+import kotlinx.html.mark
 import kotlinx.html.nav
 import kotlinx.html.option
 import kotlinx.html.p
@@ -37,13 +38,23 @@ fun FlowContent.historyPage(
     effect: String,
     source: String,
     zone: String,
-    zones: List<ZoneStatus>
+    zones: List<ZoneStatus>,
+    search: String = "",
+    exportHref: String = ""
 ) {
     h2 { +"Display History" }
 
     form {
         method = FormMethod.get
         action = "/history"
+        label { htmlFor = "search"; +"Search" }
+        input {
+            type = InputType.text
+            id = "search"
+            name = "search"
+            placeholder = "Search displayed text…"
+            value = search
+        }
         label { htmlFor = "effect"; +"Effect" }
         select {
             id = "effect"; name = "effect"
@@ -83,6 +94,13 @@ fun FlowContent.historyPage(
             }
         }
         button { type = ButtonType.submit; +"Apply Filters" }
+        if (exportHref.isNotEmpty()) {
+            a(href = exportHref) {
+                attributes["role"] = "button"
+                attributes["class"] = "secondary outline"
+                +"Export CSV"
+            }
+        }
         div {
             attributes["class"] = "history-expand-btns"
             button {
@@ -114,7 +132,7 @@ fun FlowContent.historyPage(
                         strong { +(item.text.take(50).let { if (item.text.length > 50) "$it…" else it }) }
                         span { attributes["class"] = "history-meta"; +"${item.effect} · $shortDate" }
                     }
-                    p { strong { +"Text:" }; +" ${item.text}" }
+                    p { strong { +"Text:" }; +" "; highlightText(item.text, search.takeIf { it.isNotBlank() })() }
                     p { strong { +"Effect:" }; +" ${item.effect}" }
                     p { strong { +"Source:" }; +" ${item.source}" }
                     if (item.source == "SCHEDULED" && item.scheduleId != null) {
@@ -143,7 +161,7 @@ fun FlowContent.historyPage(
                 ul {
                     for (p in start..end) {
                         li {
-                            a(href = "?page=$p&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}${if (expandAll) "&expand=all" else ""}&zone=${zone.urlEncode()}") {
+                            a(href = "?page=$p&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}${if (expandAll) "&expand=all" else ""}&zone=${zone.urlEncode()}&search=${search.urlEncode()}") {
                                 if (p == page.toLong()) attributes["aria-current"] = "page"
                                 +"$p"
                             }

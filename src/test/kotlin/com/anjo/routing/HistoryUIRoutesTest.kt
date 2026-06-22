@@ -59,4 +59,34 @@ class HistoryUIRoutesTest : FunSpec({
             body shouldContain "href=\"/history\""
         }
     }
+
+    test("GET /history page contains search input field") {
+        testApplication {
+            application { module() }
+            client.get("/health")
+            val body = client.get("/history").bodyAsText()
+            body shouldContain "name=\"search\""
+        }
+    }
+
+    test("GET /history page contains Export CSV link pointing to export endpoint") {
+        testApplication {
+            application { module() }
+            client.get("/health")
+            val body = client.get("/history").bodyAsText()
+            body shouldContain "Export CSV"
+            body shouldContain "/api/v1/history/export"
+        }
+    }
+
+    test("GET /history with search param highlights matching term with mark element") {
+        testApplication {
+            application { module() }
+            client.get("/health")
+            val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
+            historyRepository.insert(HistoryRecord(text = "hello world", effect = "SCROLL", source = "IMMEDIATE"))
+            val body = client.get("/history?search=hello").bodyAsText()
+            body shouldContain "<mark>hello</mark>"
+        }
+    }
 })

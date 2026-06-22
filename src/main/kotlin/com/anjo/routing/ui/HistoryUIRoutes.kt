@@ -3,14 +3,18 @@ package com.anjo.routing.ui
 import com.anjo.model.HistoryFilter
 import com.anjo.service.HistoryService
 import com.anjo.service.ZoneRegistry
+import com.anjo.validation.HistoryValidators
 import com.anjo.web.templates.BaseLayout
 import com.anjo.web.templates.historyPage
 import io.ktor.http.ContentType
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import java.net.URLEncoder
 
 private const val MAX_UI_SIZE = 1000L
+
+private fun String.urlEncode(): String = URLEncoder.encode(this, "UTF-8")
 
 fun Route.historyUIRoutes(historyService: HistoryService, zoneRegistry: ZoneRegistry) {
     get("/history") {
@@ -22,13 +26,16 @@ fun Route.historyUIRoutes(historyService: HistoryService, zoneRegistry: ZoneRegi
         val source = call.request.queryParameters["source"].orEmpty()
         val zone = call.request.queryParameters["zone"].orEmpty()
         val expandAll = call.request.queryParameters["expand"] == "all"
+        val rawSearch = call.request.queryParameters["search"].orEmpty()
         val effectFilter = effect.takeIf { it.isNotEmpty() && it != "ALL" }
         val sourceFilter = source.takeIf { it.isNotEmpty() && it != "ALL" }
         val zoneFilter = zone.takeIf { it.isNotEmpty() && it != "ALL" }
-        val filter = HistoryFilter(effect = effectFilter, source = sourceFilter, zone = zoneFilter, search = null)
+        val searchFilter = HistoryValidators.sanitizeSearchTerm(rawSearch).takeIf { it.isNotBlank() }
+        val filter = HistoryFilter(effect = effectFilter, source = sourceFilter, zone = zoneFilter, search = searchFilter)
         val (items, total) = historyService.findPaginated(filter, page, size)
+        val exportHref = "/api/v1/history/export?effect=${effect.urlEncode()}&source=${source.urlEncode()}&zone=${zone.urlEncode()}&search=${rawSearch.urlEncode()}"
         val html = BaseLayout.render(pageTitle = "History — TextReaderRpi", activePath = "/history") {
-            historyPage(items, page, rawSize, total, expandAll, effect, source, zone, zoneRegistry.listAll())
+            historyPage(items, page, rawSize, total, expandAll, effect, source, zone, zoneRegistry.listAll(), rawSearch, exportHref)
         }
         call.respondText(html, ContentType.Text.Html)
     }
