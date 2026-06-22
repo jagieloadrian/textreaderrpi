@@ -105,13 +105,13 @@ fun FlowContent.historyPage(
             attributes["class"] = "history-expand-btns"
             button {
                 type = ButtonType.button
-                attributes["data-expand-url"] = "?page=$page&expand=all&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}"
+                attributes["data-expand-url"] = "?page=$page&expand=all&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}&search=${search.urlEncode()}"
                 attributes["class"] = if (expandAll) "secondary" else "secondary outline"
                 +"Expand all"
             }
             button {
                 type = ButtonType.button
-                attributes["data-expand-url"] = "?page=$page&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}"
+                attributes["data-expand-url"] = "?page=$page&effect=${effect.urlEncode()}&source=${source.urlEncode()}&size=${rawSize.urlEncode()}&zone=${zone.urlEncode()}&search=${search.urlEncode()}"
                 attributes["class"] = if (!expandAll) "secondary" else "secondary outline"
                 +"Collapse all"
             }
