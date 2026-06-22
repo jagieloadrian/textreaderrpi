@@ -9,6 +9,7 @@ import com.anjo.routing.ui.scheduleUIRoutes
 import com.anjo.routing.ui.webRoutes
 import com.anjo.routing.ui.zonesUIRoutes
 import com.anjo.model.HardwareMetrics
+import com.anjo.service.DisplayEventBus
 import com.anjo.service.HistoryService
 import com.anjo.service.MetricsCollector
 import com.anjo.service.NetworkDiscoveryService
@@ -40,6 +41,7 @@ fun Application.configureRouting() {
     val networkDiscoveryService: NetworkDiscoveryService by dependencies
     val zoneRepository: ZoneRepository by dependencies
     val hardwareMetrics: HardwareMetrics by dependencies
+    val displayEventBus: DisplayEventBus by dependencies
 
     routing {
         staticResources("/static", "static")
@@ -57,6 +59,10 @@ fun Application.configureRouting() {
             scheduleRoutes(scheduleRepository, schedulerService)
             historyRoutes(historyService)
             zoneRoutes(zoneRegistry, networkDiscoveryService, zoneRepository)
+        }
+
+        route("/api/v1") {
+            liveRoutes(displayEventBus)
         }
 
         swaggerUI(path = "openapi") {
