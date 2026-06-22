@@ -5,6 +5,7 @@ import com.anjo.db.HistoryRepository
 import com.anjo.driver.DisplayStatus
 import com.anjo.model.BroadcastResult
 import com.anjo.model.ConflictPolicy
+import com.anjo.model.DisplayEvent
 import com.anjo.model.Effect
 import com.anjo.model.HardwareMetrics
 import com.anjo.model.HistoryRecord
@@ -40,6 +41,7 @@ class ScreenDriverService(
     private val metrics: ScreenDriverMetrics,
     private val hardwareMetrics: HardwareMetrics = HardwareMetrics.DISABLED,
     private val historyRepository: HistoryRepository? = null,
+    private val displayEventBus: DisplayEventBus? = null,
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
 
@@ -182,7 +184,10 @@ class ScreenDriverService(
         zoneId: String? = null,
     ) {
         try {
-            historyRepository?.insert(HistoryRecord(text = text, effect = effect, source = source, scheduleId = scheduleId, webhookStatus = webhookStatus, zoneId = zoneId))
+            val record = historyRepository?.insert(HistoryRecord(text = text, effect = effect, source = source, scheduleId = scheduleId, webhookStatus = webhookStatus, zoneId = zoneId))
+            if (record != null) {
+                displayEventBus?.emit(DisplayEvent(id = record.id, text = record.text, effect = record.effect, zoneId = record.zoneId, displayedAt = record.displayedAt))
+            }
         } catch (e: Exception) {
             log.warn("History insert failed (non-fatal): ${e.message}", e)
         }
