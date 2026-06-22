@@ -84,8 +84,18 @@
   3. An SSE connection open for more than 30 seconds without display activity receives a heartbeat comment frame (`: keep-alive`) so proxy servers do not close it
   4. A new SSE subscriber immediately receives the last five events (replay=5) without waiting for the next display action
 
-**Plans**: TBD (estimated 3 plans)
+**Plans**: 3 plans
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+
+- [ ] 15-01-PLAN.md — DisplayEvent model + DisplayEventBus (SharedFlow replay=5) + emit wiring in ScreenDriverService + DI + Wave-0 tests (LIVE-01)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 15-02-PLAN.md — SSE route `GET /api/v1/live` (collect + 30s heartbeat) + install(SSE) + routing outside rate-limit + route tests (LIVE-01, LIVE-03)
+- [ ] 15-03-PLAN.md — Status page Live Feed article + live-feed.js EventSource widget (textContent, no innerHTML) + WebRoutesTest (LIVE-02)
 
 ### Phase 16: Zone Management
 

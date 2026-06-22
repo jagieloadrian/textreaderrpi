@@ -70,9 +70,9 @@
 | HIST-04 | Phase 14 | Planned | 14-01, 14-02, 14-03 |
 | HIST-05 | Phase 14 | Planned | 14-01, 14-02 |
 | HIST-06 | Phase 14 | Planned | 14-03 |
-| LIVE-01 | Phase 15 | Pending | — |
-| LIVE-02 | Phase 15 | Pending | — |
-| LIVE-03 | Phase 15 | Pending | — |
+| LIVE-01 | Phase 15 | Planned | 15-01, 15-02 |
+| LIVE-02 | Phase 15 | Planned | 15-03 |
+| LIVE-03 | Phase 15 | Planned | 15-02 |
 | ZONE-09 | Phase 16 | Pending | — |
 | ZONE-10 | Phase 16 | Pending | — |
 | FW-01 | Phase 17 | Pending | — |
