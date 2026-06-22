@@ -8,9 +8,9 @@
 
 ## History Enhancements
 
-- [ ] **HIST-04**: User can search display history by text content (`?search=` param, case-insensitive LIKE)
-- [ ] **HIST-05**: User can export display history to CSV file (`GET /api/v1/history/export`, RFC 4180, Content-Disposition attachment)
-- [ ] **HIST-06**: Search results highlight matched term with `<mark>` in the history HTML page
+- [x] **HIST-04**: User can search display history by text content (`?search=` param, case-insensitive LIKE)
+- [x] **HIST-05**: User can export display history to CSV file (`GET /api/v1/history/export`, RFC 4180, Content-Disposition attachment)
+- [x] **HIST-06**: Search results highlight matched term with `<mark>` in the history HTML page
 
 ## Live Feed
 
