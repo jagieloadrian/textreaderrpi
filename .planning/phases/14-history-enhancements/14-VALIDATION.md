@@ -1,10 +1,11 @@
 ---
 phase: 14
 slug: history-enhancements
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-22
+audited: 2026-06-22
 ---
 
 # Phase 14 — Validation Strategy
@@ -38,19 +39,19 @@ created: 2026-06-22
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| sanitize-01 | dependency+model | 1 | HIST-04 | T-14-01 | Strips `%` and `_` before LIKE query | unit | `./gradlew test --tests "com.anjo.validation.HistoryValidatorsTest"` | ❌ W0 | ⬜ pending |
-| sanitize-02 | dependency+model | 1 | HIST-04 | T-14-01 | Blank-after-sanitize treated as null | unit | `./gradlew test --tests "com.anjo.validation.HistoryValidatorsTest"` | ❌ W0 | ⬜ pending |
-| highlight-01 | html-utils | 1 | HIST-06 | — | `<mark>` wraps all occurrences | unit | `./gradlew test --tests "com.anjo.web.templates.HtmlUtilsTest"` | ❌ W0 | ⬜ pending |
-| highlight-02 | html-utils | 1 | HIST-06 | — | No `<mark>` when term is null | unit | `./gradlew test --tests "com.anjo.web.templates.HtmlUtilsTest"` | ❌ W0 | ⬜ pending |
-| repo-01 | repository | 1 | HIST-04 | — | Case-insensitive LIKE search returns matching records | unit | `./gradlew test --tests "com.anjo.db.HistoryRepositoryTest"` | ✅ | ⬜ pending |
-| repo-02 | repository | 1 | HIST-05 | — | `findAll(filter)` returns all matching rows without pagination | unit | `./gradlew test --tests "com.anjo.db.HistoryRepositoryTest"` | ✅ | ⬜ pending |
-| service-01 | service | 1 | HIST-05 | — | `exportCsv()` produces RFC 4180 CSV with correct header row | unit | `./gradlew test --tests "com.anjo.service.HistoryServiceTest"` | ✅ | ⬜ pending |
-| service-02 | service | 1 | HIST-05 | — | CSV escapes fields containing commas | unit | `./gradlew test --tests "com.anjo.service.HistoryServiceTest"` | ✅ | ⬜ pending |
-| api-01 | routes | 2 | HIST-04 | T-14-01 | `GET /api/v1/history?search=foo` returns only matching entries | integration | `./gradlew test --tests "com.anjo.routing.HistoryRoutesTest"` | ✅ | ⬜ pending |
-| api-02 | routes | 2 | HIST-05 | — | `GET /api/v1/history/export` returns CSV with Content-Disposition header | integration | `./gradlew test --tests "com.anjo.routing.HistoryRoutesTest"` | ✅ | ⬜ pending |
-| api-03 | routes | 2 | HIST-05 | — | Export CSV respects filter params | integration | `./gradlew test --tests "com.anjo.routing.HistoryRoutesTest"` | ✅ | ⬜ pending |
-| ui-01 | ui-routes | 2 | HIST-04 | — | `GET /history?search=foo` HTML is filtered and search term preserved | integration | `./gradlew test --tests "com.anjo.routing.HistoryUIRoutesTest"` | ✅ | ⬜ pending |
-| ui-02 | ui-routes | 2 | HIST-06 | — | HTML page contains `<mark>` tags when `?search=` is set | integration | `./gradlew test --tests "com.anjo.routing.HistoryUIRoutesTest"` | ✅ | ⬜ pending |
+| sanitize-01 | dependency+model | 1 | HIST-04 | T-14-01 | Strips `%` and `_` before LIKE query | unit | `./gradlew test --tests "com.anjo.validation.HistoryValidatorsTest"` | ✅ | ✅ green |
+| sanitize-02 | dependency+model | 1 | HIST-04 | T-14-01 | Blank-after-sanitize treated as null | unit | `./gradlew test --tests "com.anjo.validation.HistoryValidatorsTest"` | ✅ | ✅ green |
+| highlight-01 | html-utils | 1 | HIST-06 | — | `<mark>` wraps all occurrences | unit | `./gradlew test --tests "com.anjo.web.templates.HtmlUtilsTest"` | ✅ | ✅ green |
+| highlight-02 | html-utils | 1 | HIST-06 | — | No `<mark>` when term is null | unit | `./gradlew test --tests "com.anjo.web.templates.HtmlUtilsTest"` | ✅ | ✅ green |
+| repo-01 | repository | 1 | HIST-04 | — | Case-insensitive LIKE search returns matching records | unit | `./gradlew test --tests "com.anjo.db.HistoryRepositoryTest"` | ✅ | ✅ green |
+| repo-02 | repository | 1 | HIST-05 | — | `findAll(filter)` returns all matching rows without pagination | unit | `./gradlew test --tests "com.anjo.db.HistoryRepositoryTest"` | ✅ | ✅ green |
+| service-01 | service | 1 | HIST-05 | — | `exportCsv()` produces RFC 4180 CSV with correct header row | unit | `./gradlew test --tests "com.anjo.service.HistoryServiceTest"` | ✅ | ✅ green |
+| service-02 | service | 1 | HIST-05 | — | CSV escapes fields containing commas | unit | `./gradlew test --tests "com.anjo.service.HistoryServiceTest"` | ✅ | ✅ green |
+| api-01 | routes | 2 | HIST-04 | T-14-01 | `GET /api/v1/history?search=foo` returns only matching entries | integration | `./gradlew test --tests "com.anjo.routing.HistoryRoutesTest"` | ✅ | ✅ green |
+| api-02 | routes | 2 | HIST-05 | — | `GET /api/v1/history/export` returns CSV with Content-Disposition header | integration | `./gradlew test --tests "com.anjo.routing.HistoryRoutesTest"` | ✅ | ✅ green |
+| api-03 | routes | 2 | HIST-05 | — | Export CSV respects filter params | integration | `./gradlew test --tests "com.anjo.routing.HistoryRoutesTest"` | ✅ | ✅ green |
+| ui-01 | ui-routes | 2 | HIST-04 | — | `GET /history?search=foo` HTML is filtered and search term preserved | integration | `./gradlew test --tests "com.anjo.routing.HistoryUIRoutesTest"` | ✅ | ✅ green |
+| ui-02 | ui-routes | 2 | HIST-06 | — | HTML page contains `<mark>` tags when `?search=` is set | integration | `./gradlew test --tests "com.anjo.routing.HistoryUIRoutesTest"` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -83,4 +84,11 @@ created: 2026-06-22
 - [ ] Feedback latency < 30s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ✅ 2026-06-22 — all 13 tasks green, Wave 0 files created during execution
+
+## Validation Audit 2026-06-22
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 13 |
+| Escalated | 0 |
