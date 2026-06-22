@@ -11,13 +11,15 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class HistoryRepository {
 
     suspend fun insert(record: HistoryRecord): HistoryRecord {
         val newId = UUID.randomUUID().toString()
-        val now = Instant.now().toString()
+        val now = FORMATTER.format(Instant.now())
         suspendTransaction {
             val count = HistoryTable.selectAll().count()
             if (count >= MAX_ROWS) {
@@ -98,5 +100,8 @@ class HistoryRepository {
 
     companion object {
         private const val MAX_ROWS = 1000L
+        private val FORMATTER = DateTimeFormatter
+            .ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSSSSS'Z'")
+            .withZone(ZoneOffset.UTC)
     }
 }
