@@ -36,6 +36,6 @@ fun Route.historyRoutes(historyService: HistoryService) {
             HttpHeaders.ContentDisposition,
             ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, "history.csv").toString()
         )
-        call.respondText(csv, ContentType("text", "csv"))
+        call.respondText(csv, ContentType.Text.CSV)
     }
 }

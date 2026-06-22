@@ -4,32 +4,33 @@ import com.anjo.model.HistoryFilter
 import com.anjo.model.HistoryRecord
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.*
-import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class HistoryRepository {
 
     suspend fun insert(record: HistoryRecord): HistoryRecord {
         val newId = UUID.randomUUID().toString()
-        val now = FORMATTER.format(Instant.now())
+        val now = Instant.now().toString()
         suspendTransaction {
             val count = HistoryTable.selectAll().count()
             if (count >= MAX_ROWS) {
-                val oldest = HistoryTable.selectAll()
+                HistoryTable.selectAll()
                     .orderBy(HistoryTable.displayedAt to SortOrder.ASC)
                     .limit(1)
-                    .singleOrNull()?.get(HistoryTable.id)
-                if (oldest != null) {
-                    HistoryTable.deleteWhere { HistoryTable.id eq oldest }
-                }
+                    .singleOrNull()
+                    ?.get(HistoryTable.id)
+                    ?.let { oldest ->
+                        HistoryTable.deleteWhere { HistoryTable.id eq oldest }
+                    }
             }
             HistoryTable.insert {
                 it[id] = newId
@@ -100,8 +101,5 @@ class HistoryRepository {
 
     companion object {
         private const val MAX_ROWS = 1000L
-        private val FORMATTER = DateTimeFormatter
-            .ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSSSSS'Z'")
-            .withZone(ZoneOffset.UTC)
     }
 }
