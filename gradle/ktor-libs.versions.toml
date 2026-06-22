@@ -18,6 +18,8 @@ flyway = "9.22.3"
 
 jmdns = "3.6.3"
 
+kotlin-csv = "1.10.0"
+
 # Utilities
 cron-utils = "9.2.1"
 khealth = "3.0.2"
@@ -84,6 +86,8 @@ ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 
 # Network discovery
 jmdns = { module = "org.jmdns:jmdns", version.ref = "jmdns" }
+
+kotlin-csv-jvm = { module = "com.jsoizo:kotlin-csv-jvm", version.ref = "kotlin-csv" }
 
 # Monitoring
 khealth = { module = "dev.hayden:khealth", version.ref = "khealth" }
