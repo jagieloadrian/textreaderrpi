@@ -1,5 +1,6 @@
 package com.anjo.db
 
+import com.anjo.model.HistoryFilter
 import com.anjo.model.HistoryRecord
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -48,7 +49,7 @@ class HistoryRepositoryTest : FunSpec({
             inserted.zoneId shouldBe "zone-a"
             inserted.webhookStatus shouldBe "sent"
 
-            val (items, total) = repository.findPaginated(1, 20)
+            val (items, total) = repository.findPaginated(HistoryFilter(null, null, null, null), 1, 20)
             total shouldBe 1L
             items[0].id shouldBe inserted.id
             items[0].scheduleId shouldBe "sched-123"
@@ -58,7 +59,7 @@ class HistoryRepositoryTest : FunSpec({
             val noStatusRecord = makeRecord()
             val insertedNoStatus = repository.insert(noStatusRecord)
             insertedNoStatus.webhookStatus shouldBe null
-            val (items2, _) = repository.findPaginated(1, 20)
+            val (items2, _) = repository.findPaginated(HistoryFilter(null, null, null, null), 1, 20)
             items2.find { it.id == insertedNoStatus.id }?.webhookStatus shouldBe null
         }
     }
@@ -68,11 +69,11 @@ class HistoryRepositoryTest : FunSpec({
             repeat(1000) { i ->
                 repository.insert(makeRecord(text = "row-$i"))
             }
-            val (_, totalBefore) = repository.findPaginated(1, 1)
+            val (_, totalBefore) = repository.findPaginated(HistoryFilter(null, null, null, null), 1, 1)
             totalBefore shouldBe 1000L
 
             repository.insert(makeRecord(text = "row-1001"))
-            val (_, totalAfter) = repository.findPaginated(1, 1)
+            val (_, totalAfter) = repository.findPaginated(HistoryFilter(null, null, null, null), 1, 1)
             totalAfter shouldBe 1000L
         }
     }
@@ -81,8 +82,8 @@ class HistoryRepositoryTest : FunSpec({
         runTest {
             repeat(5) { i -> repository.insert(makeRecord(text = "page-item-$i")) }
 
-            val (page1, _) = repository.findPaginated(1, 3)
-            val (page2, _) = repository.findPaginated(2, 3)
+            val (page1, _) = repository.findPaginated(HistoryFilter(null, null, null, null), 1, 3)
+            val (page2, _) = repository.findPaginated(HistoryFilter(null, null, null, null), 2, 3)
 
             page1.size shouldBe 3
             page2.size shouldBe 2
@@ -96,7 +97,7 @@ class HistoryRepositoryTest : FunSpec({
             repository.insert(makeRecord(text = "blink-1", effect = "BLINK"))
             repository.insert(makeRecord(text = "scroll-2", effect = "SCROLL"))
 
-            val (items, total) = repository.findPaginated(1, 20, effect = "SCROLL")
+            val (items, total) = repository.findPaginated(HistoryFilter(effect = "SCROLL", source = null, zone = null, search = null), 1, 20)
             total shouldBe 2L
             items.all { it.effect == "SCROLL" } shouldBe true
         }
@@ -108,7 +109,7 @@ class HistoryRepositoryTest : FunSpec({
             repository.insert(makeRecord(text = "sched-1", source = "SCHEDULED"))
             repository.insert(makeRecord(text = "imm-2", source = "IMMEDIATE"))
 
-            val (items, total) = repository.findPaginated(1, 20, source = "IMMEDIATE")
+            val (items, total) = repository.findPaginated(HistoryFilter(effect = null, source = "IMMEDIATE", zone = null, search = null), 1, 20)
             total shouldBe 2L
             items.all { it.source == "IMMEDIATE" } shouldBe true
         }
@@ -120,7 +121,7 @@ class HistoryRepositoryTest : FunSpec({
             repository.insert(HistoryRecord(text = "zone-a-2", effect = "SCROLL", source = "IMMEDIATE", zoneId = "zone-a"))
             repository.insert(HistoryRecord(text = "zone-b-1", effect = "BLINK", source = "IMMEDIATE", zoneId = "zone-b"))
 
-            val (items, total) = repository.findPaginated(1, 20, zone = "zone-a")
+            val (items, total) = repository.findPaginated(HistoryFilter(effect = null, source = null, zone = "zone-a", search = null), 1, 20)
             total shouldBe 2L
             items.all { it.zoneId == "zone-a" } shouldBe true
         }
@@ -132,10 +133,32 @@ class HistoryRepositoryTest : FunSpec({
             repository.insert(HistoryRecord(text = "a-blink", effect = "BLINK", source = "IMMEDIATE", zoneId = "zone-a"))
             repository.insert(HistoryRecord(text = "b-scroll", effect = "SCROLL", source = "IMMEDIATE", zoneId = "zone-b"))
 
-            val (items, total) = repository.findPaginated(1, 20, effect = "SCROLL", zone = "zone-a")
+            val (items, total) = repository.findPaginated(HistoryFilter(effect = "SCROLL", source = null, zone = "zone-a", search = null), 1, 20)
             total shouldBe 1L
             items[0].zoneId shouldBe "zone-a"
             items[0].effect shouldBe "SCROLL"
+        }
+    }
+
+    test("search filter is case-insensitive and matches Hello row with hello term") {
+        runTest {
+            repository.insert(makeRecord(text = "Hello"))
+            repository.insert(makeRecord(text = "World"))
+
+            val (items, total) = repository.findPaginated(HistoryFilter(effect = null, source = null, zone = null, search = "hello"), 1, 20)
+            total shouldBe 1L
+            items[0].text shouldBe "Hello"
+        }
+    }
+
+    test("search filter null returns all rows with no filtering") {
+        runTest {
+            repository.insert(makeRecord(text = "Hello"))
+            repository.insert(makeRecord(text = "World"))
+
+            val (items, total) = repository.findPaginated(HistoryFilter(effect = null, source = null, zone = null, search = null), 1, 20)
+            total shouldBe 2L
+            items.size shouldBe 2
         }
     }
 })
