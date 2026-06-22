@@ -32,6 +32,7 @@ dependencies {
     implementation(ktorLibs.ktor.server.di)
     implementation(ktorLibs.ktor.server.host.common)
     implementation(ktorLibs.ktor.server.netty)
+    implementation(ktorLibs.ktor.server.sse)
 
     // Kotlin
     implementation(ktorLibs.kotlinx.coroutines.core)

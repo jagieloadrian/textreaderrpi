@@ -6,6 +6,7 @@ import com.anjo.db.HistoryRepository
 import com.anjo.db.ScheduleRepository
 import com.anjo.db.ZoneRepository
 import com.anjo.model.HardwareMetrics
+import com.anjo.service.DisplayEventBus
 import com.anjo.service.EffectRendererFactory
 import com.anjo.service.HistoryService
 import com.anjo.service.MetricsCollector
@@ -43,6 +44,7 @@ fun Application.configureDI() {
         }
     }
     val zoneRegistry = ZoneRegistry(appConfig.zones, pi4jContext, zoneRepository, wsClient)
+    val displayEventBus = DisplayEventBus()
 
     val screenDriverService = ScreenDriverService(
         zoneRegistry = zoneRegistry,
@@ -51,6 +53,7 @@ fun Application.configureDI() {
         metrics = screenDriverMetrics,
         hardwareMetrics = hardwareMetrics,
         historyRepository = historyRepository,
+        displayEventBus = displayEventBus,
     )
 
     val metricsCollector = MetricsCollector(metricRegistry, hardwareMetrics)
@@ -92,5 +95,6 @@ fun Application.configureDI() {
         provide { effectRendererFactory }
         provide { webhookService }
         provide { schedulerService }
+        provide { displayEventBus }
     }
 }
