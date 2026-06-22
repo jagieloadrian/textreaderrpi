@@ -6,15 +6,13 @@ import com.anjo.service.ZoneRegistry
 import com.anjo.validation.HistoryValidators
 import com.anjo.web.templates.BaseLayout
 import com.anjo.web.templates.historyPage
+import com.anjo.web.templates.urlEncode
 import io.ktor.http.ContentType
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import java.net.URLEncoder
 
 private const val MAX_UI_SIZE = 1000
-
-private fun String.urlEncode(): String = URLEncoder.encode(this, "UTF-8")
 
 fun Route.historyUIRoutes(historyService: HistoryService, zoneRegistry: ZoneRegistry) {
     get("/history") {

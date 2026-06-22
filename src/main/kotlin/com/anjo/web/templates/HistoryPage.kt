@@ -2,7 +2,6 @@ package com.anjo.web.templates
 
 import com.anjo.model.HistoryRecord
 import com.anjo.model.ZoneStatus
-import java.net.URLEncoder
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
@@ -26,8 +25,6 @@ import kotlinx.html.span
 import kotlinx.html.strong
 import kotlinx.html.summary
 import kotlinx.html.ul
-
-private fun String.urlEncode(): String = URLEncoder.encode(this, "UTF-8")
 
 fun FlowContent.historyPage(
     items: List<HistoryRecord>,
