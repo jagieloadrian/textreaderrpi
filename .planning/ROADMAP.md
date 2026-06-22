@@ -43,7 +43,7 @@
 ### 📋 v1.2 Firmware + Features + Refactor + Ops (Planned)
 
 - [x] **Phase 14: History Enhancements** - Full-text search and CSV export for display history (completed 2026-06-22)
-- [ ] **Phase 15: SSE Live Feed** - Real-time display events streamed to the browser status page
+- [x] **Phase 15: SSE Live Feed** - Real-time display events streamed to the browser status page (completed 2026-06-22)
 - [ ] **Phase 16: Zone Management** - Zone creation form + inbound firmware WebSocket endpoint
 - [ ] **Phase 17: Firmware Skeletons** - RPi Pico (C/pico-sdk) and ESP32 (C++/Arduino) firmware
 - [ ] **Phase 18: Kubernetes + Helm** - Helm chart in `.devops/helm/textreaderrpi/` for K8s deployment
@@ -84,7 +84,7 @@
   3. An SSE connection open for more than 30 seconds without display activity receives a heartbeat comment frame (`: keep-alive`) so proxy servers do not close it
   4. A new SSE subscriber immediately receives the last five events (replay=5) without waiting for the next display action
 
-**Plans**: 1/3 plans executed
+**Plans**: 3/3 plans complete
 **UI hint**: yes
 
 Plans:
@@ -94,8 +94,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 15-02-PLAN.md — SSE route `GET /api/v1/live` (collect + 30s heartbeat) + install(SSE) + routing outside rate-limit + route tests (LIVE-01, LIVE-03)
-- [ ] 15-03-PLAN.md — Status page Live Feed article + live-feed.js EventSource widget (textContent, no innerHTML) + WebRoutesTest (LIVE-02)
+- [x] 15-02-PLAN.md — SSE route `GET /api/v1/live` (collect + 30s heartbeat) + install(SSE) + routing outside rate-limit + route tests (LIVE-01, LIVE-03)
+- [x] 15-03-PLAN.md — Status page Live Feed article + live-feed.js EventSource widget (textContent, no innerHTML) + WebRoutesTest (LIVE-02)
 
 ### Phase 16: Zone Management
 
