@@ -42,7 +42,7 @@
 
 ### 📋 v1.2 Firmware + Features + Refactor + Ops (Planned)
 
-- [ ] **Phase 14: History Enhancements** - Full-text search and CSV export for display history
+- [x] **Phase 14: History Enhancements** - Full-text search and CSV export for display history (completed 2026-06-22)
 - [ ] **Phase 15: SSE Live Feed** - Real-time display events streamed to the browser status page
 - [ ] **Phase 16: Zone Management** - Zone creation form + inbound firmware WebSocket endpoint
 - [ ] **Phase 17: Firmware Skeletons** - RPi Pico (C/pico-sdk) and ESP32 (C++/Arduino) firmware
@@ -66,11 +66,11 @@
   3. User clicks "Export CSV" on the history page and the browser downloads a `.csv` file containing all currently-filtered history rows in RFC 4180 format with a `Content-Disposition: attachment` header
   4. Search terms containing SQL wildcard characters (`%`, `_`) are stripped before the LIKE query executes (no injection)
 
-**Plans**: 1/3 plans executed
+**Plans**: 3/3 plans complete
 
 - [x] 14-01-PLAN.md — HistoryFilter, HistoryValidators sanitizer, kotlin-csv dep, repository search/findAll, service exportCsv
-- [ ] 14-02-PLAN.md — API: search param + GET /api/v1/history/export CSV download endpoint
-- [ ] 14-03-PLAN.md — UI: highlightText `<mark>` helper, search input, Export CSV link, sticky search
+- [x] 14-02-PLAN.md — API: search param + GET /api/v1/history/export CSV download endpoint
+- [x] 14-03-PLAN.md — UI: highlightText `<mark>` helper, search input, Export CSV link, sticky search
 
 ### Phase 15: SSE Live Feed
 
