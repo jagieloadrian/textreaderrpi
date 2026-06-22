@@ -68,6 +68,9 @@ dependencies {
     implementation(ktorLibs.pi4j.plugin.linuxfs)
     implementation(ktorLibs.pi4j.plugin.mock)
 
+    // CSV export
+    implementation(ktorLibs.kotlin.csv.jvm)
+
     // Database
     implementation(ktorLibs.exposed.core)
     implementation(ktorLibs.exposed.jdbc)
