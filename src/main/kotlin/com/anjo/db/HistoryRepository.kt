@@ -24,8 +24,10 @@ class HistoryRepository {
                 val oldest = HistoryTable.selectAll()
                     .orderBy(HistoryTable.displayedAt to SortOrder.ASC)
                     .limit(1)
-                    .singleOrNull()?.get(HistoryTable.id) ?: return@suspendTransaction
-                HistoryTable.deleteWhere { HistoryTable.id eq oldest }
+                    .singleOrNull()?.get(HistoryTable.id)
+                if (oldest != null) {
+                    HistoryTable.deleteWhere { HistoryTable.id eq oldest }
+                }
             }
             HistoryTable.insert {
                 it[id] = newId
