@@ -67,9 +67,9 @@
 
 | REQ-ID | Phase | Status | Plan |
 |--------|-------|--------|------|
-| HIST-04 | Phase 14 | Pending | — |
-| HIST-05 | Phase 14 | Pending | — |
-| HIST-06 | Phase 14 | Pending | — |
+| HIST-04 | Phase 14 | Planned | 14-01, 14-02, 14-03 |
+| HIST-05 | Phase 14 | Planned | 14-01, 14-02 |
+| HIST-06 | Phase 14 | Planned | 14-03 |
 | LIVE-01 | Phase 15 | Pending | — |
 | LIVE-02 | Phase 15 | Pending | — |
 | LIVE-03 | Phase 15 | Pending | — |
