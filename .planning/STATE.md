@@ -5,8 +5,8 @@ milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 15
 current_phase_name: SSE Live Feed
 status: planning
-stopped_at: context exhaustion at 75% (2026-06-22)
-last_updated: "2026-06-22T12:29:38.398Z"
+stopped_at: Phase 15 context gathered
+last_updated: "2026-06-22T13:05:03.761Z"
 last_activity: 2026-06-22
 last_activity_desc: Phase 14 complete, transitioned to Phase 15
 progress:
@@ -236,6 +236,6 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 
 ## Session
 
-**Last session:** 2026-06-22T12:29:38.384Z
-**Stopped at:** context exhaustion at 75% (2026-06-22)
-**Resume file:** .planning/phases/14-history-enhancements/14-01-PLAN.md
+**Last session:** 2026-06-22T13:05:03.752Z
+**Stopped at:** Phase 15 context gathered
+**Resume file:** .planning/phases/15-sse-live-feed/15-CONTEXT.md
