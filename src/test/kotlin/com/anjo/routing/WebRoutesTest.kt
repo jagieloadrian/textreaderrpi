@@ -70,4 +70,19 @@ class WebRoutesTest : FunSpec({
             response.status shouldBe HttpStatusCode.NotFound
         }
     }
+
+    test("GET /status renders Live Feed widget and loads live-feed.js") {
+        testApplication {
+            application { module() }
+            val response = client.get("/status") { header(HttpHeaders.Accept, ContentType.Text.Html.toString()) }
+            response.status shouldBe HttpStatusCode.OK
+            val body = response.bodyAsText()
+            body shouldContain "Live Feed"
+            body shouldContain "id=\"live-text\""
+            body shouldContain "id=\"live-meta\""
+            body shouldContain "/static/live-feed.js"
+            val indexResponse = client.get("/") { header(HttpHeaders.Accept, ContentType.Text.Html.toString()) }
+            indexResponse.bodyAsText().contains("/static/live-feed.js") shouldBe false
+        }
+    }
 })
