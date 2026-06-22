@@ -5,14 +5,24 @@ import kotlinx.html.article
 import kotlinx.html.h2
 import kotlinx.html.id
 import kotlinx.html.p
+import kotlinx.html.script
 import kotlinx.html.span
 
 object StatusPage {
-    fun render(): String = BaseLayout.render(pageTitle = "Display Status", activePath = "/status") {
+    fun render(): String = BaseLayout.render(
+        pageTitle = "Display Status",
+        activePath = "/status",
+        headExtra = { script(src = "/static/live-feed.js") {} }
+    ) {
         pageContent()
     }
 
     private fun FlowContent.pageContent() {
+        article {
+            h2 { +"Live Feed" }
+            p { +"Current Text: "; span { id = "live-text"; +"—" } }
+            p { span { id = "live-meta"; +"" } }
+        }
         article {
             h2 { +"System" }
             p { +"Uptime: "; span { id = "status-uptime"; +"Loading..." } }
