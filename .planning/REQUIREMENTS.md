@@ -65,14 +65,19 @@
 
 ## Traceability
 
-| REQ-ID | Phase | Plan |
-|--------|-------|------|
-| HIST-04, HIST-05, HIST-06 | Phase 14 | — |
-| LIVE-01, LIVE-02, LIVE-03 | Phase 15 | — |
-| ZONE-09, ZONE-10 | Phase 16 | — |
-| FW-01, FW-02 | Phase 17 | — |
-| OPS-01 | Phase 18 | — |
-| REF-05 | Phase 19 | — |
-| CLEAN-01, DOCS-01 | Phase 20 | — |
-
-*Filled by roadmapper.*
+| REQ-ID | Phase | Status | Plan |
+|--------|-------|--------|------|
+| HIST-04 | Phase 14 | Pending | — |
+| HIST-05 | Phase 14 | Pending | — |
+| HIST-06 | Phase 14 | Pending | — |
+| LIVE-01 | Phase 15 | Pending | — |
+| LIVE-02 | Phase 15 | Pending | — |
+| LIVE-03 | Phase 15 | Pending | — |
+| ZONE-09 | Phase 16 | Pending | — |
+| ZONE-10 | Phase 16 | Pending | — |
+| FW-01 | Phase 17 | Pending | — |
+| FW-02 | Phase 17 | Pending | — |
+| OPS-01 | Phase 18 | Pending | — |
+| REF-05 | Phase 19 | Pending | — |
+| CLEAN-01 | Phase 20 | Pending | — |
+| DOCS-01 | Phase 20 | Pending | — |
