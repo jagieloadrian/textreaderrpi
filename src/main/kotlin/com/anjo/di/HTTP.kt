@@ -7,6 +7,7 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.sse.SSE
+import io.ktor.server.websocket.WebSockets
 
 fun Application.configureHTTP() {
     install(CORS) {
@@ -21,4 +22,5 @@ fun Application.configureHTTP() {
         header("X-Engine", "Ktor")
     }
     install(SSE)
+    install(WebSockets)
 }

@@ -65,6 +65,10 @@ fun Application.configureRouting() {
             liveRoutes(displayEventBus)
         }
 
+        route("/ws") {
+            firmwareZoneRoutes(zoneRegistry)
+        }
+
         swaggerUI(path = "openapi") {
             info = OpenApiInfo(title = "TextReaderRpi API", version = "1.0.0")
             source = OpenApiDocSource.Routing(ContentType.Application.Json) {
