@@ -44,7 +44,7 @@ project. No component.json exists or is wanted for firmware. [Source: objective]
 | Token | Value | Usage in captive portal |
 |-------|-------|------------------------|
 | xs | 4px | Label-to-input gap, input internal horizontal padding supplement |
-| sm | 8px | Vertical margin between stacked form rows, button internal vertical padding |
+| sm | 8px | Vertical margin between stacked form rows, button internal vertical padding, input vertical padding |
 | md | 16px | Card padding (all sides), page horizontal margin on mobile |
 | lg | 24px | Top padding above heading, vertical gap between card and page edge |
 | xl | 32px | Not used — page is too compact |
@@ -66,7 +66,7 @@ produces ~44px effective height with 20px font. [Source: mobile-first constraint
 | Heading | 1.25rem (20px) | 600 (semibold) | 1.2 | Page title "TextReader Setup" |
 | Body | 1rem (16px) | 400 (regular) | 1.5 | Labels, helper text, success message body |
 | Label | 0.875rem (14px) | 400 (regular) | 1.4 | Form field labels ("WiFi Network Name", "Password") |
-| Button | 1rem (16px) | 600 (semibold) | 1 | Submit button label "Connect" |
+| Button | 1rem (16px) | 600 (semibold) | 1 | Submit button label "Connect to WiFi" |
 
 Constraint: exactly 3 distinct sizes (14px, 16px, 20px) and 2 weights (400, 600).
 [Source: template requirement — 3-4 sizes, 2 weights max]
@@ -124,11 +124,13 @@ No other elements use accent. [Source: design_constraints §6, custom.css MD3 li
 │  │  Password                 │  │
 │  │  [password input______]   │  │
 │  │                           │  │
-│  │  [    Connect    ]        │  │  ← button: bg #6750a4, text #fff, 16px/600
+│  │  [ Connect to WiFi ]      │  │  ← button: bg #6750a4, text #fff, 16px/600
 │  └───────────────────────────┘  │    full-width, min-height 44px
 │                                 │
 └─────────────────────────────────┘
 ```
+
+Primary visual anchor: the [Connect to WiFi] button — the only accent-coloured element; draws the eye after reading the heading.
 
 Success state replaces the form card entirely:
 
@@ -165,7 +167,7 @@ Success state replaces the form card entirely:
         max-width:400px;margin:24px auto}
   h1{font-size:1.25rem;font-weight:600;line-height:1.2;margin:0 0 16px}
   label{display:block;font-size:0.875rem;font-weight:400;margin-bottom:4px;color:#1c1b1f}
-  input{display:block;width:100%;box-sizing:border-box;padding:10px 12px;
+  input{display:block;width:100%;box-sizing:border-box;padding:8px 12px;
         border:1px solid #79747e;border-radius:8px;font-size:1rem;background:#fffbfe;
         color:#1c1b1f;min-height:44px}
   input:focus{outline:2px solid #6750a4;outline-offset:1px;border-color:#6750a4}
@@ -190,7 +192,7 @@ Success state replaces the form card entirely:
       <input type="password" id="pass" name="pass" required maxlength="64"
              autocomplete="current-password">
     </div>
-    <button type="submit">Connect</button>
+    <button type="submit">Connect to WiFi</button>
   </form>
 </div>
 </body>
@@ -270,7 +272,7 @@ the network name — common usability failure on mobile.
 | Heading | `TextReader Setup` |
 | SSID label | `WiFi Network Name` |
 | Password label | `Password` |
-| Primary CTA (Submit button) | `Connect` |
+| Primary CTA (Submit button) | `Connect to WiFi` |
 | Success heading | `Credentials saved.` |
 | Success body line 1 | `TextReader is rebooting…` |
 | Success body line 2 | `You can close this page.` |
