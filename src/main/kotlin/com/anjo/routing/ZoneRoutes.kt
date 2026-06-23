@@ -70,7 +70,8 @@ fun Route.zoneRoutes(
                 log.info("Firmware zone registered: name=${req.name}")
                 call.respond(HttpStatusCode.Created, zone)
             } else {
-                val ip = req.ip!!
+                val ip = req.ip
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, "ip is required for this zone type")
                 if (zoneRegistry.containsIp(ip)) {
                     return@post call.respond(HttpStatusCode.Conflict, "Zone with IP $ip is already registered")
                 }
