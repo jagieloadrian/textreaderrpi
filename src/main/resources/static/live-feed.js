@@ -11,6 +11,9 @@
   });
 
   src.onerror = () => {
-    if (src.readyState === EventSource.CLOSED) window.location.reload();
+    const textEl = document.getElementById('live-text');
+    if (textEl && src.readyState !== EventSource.OPEN) {
+      textEl.textContent = '— (reconnecting…)';
+    }
   };
 })();
