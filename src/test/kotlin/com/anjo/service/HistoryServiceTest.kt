@@ -60,7 +60,7 @@ class HistoryServiceTest : FunSpec({
 
             val csv = service.exportCsv(HistoryFilter(null, null, null, null))
             val firstLine = csv.lines().first()
-            firstLine shouldBe "id,Text,Effect,Source,Zone ID,Schedule ID,Displayed At,Webhook Status"
+            firstLine shouldBe "ID,Text,Effect,Source,Zone ID,Schedule ID,Displayed At,Webhook Status"
         }
     }
 

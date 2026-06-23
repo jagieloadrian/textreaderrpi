@@ -121,7 +121,7 @@ class HistoryRoutesTest : FunSpec({
             application { module() }
             client.get("/health")
             val body = client.get("/api/v1/history/export").bodyAsText()
-            body shouldStartWith "id,Text,Effect,Source,Zone ID,Schedule ID,Displayed At,Webhook Status"
+            body shouldStartWith "ID,Text,Effect,Source,Zone ID,Schedule ID,Displayed At,Webhook Status"
         }
     }
 

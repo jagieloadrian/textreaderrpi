@@ -14,7 +14,7 @@ import io.ktor.server.plugins.di.DependencyKey
 import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.plugins.di.getBlocking
 import io.ktor.server.testing.testApplication
-import io.ktor.utils.io.readUTF8Line
+import io.ktor.utils.io.readLine
 
 class LiveRoutesTest : FunSpec({
 
@@ -38,8 +38,8 @@ class LiveRoutesTest : FunSpec({
             client.prepareGet("/api/v1/live").execute { response ->
                 val channel = response.bodyAsChannel()
                 val lines = mutableListOf<String>()
-                repeat(4) {
-                    val line = channel.readUTF8Line() ?: return@repeat
+                repeat(3) {
+                    val line = channel.readLine() ?: return@repeat
                     lines.add(line)
                 }
                 lines.any { it == "event: display" } shouldBe true
