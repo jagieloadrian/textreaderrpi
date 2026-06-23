@@ -78,4 +78,35 @@ class ZoneRepositoryTest : FunSpec({
             repository.findById("zone-kitchen").shouldBeNull()
         }
     }
+
+    test("should persist firmware zone with null ip and displaySubtype") {
+        runTest {
+            val firmwareZone = NetworkZone(
+                id = "pico-salon",
+                name = "pico-salon",
+                ip = null,
+                type = "FIRMWARE",
+                discoveryMethod = "MANUAL",
+                createdAt = Instant.now().toString(),
+                lastSeenAt = null,
+                displaySubtype = "SSD1306"
+            )
+            repository.upsert(firmwareZone)
+            val found = repository.findById("pico-salon")
+            found.shouldNotBeNull()
+            found.ip.shouldBeNull()
+            found.displaySubtype shouldBe "SSD1306"
+        }
+    }
+
+    test("should persist network zone with non-null ip and null displaySubtype") {
+        runTest {
+            val networkZone = testZone()
+            repository.upsert(networkZone)
+            val found = repository.findById("zone-kitchen")
+            found.shouldNotBeNull()
+            found.ip shouldBe "192.168.1.50"
+            found.displaySubtype.shouldBeNull()
+        }
+    }
 })
