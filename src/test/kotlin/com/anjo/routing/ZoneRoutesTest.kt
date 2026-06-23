@@ -81,4 +81,26 @@ class ZoneRoutesTest : FunSpec({
             response.status shouldBe HttpStatusCode.UnprocessableEntity
         }
     }
+
+    test("POST /api/v1/zones with FIRMWARE type returns 201") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/zones") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"name":"pico-salon","type":"FIRMWARE"}""")
+            }
+            response.status.value shouldBe 201
+        }
+    }
+
+    test("POST /api/v1/zones with MAX7219 type returns 422") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/zones") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"name":"local-zone","type":"MAX7219"}""")
+            }
+            response.status shouldBe HttpStatusCode.UnprocessableEntity
+        }
+    }
 })

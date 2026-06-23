@@ -10,12 +10,12 @@ class ZoneValidatorsTest : FunSpec({
 
     test("validateAddZone with blank name returns Invalid") {
         val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "", type = "NETWORK", ip = "192.168.1.50"))
-        result shouldBe ValidationResult.Invalid("name cannot be blank")
+        (result as ValidationResult.Invalid).reasons.first() shouldBe "name cannot be blank"
     }
 
     test("validateAddZone with whitespace-only name returns Invalid") {
         val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "  ", type = "NETWORK", ip = "192.168.1.50"))
-        result shouldBe ValidationResult.Invalid("name cannot be blank")
+        (result as ValidationResult.Invalid).reasons.first() shouldBe "name cannot be blank"
     }
 
     test("validateAddZone with type MAX7219 returns Invalid with startup message") {
@@ -40,12 +40,12 @@ class ZoneValidatorsTest : FunSpec({
 
     test("validateAddZone with type NETWORK and null ip returns Invalid") {
         val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "zone1", type = "NETWORK", ip = null))
-        result shouldBe ValidationResult.Invalid("ip is required for network zones")
+        (result as ValidationResult.Invalid).reasons.first() shouldBe "ip is required for network zones"
     }
 
     test("validateAddZone with type NETWORK and blank ip returns Invalid") {
         val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "zone1", type = "NETWORK", ip = ""))
-        result shouldBe ValidationResult.Invalid("ip is required for network zones")
+        (result as ValidationResult.Invalid).reasons.first() shouldBe "ip is required for network zones"
     }
 
     test("validateAddZone with type NETWORK and public ip returns Invalid") {
@@ -55,26 +55,26 @@ class ZoneValidatorsTest : FunSpec({
 
     test("validateAddZone with type NETWORK and private ip 192.168.x returns Valid") {
         val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "zone1", type = "NETWORK", ip = "192.168.1.50"))
-        result shouldBe ValidationResult.Valid
+        (result is ValidationResult.Valid) shouldBe true
     }
 
     test("validateAddZone with type NETWORK and private ip 10.x returns Valid") {
         val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "zone1", type = "NETWORK", ip = "10.0.0.1"))
-        result shouldBe ValidationResult.Valid
+        (result is ValidationResult.Valid) shouldBe true
     }
 
     test("validateAddZone with type NETWORK and private ip 172.16.x returns Valid") {
         val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "zone1", type = "NETWORK", ip = "172.16.0.1"))
-        result shouldBe ValidationResult.Valid
+        (result is ValidationResult.Valid) shouldBe true
     }
 
     test("validateAddZone with type FIRMWARE and null ip returns Valid") {
         val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "pico-salon", type = "FIRMWARE", ip = null))
-        result shouldBe ValidationResult.Valid
+        (result is ValidationResult.Valid) shouldBe true
     }
 
     test("validateAddZone with type FIRMWARE and displaySubtype returns Valid") {
         val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "pico-salon", type = "FIRMWARE", displaySubtype = "MAX7219"))
-        result shouldBe ValidationResult.Valid
+        (result is ValidationResult.Valid) shouldBe true
     }
 })

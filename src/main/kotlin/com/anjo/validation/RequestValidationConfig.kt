@@ -21,7 +21,7 @@ fun Application.configureRequestValidation() {
             ScheduleValidators.validateSchedule(schedule)
         }
         validate<AddZoneRequest> { req ->
-            RequestValidators.validateAddZoneRequest(req)
+            ZoneValidators.validateAddZone(req)
         }
         validate<DisplaySelectRequest> { req ->
             RequestValidators.validateDisplaySelectRequest(req)

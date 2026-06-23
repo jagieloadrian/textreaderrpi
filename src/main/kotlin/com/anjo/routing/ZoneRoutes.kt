@@ -49,31 +49,46 @@ fun Route.zoneRoutes(
 
         post {
             val req = call.receive<AddZoneRequest>()
-            val ip = req.ip
 
-            if (ip != null && zoneRegistry.containsIp(ip)) {
-                return@post call.respond(HttpStatusCode.Conflict, "Zone with IP $ip is already registered")
+            if (zoneRegistry.contains(req.name) || zoneRepository.findById(req.name) != null) {
+                return@post call.respond(HttpStatusCode.Conflict, "Zone '${req.name}' is already registered")
             }
 
-            val existing = zoneRepository.findById(req.name)
-            if (existing != null) {
-                return@post call.respond(HttpStatusCode.Conflict, "Zone with name ${req.name} is already registered")
+            if (req.type == DisplayType.FIRMWARE.name) {
+                val zone = NetworkZone(
+                    id = req.name,
+                    name = req.name,
+                    ip = null,
+                    type = req.type,
+                    discoveryMethod = "MANUAL",
+                    createdAt = Instant.now().toString(),
+                    lastSeenAt = null,
+                    displaySubtype = req.displaySubtype
+                )
+                zoneRepository.upsert(zone)
+                zoneRegistry.registerFirmwareZone(req.name)
+                log.info("Firmware zone registered: name=${req.name}")
+                call.respond(HttpStatusCode.Created, zone)
+            } else {
+                val ip = req.ip!!
+                if (zoneRegistry.containsIp(ip)) {
+                    return@post call.respond(HttpStatusCode.Conflict, "Zone with IP $ip is already registered")
+                }
+                val zone = NetworkZone(
+                    id = req.name,
+                    name = req.name,
+                    ip = ip,
+                    type = req.type,
+                    discoveryMethod = "MANUAL",
+                    createdAt = Instant.now().toString(),
+                    lastSeenAt = null,
+                    displaySubtype = req.displaySubtype
+                )
+                zoneRepository.upsert(zone)
+                zoneRegistry.addNetworkZone(zone)
+                log.info("Network zone added: name=${req.name} ip=$ip")
+                call.respond(HttpStatusCode.Created, zone)
             }
-
-            val zone = NetworkZone(
-                id = req.name,
-                name = req.name,
-                ip = ip,
-                type = req.type.ifBlank { DisplayType.MAX7219.name },
-                discoveryMethod = "MANUAL",
-                createdAt = Instant.now().toString(),
-                lastSeenAt = null,
-                displaySubtype = req.displaySubtype
-            )
-            zoneRepository.upsert(zone)
-            zoneRegistry.addNetworkZone(zone)
-            log.info("Manual zone added: name=${req.name} ip=$ip")
-            call.respond(HttpStatusCode.Created, zone)
         }
     }
 }
