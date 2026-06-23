@@ -18,6 +18,28 @@ class ZoneValidatorsTest : FunSpec({
         (result as ValidationResult.Invalid).reasons.first() shouldBe "name cannot be blank"
     }
 
+    test("validateAddZone with name containing special chars returns Invalid") {
+        val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "zone<script>", type = "NETWORK", ip = "192.168.1.50"))
+        (result as ValidationResult.Invalid).reasons.first() shouldContain "alphanumeric"
+    }
+
+    test("validateAddZone with name longer than 64 chars returns Invalid") {
+        val longName = "a".repeat(65)
+        val result = ZoneValidators.validateAddZone(AddZoneRequest(name = longName, type = "NETWORK", ip = "192.168.1.50"))
+        (result as ValidationResult.Invalid).reasons.first() shouldContain "alphanumeric"
+    }
+
+    test("validateAddZone with name containing dots, hyphens, underscores returns Valid") {
+        val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "pico-salon_1.a", type = "FIRMWARE"))
+        (result is ValidationResult.Valid) shouldBe true
+    }
+
+    test("validateAddZone with MAX 64 char name returns Valid") {
+        val maxName = "a".repeat(64)
+        val result = ZoneValidators.validateAddZone(AddZoneRequest(name = maxName, type = "FIRMWARE"))
+        (result is ValidationResult.Valid) shouldBe true
+    }
+
     test("validateAddZone with type MAX7219 returns Invalid with startup message") {
         val result = ZoneValidators.validateAddZone(AddZoneRequest(name = "zone1", type = "MAX7219"))
         (result as ValidationResult.Invalid).reasons.first() shouldContain "startup"

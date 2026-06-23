@@ -6,6 +6,8 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult
 
 object ZoneValidators {
 
+    private val ZONE_NAME_REGEX = Regex("^[a-zA-Z0-9._-]{1,64}$")
+
     private val localHardwareTypes = setOf(
         DisplayType.MAX7219.name,
         DisplayType.LCD.name,
@@ -16,6 +18,12 @@ object ZoneValidators {
     fun validateAddZone(req: AddZoneRequest): ValidationResult {
         if (req.name.isBlank()) {
             return ValidationResult.Invalid("name cannot be blank")
+        }
+
+        if (!ZONE_NAME_REGEX.matches(req.name)) {
+            return ValidationResult.Invalid(
+                "name must contain only alphanumeric characters, dots, hyphens, and underscores (max 64 chars)"
+            )
         }
 
         if (req.type in localHardwareTypes) {
