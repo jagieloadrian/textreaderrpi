@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 16
-current_phase_name: Zone Management
+current_phase_name: zone-management
 status: executing
 stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-06-23T06:28:43.725Z"
+last_updated: "2026-06-23T10:58:07.267Z"
 last_activity: 2026-06-23
-last_activity_desc: Phase 15 complete (UAT + security), transitioned to Phase 16
+last_activity_desc: Phase 16 execution started
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
   percent: 29
 ---
 
@@ -24,10 +24,10 @@ progress:
 
 ## Current Position
 
-Phase: 16 — Zone Management
-Plan: Not started
+Phase: 16 (zone-management) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-23 — Phase 15 complete (UAT + security), transitioned to Phase 16
+Last activity: 2026-06-23 — Phase 16 execution started
 
 ## Project Context
 
@@ -234,9 +234,14 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 13 P01 | 2 minutes | 2 tasks | 2 files |
 | Phase 13 P02 | 3 minutes | 2 tasks | 7 files |
 | Phase 13 P03 | 6 minutes | 2 tasks | 6 files |
+| Phase 16 P01 | 6min | 2 tasks | 13 files |
 
 ## Session
 
-**Last session:** 2026-06-23T05:57:12.424Z
+**Last session:** 2026-06-23T10:58:07.257Z
 **Stopped at:** Phase 16 UI-SPEC approved
 **Resume file:** .planning/phases/16-zone-management/16-UI-SPEC.md
+
+## Decisions
+
+- [Phase ?]: Plan 16-01

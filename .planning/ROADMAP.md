@@ -109,13 +109,13 @@ Plans:
   3. A Pico or ESP32 device that opens `GET /ws/zone/{id}` is registered in ZoneRegistry as a FirmwareZoneDriver; text sent to that zone ID appears in the device's serial monitor output
   4. When the firmware device disconnects, the zone transitions to OFFLINE status and subsequent sends to that zone return a graceful error rather than a crash
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 **UI hint**: yes
 
 Plans:
 **Wave 1**
 
-- [ ] 16-01-PLAN.md — Schema + model foundation: V6 migration (ip nullable + display_subtype), DisplayType.FIRMWARE, AddZoneRequest/NetworkZone fields, FirmwareMessage wire contract, ktor-server-websockets dep (ZONE-09, ZONE-10)
+- [x] 16-01-PLAN.md — Schema + model foundation: V6 migration (ip nullable + display_subtype), DisplayType.FIRMWARE, AddZoneRequest/NetworkZone fields, FirmwareMessage wire contract, ktor-server-websockets dep (ZONE-09, ZONE-10)
 
 **Wave 2** *(blocked on Wave 1)*
 
