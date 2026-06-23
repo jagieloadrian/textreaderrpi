@@ -16,6 +16,10 @@ Two standalone embedded firmware projects plus a minor server-side wire protocol
 
 Both firmware projects live in the mono-repo alongside `src/`. Main Gradle build ignores `firmware/`. GitHub Actions provides build-check CI and produces flashable artifacts (`.uf2` for Pico, `.bin` for ESP32).
 
+4. **OTA firmware update** — push new firmware binary over WiFi without physical flashing (Pico: HTTP-based OTA; ESP32: ArduinoOTA / `ESP.update()`).
+
+5. **WiFi captive portal provisioning** — first-boot AP mode with a captive portal page for entering SSID/password; credentials stored to flash; device reboots into station mode.
+
 Requirements: FW-01 (Pico W / Pico 2W), FW-02 (ESP32).
 
 </domain>
@@ -107,6 +111,18 @@ Requirements: FW-01 (Pico W / Pico 2W), FW-02 (ESP32).
 
 - **D-18:** GitHub Actions CI: build-check job for both firmware projects. Produces flashable release artifacts: `.uf2` for Pico W/2W, `.bin`/`.elf` for ESP32 — downloadable from Actions without local toolchain setup.
 
+### OTA Firmware Update
+
+- **D-19:** Pico W: HTTP OTA via pico-sdk (fetch `.uf2` from a URL, write to flash via `flash_range_program`). Alternatively a simpler approach: serve the new binary URL via the server and trigger download+reboot. Researcher to identify best-supported approach for pico-sdk.
+- **D-20:** ESP32: `ArduinoOTA` (push-based UDP OTA) or HTTP OTA via `HTTPUpdate` / `ESP.update()`. Both are standard in Arduino/ESP32 ecosystem.
+- **D-21:** OTA trigger: configurable endpoint or server-push command via WebSocket message (new `"command": "ota"` message type, or a dedicated OTA URL in `config.h`). Researcher to propose.
+
+### WiFi Captive Portal Provisioning
+
+- **D-22:** First boot (no stored credentials): device starts in AP mode, broadcasts SSID `TextReader-Setup`. Captive portal serves a simple HTML form for SSID + password.
+- **D-23:** Credentials stored to flash (Pico: `pico_flash` / LittleFS; ESP32: NVS Preferences or SPIFFS). On reboot, device reads credentials and connects to home network.
+- **D-24:** Pico captive portal: use Mongoose's built-in HTTP server (already a dep). ESP32: `WiFiManager` Arduino library (standard choice) or custom AP + WebServer.
+
 ### Claude's Discretion
 
 - Exact CMake FetchContent versions for Mongoose and cJSON
@@ -177,9 +193,6 @@ Requirements: FW-01 (Pico W / Pico 2W), FW-02 (ESP32).
 
 <deferred>
 ## Deferred Ideas
-
-- OTA (over-the-air) firmware update mechanism — future phase
-- Firmware provisioning (captive portal WiFi setup) — future phase
 - Kotlin Native firmware — out of scope (KT-44498 unresolved; C/C++ is correct approach per REQUIREMENTS.md)
 - PostgreSQL / multi-replica considerations — unrelated to firmware
 

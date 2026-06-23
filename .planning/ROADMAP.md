@@ -130,7 +130,7 @@ Plans:
 
 ### Phase 17: Firmware Skeletons
 
-**Goal**: Working C/C++ firmware skeletons for RPi Pico W and ESP32 connect to the server, receive text+effect JSON over WebSocket, and render it on an attached MAX7219.
+**Goal**: Working C/C++ firmware skeletons for RPi Pico W and ESP32 connect to the server, receive text+effect JSON over WebSocket, render it on a selectable display driver, support OTA updates, and offer WiFi provisioning via captive portal.
 **Depends on**: Phase 16 (server-side WebSocket endpoint `GET /ws/zone/{id}` must exist)
 **Requirements**: FW-01, FW-02
 **Success Criteria** (what must be TRUE):
@@ -139,8 +139,10 @@ Plans:
   2. Building and flashing `firmware/esp32/` via PlatformIO onto an ESP32 board causes it to connect to the server WebSocket, receive a text+effect JSON payload, and render it on the attached MAX7219
   3. Both firmware projects have a `README.md` inside their directory describing the build tool, wiring diagram reference, and flash procedure
   4. If the WiFi or server connection drops, each firmware implementation attempts reconnection automatically rather than hanging
+  5. OTA firmware update: a new firmware binary can be pushed to the device over WiFi without physical access (Pico: pico-sdk HTTP OTA or equivalent; ESP32: ArduinoOTA / ESP.update())
+  6. WiFi captive portal provisioning: a device with no WiFi credentials stored boots into AP mode and serves a captive portal page where the user enters SSID/password; credentials are saved to flash and the device reboots into normal mode
 
-**Plans**: TBD (estimated 4 plans)
+**Plans**: TBD (estimated 5-6 plans)
 
 ### Phase 18: Kubernetes + Helm
 
