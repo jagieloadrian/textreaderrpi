@@ -347,8 +347,6 @@
     const type = document.getElementById("zoneTypeSelect")?.value ?? "NETWORK";
     const ip = type === "NETWORK" ? (document.getElementById("ipInput")?.value ?? "").trim() : null;
     const subtype = type === "FIRMWARE" ? (document.getElementById("displaySubtypeInput")?.value ?? "").trim() : null;
-    const resultDiv = document.getElementById("addZoneResult");
-    if (!resultDiv) return;
     try {
       const response = await fetch("/api/v1/zones", {
         method: "POST",
@@ -357,15 +355,17 @@
       });
       if (response.status === 201) {
         showToast("Zone added successfully.", "success");
+        const form = document.getElementById("addZoneForm");
+        if (form) form.reset();
         setTimeout(() => { window.location.reload(); }, 200);
       } else if (response.status === 422) {
         const msg = await response.text();
-        resultDiv.textContent = msg;
+        showToast(msg || "Validation error.", "error");
       } else if (response.status === 409) {
-        resultDiv.textContent = "A zone with this name is already registered.";
+        showToast("A zone with this name is already registered.", "error");
       } else {
         const msg = await response.text();
-        resultDiv.textContent = msg || "Could not add zone.";
+        showToast(msg || "Could not add zone.", "error");
       }
     } catch (_) {
       showToast("Could not add zone. Check your connection.", "error");
