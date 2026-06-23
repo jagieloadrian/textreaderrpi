@@ -44,6 +44,17 @@ class DisplayEventBusTest : FunSpec({
         }
     }
 
+    test("tryEmit returns true and event is visible to fresh collector via replay") {
+        runTest {
+            val bus = DisplayEventBus()
+            val event = makeEvent(1)
+            val result = bus.tryEmit(event)
+            result shouldBe true
+            val received = bus.events.take(1).toList()
+            received[0] shouldBe event
+        }
+    }
+
     test("bus events is SharedFlow of DisplayEvent and same instance across reads") {
         runTest {
             val bus = DisplayEventBus()
