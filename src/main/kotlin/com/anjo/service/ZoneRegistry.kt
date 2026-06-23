@@ -31,19 +31,19 @@ class ZoneRegistry() {
     private data class ZoneEntry(val driver: ZoneDriver, val isLocal: Boolean, val ip: String?)
 
     private val zones = ConcurrentHashMap<String, ZoneEntry>()
-    private var wsClient: HttpClient? = null
+    private lateinit var wsClient: HttpClient
 
     constructor(
         zonesConfig: ZonesConfig,
         pi4jContext: Context,
         zoneRepository: ZoneRepository,
-        wsClient: HttpClient? = null
+        wsClient: HttpClient
     ) : this() {
         this.wsClient = wsClient
         zonesConfig.zones.forEach { zoneConfig ->
             initLocalZone(zoneConfig, pi4jContext)
         }
-        wsClient?.let { client ->
+        wsClient.let { client ->
             try {
                 val persisted = runBlocking { zoneRepository.findAll() }
                 persisted.forEach { zone -> addNetworkZone(zone, client) }
@@ -104,8 +104,7 @@ class ZoneRegistry() {
     fun statusOf(zoneId: String): String? = zones[zoneId]?.driver?.status()?.status
 
     fun addNetworkZone(zone: NetworkZone) {
-        val client = wsClient ?: return
-        addNetworkZone(zone, client)
+        addNetworkZone(zone, wsClient)
     }
 
     fun removeZone(id: String): Boolean {

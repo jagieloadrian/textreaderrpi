@@ -40,8 +40,8 @@ class ScreenDriverService(
     private val retryConfig: RetryConfig,
     private val metrics: ScreenDriverMetrics,
     private val hardwareMetrics: HardwareMetrics = HardwareMetrics.DISABLED,
-    private val historyRepository: HistoryRepository? = null,
-    private val displayEventBus: DisplayEventBus? = null,
+    private val historyRepository: HistoryRepository,
+    private val displayEventBus: DisplayEventBus,
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
 
@@ -184,10 +184,8 @@ class ScreenDriverService(
         zoneId: String? = null,
     ) {
         try {
-            val record = historyRepository?.insert(HistoryRecord(text = text, effect = effect, source = source, scheduleId = scheduleId, webhookStatus = webhookStatus, zoneId = zoneId))
-            if (record != null) {
-                displayEventBus?.tryEmit(DisplayEvent(id = record.id, text = record.text, effect = record.effect, zoneId = record.zoneId, displayedAt = record.displayedAt))
-            }
+            val record = historyRepository.insert(HistoryRecord(text = text, effect = effect, source = source, scheduleId = scheduleId, webhookStatus = webhookStatus, zoneId = zoneId))
+            displayEventBus.tryEmit(DisplayEvent(id = record.id, text = record.text, effect = record.effect, zoneId = record.zoneId, displayedAt = record.displayedAt))
         } catch (e: Exception) {
             log.warn("History insert failed (non-fatal): ${e.message}", e)
         }
