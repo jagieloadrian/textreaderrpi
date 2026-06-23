@@ -6,15 +6,15 @@ current_phase: 16
 current_phase_name: zone-management
 status: executing
 stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-06-23T10:58:07.267Z"
+last_updated: "2026-06-23T11:07:00.000Z"
 last_activity: 2026-06-23
-last_activity_desc: Phase 16 execution started
+last_activity_desc: Phase 16 Plan 02 complete
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 9
-  completed_plans: 7
-  percent: 29
+  completed_plans: 8
+  percent: 33
 ---
 
 # Project State & Memory
@@ -25,9 +25,9 @@ progress:
 ## Current Position
 
 Phase: 16 (zone-management) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute
-Last activity: 2026-06-23 — Phase 16 execution started
+Plan: 3 of 3
+Status: Ready to execute Plan 03
+Last activity: 2026-06-23 — Completed Plan 16-02 (FirmwareZoneDriver + WebSocket endpoint)
 
 ## Project Context
 
@@ -235,13 +235,16 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 13 P02 | 3 minutes | 2 tasks | 7 files |
 | Phase 13 P03 | 6 minutes | 2 tasks | 6 files |
 | Phase 16 P01 | 6min | 2 tasks | 13 files |
+| Phase 16 P02 | 7min | 2 tasks | 7 files |
 
 ## Session
 
-**Last session:** 2026-06-23T10:58:07.257Z
-**Stopped at:** Phase 16 UI-SPEC approved
-**Resume file:** .planning/phases/16-zone-management/16-UI-SPEC.md
+**Last session:** 2026-06-23T11:07:00.000Z
+**Stopped at:** Completed 16-02-PLAN.md
+**Resume file:** None
 
 ## Decisions
 
-- [Phase ?]: Plan 16-01
+- [Phase 16-01]: Null ip guard in addNetworkZone skips FIRMWARE zones until Plan 02 adds registerFirmwareZone
+- [Phase 16-02]: FirmwareZoneDriver.send() uses channel.trySend() only; session.send() only in drain coroutine in attach()
+- [Phase 16-02]: ZoneRegistry.addNetworkZone() migrated to compute() closing non-atomic race (D-06)

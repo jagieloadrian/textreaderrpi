@@ -109,7 +109,7 @@ Plans:
   3. A Pico or ESP32 device that opens `GET /ws/zone/{id}` is registered in ZoneRegistry as a FirmwareZoneDriver; text sent to that zone ID appears in the device's serial monitor output
   4. When the firmware device disconnects, the zone transitions to OFFLINE status and subsequent sends to that zone return a graceful error rather than a crash
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 **UI hint**: yes
 
 Plans:
@@ -119,7 +119,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 16-02-PLAN.md — Firmware WebSocket: FirmwareZoneDriver (Channel + AtomicReference), ZoneRegistry.registerFirmwareZone via compute(), GET /ws/zone/{id} route, install(WebSockets), Routing outside rate limiter (ZONE-10)
+- [x] 16-02-PLAN.md — Firmware WebSocket: FirmwareZoneDriver (Channel + AtomicReference), ZoneRegistry.registerFirmwareZone via compute(), GET /ws/zone/{id} route, install(WebSockets), Routing outside rate limiter (ZONE-10)
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -203,7 +203,7 @@ Plans:
 | 13 | UI/UX Refresh | v1.1 | 4/4 | ✅ Complete | 2026-06-21 |
 | 14 | History Enhancements | v1.2 | 0/3 | Not started | — |
 | 15 | SSE Live Feed | v1.2 | 0/3 | Not started | — |
-| 16 | Zone Management | v1.2 | 0/3 | Planned | — |
+| 16 | Zone Management | v1.2 | 2/3 | In progress | — |
 | 17 | Firmware Skeletons | v1.2 | 0/4 | Not started | — |
 | 18 | Kubernetes + Helm | v1.2 | 0/2 | Not started | — |
 | 19 | DRY/YAGNI Refactoring | v1.2 | 0/2 | Not started | — |
