@@ -44,7 +44,7 @@
 
 - [x] **Phase 14: History Enhancements** - Full-text search and CSV export for display history (completed 2026-06-22)
 - [x] **Phase 15: SSE Live Feed** - Real-time display events streamed to the browser status page (completed 2026-06-22)
-- [ ] **Phase 16: Zone Management** - Zone creation form + inbound firmware WebSocket endpoint
+- [x] **Phase 16: Zone Management** - Zone creation form + inbound firmware WebSocket endpoint (completed 2026-06-23)
 - [ ] **Phase 17: Firmware Skeletons** - RPi Pico (C/pico-sdk) and ESP32 (C++/Arduino) firmware
 - [ ] **Phase 18: Kubernetes + Helm** - Helm chart in `.devops/helm/textreaderrpi/` for K8s deployment
 - [ ] **Phase 19: DRY/YAGNI Refactoring** - Deduplication pass across main code and tests
@@ -109,7 +109,7 @@ Plans:
   3. A Pico or ESP32 device that opens `GET /ws/zone/{id}` is registered in ZoneRegistry as a FirmwareZoneDriver; text sent to that zone ID appears in the device's serial monitor output
   4. When the firmware device disconnects, the zone transitions to OFFLINE status and subsequent sends to that zone return a graceful error rather than a crash
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 **UI hint**: yes
 
 Plans:
@@ -123,7 +123,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 16-03-PLAN.md — Add Zone form + backend: ZoneValidators (422 local types, RFC1918), POST /zones rewrite (name-as-id, FIRMWARE/NETWORK branch), ZonesPage form + type toggle, app.js addZone (ZONE-09)
+- [x] 16-03-PLAN.md — Add Zone form + backend: ZoneValidators (422 local types, RFC1918), POST /zones rewrite (name-as-id, FIRMWARE/NETWORK branch), ZonesPage form + type toggle, app.js addZone (ZONE-09)
 
 ### Phase 17: Firmware Skeletons
 
@@ -203,7 +203,7 @@ Plans:
 | 13 | UI/UX Refresh | v1.1 | 4/4 | ✅ Complete | 2026-06-21 |
 | 14 | History Enhancements | v1.2 | 0/3 | Not started | — |
 | 15 | SSE Live Feed | v1.2 | 0/3 | Not started | — |
-| 16 | Zone Management | v1.2 | 2/3 | In progress | — |
+| 16 | Zone Management | v1.2 | 3/3 | ✅ Complete | 2026-06-23 |
 | 17 | Firmware Skeletons | v1.2 | 0/4 | Not started | — |
 | 18 | Kubernetes + Helm | v1.2 | 0/2 | Not started | — |
 | 19 | DRY/YAGNI Refactoring | v1.2 | 0/2 | Not started | — |

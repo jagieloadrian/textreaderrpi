@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
-current_phase: 16
-current_phase_name: zone-management
-status: executing
-stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-06-23T11:07:00.000Z"
+current_phase: 17
+current_phase_name: firmware-skeletons
+status: ready
+stopped_at: Completed Phase 16 Plan 03 (Zone Management complete)
+last_updated: "2026-06-23T13:23:00.000Z"
 last_activity: 2026-06-23
-last_activity_desc: Phase 16 Plan 02 complete
+last_activity_desc: Phase 16 Plan 03 complete — zone management phase done
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
-  percent: 33
+  completed_plans: 9
+  percent: 43
 ---
 
 # Project State & Memory
@@ -24,10 +24,10 @@ progress:
 
 ## Current Position
 
-Phase: 16 (zone-management) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute Plan 03
-Last activity: 2026-06-23 — Completed Plan 16-02 (FirmwareZoneDriver + WebSocket endpoint)
+Phase: 17 (firmware-skeletons) — READY
+Plan: 1 of 4
+Status: Phase 16 complete; ready to start Phase 17
+Last activity: 2026-06-23 — Completed Plan 16-03 (Add Zone form, ZoneValidators, POST /zones)
 
 ## Project Context
 
@@ -236,11 +236,12 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 13 P03 | 6 minutes | 2 tasks | 6 files |
 | Phase 16 P01 | 6min | 2 tasks | 13 files |
 | Phase 16 P02 | 7min | 2 tasks | 7 files |
+| Phase 16 P03 | 18min | 2 tasks | 8 files |
 
 ## Session
 
-**Last session:** 2026-06-23T11:07:00.000Z
-**Stopped at:** Completed 16-02-PLAN.md
+**Last session:** 2026-06-23T13:23:00.000Z
+**Stopped at:** Completed 16-03-PLAN.md — Zone Management phase complete
 **Resume file:** None
 
 ## Decisions
@@ -248,3 +249,5 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - [Phase 16-01]: Null ip guard in addNetworkZone skips FIRMWARE zones until Plan 02 adds registerFirmwareZone
 - [Phase 16-02]: FirmwareZoneDriver.send() uses channel.trySend() only; session.send() only in drain coroutine in attach()
 - [Phase 16-02]: ZoneRegistry.addNetworkZone() migrated to compute() closing non-atomic race (D-06)
+- [Phase 16-03]: ValidationResult.Invalid has no equals override — use .reasons.first() for assertions
+- [Phase 16-03]: req.ip!! safe in NETWORK POST branch because ZoneValidators rejects null/blank ip before route is reached
