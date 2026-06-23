@@ -46,9 +46,8 @@ Declared values (multiples of 4):
 
 Exceptions:
 - Mobile top-bar button touch target: 44px min-height and 44px min-width (already established in custom.css; carry forward)
-- Zone status badge inline padding: 2px 8px (existing pattern in ZonesPage.kt — preserve as-is)
-- Nav link padding: 10px 12px (existing pattern — preserve)
-- Form element vertical padding: 12px (Pico default `--pico-form-element-spacing-vertical: 0.75rem`)
+
+Note: Several Pico CSS framework defaults produce non-multiple-of-4 values (e.g. badge inline padding, nav link padding, form element vertical padding). These are inherited framework defaults — the executor must NOT modify them in this phase. They are not new spacing decisions introduced by Phase 16 and are therefore not listed in the spacing contract above.
 
 Source: `src/main/resources/static/custom.css` measurements
 
@@ -97,6 +96,12 @@ All colors expressed as MD3 CSS custom properties already declared in `custom.cs
 - FIRMWARE type label: `var(--md-sys-color-secondary-container)` / `var(--md-sys-color-on-secondary-container)` — matches `.zone-card--discovered` existing pattern
 
 Source: `custom.css` full palette + `ZonesPage.kt` inline badge styles
+
+---
+
+## Focal Point
+
+Primary focal point: the "Add Zone" form section, positioned above the zone card list.
 
 ---
 
