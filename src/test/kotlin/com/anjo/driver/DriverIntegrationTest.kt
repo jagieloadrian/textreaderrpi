@@ -24,6 +24,8 @@ class DriverIntegrationTest : FunSpec({
             ioDispatcher = Dispatchers.Unconfined,
             retryConfig = RetryConfig(maxAttempts = 1, initialDelayMs = 1L),
             metrics = ScreenDriverMetrics.DISABLED,
+            historyRepository = mockk(relaxed = true),
+            displayEventBus = mockk(relaxed = true),
         )
         service.currentDisplayType() shouldBe "MAX7219"
     }

@@ -29,6 +29,8 @@ class ScreenDriverResourceTest : FunSpec({
         ioDispatcher = Dispatchers.Unconfined,
         retryConfig = fastRetry,
         metrics = ScreenDriverMetrics.from(registry, metricsConfig),
+        historyRepository = mockk(relaxed = true),
+        displayEventBus = mockk(relaxed = true),
     )
 
     test("should keep in-flight gauge at zero after completed operations") {

@@ -87,6 +87,7 @@ class HistoryRecordingTest : FunSpec({
             retryConfig = RetryConfig(maxAttempts = 1, initialDelayMs = 1L),
             metrics = ScreenDriverMetrics.DISABLED,
             historyRepository = throwingRepo,
+            displayEventBus = mockk(relaxed = true),
         )
         val result = svc.displayImmediate("fail-insert", Effect.SCROLL, ConflictPolicy.INTERRUPT)
         result.shouldBeInstanceOf<DisplayResult.Broadcast>()

@@ -30,6 +30,8 @@ class ScreenDriverRecoveryTest : FunSpec({
         ioDispatcher = Dispatchers.Unconfined,
         retryConfig = fastRetry,
         metrics = ScreenDriverMetrics.DISABLED,
+        historyRepository = mockk(relaxed = true),
+        displayEventBus = mockk(relaxed = true),
     )
 
     test("should succeed when zone driver works on first attempt") {

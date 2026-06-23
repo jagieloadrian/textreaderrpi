@@ -37,6 +37,8 @@ class ConflictPolicyTest : FunSpec({
         ioDispatcher = kotlinx.coroutines.test.UnconfinedTestDispatcher(),
         retryConfig = fastRetry,
         metrics = ScreenDriverMetrics.DISABLED,
+        historyRepository = mockk(relaxed = true),
+        displayEventBus = mockk(relaxed = true),
     )
 
     test("broadcast result returned when no zone param given") {
