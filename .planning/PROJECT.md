@@ -79,9 +79,11 @@ Simple, reliable one-way display control from any browser on the home network.
 - ✓ History page with zone/effect filter + pagination — Phase 13
 - ✓ Status page polling /health/detail + /metrics — Phase 13
 
-### Active (v1.2)
+### Validated (v1.2)
 
-- [ ] WebSocket live feed — real-time view of currently displayed text in browser
+- ✓ SSE live feed (`GET /api/v1/live`) — real-time event stream of displayed text; status page widget via EventSource — Phase 15
+
+### Active (v1.2)
 - [ ] Dynamic zone creation via API (without restart)
 - [ ] Full-text search in display history
 - [ ] Export history to CSV
@@ -147,6 +149,12 @@ Simple, reliable one-way display control from any browser on the home network.
 | HistoryService layer between routes and repository | ✓ Good — prevents direct repository calls from route handlers | 11.2 |
 | Material 3 CSS custom properties (no data-theme) | ✓ Good — OS dark/light mode via prefers-color-scheme, no JS toggle | 13 |
 | SSR zone selectors (not client-fetched) | ✓ Good — zones available on page load without extra round-trip | 13 |
+| `id: String` in DisplayEvent (not Long) | ✓ Good — matches HistoryRecord.id UUID String exactly; avoids lossy conversion | 15 |
+| `displayEventBus: DisplayEventBus? = null` as last ScreenDriverService param | ✓ Good — all existing tests compile unchanged; nullable default avoids forced migration | 15 |
+| heartbeat declared before `collect` in `sse {}` block | ✓ Good — collect suspends forever; heartbeat after collect would never execute (Pitfall 4) | 15 |
+| liveRoutes in SEPARATE `route("/api/v1")` outside `installApiRateLimiting` | ✓ Good — long-lived SSE connections + 30s heartbeats don't count against 60 req/min limit | 15 |
+| `textContent` for live-feed.js DOM updates (never innerHTML) | ✓ Good — SSE-delivered data treated as untrusted at DOM boundary; XSS-safe | 15 |
+| live-feed.js loaded via `headExtra` in StatusPage only | ✓ Good — limits always-open SSE connection to /status page; doesn't affect other routes | 15 |
 
 ## Constraints
 
@@ -187,4 +195,4 @@ This document evolves at phase transitions and milestone boundaries.
 - Kompresja .planning/, usunięcie docs/, update README
 
 ---
-*Last updated: 2026-06-21 — Milestone v1.2 planning started.*
+*Last updated: 2026-06-23 — After Phase 15 (SSE Live Feed).*
