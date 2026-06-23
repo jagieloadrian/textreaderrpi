@@ -2,8 +2,8 @@
 phase: 17
 slug: firmware-skeletons
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-24
 ---
 
@@ -42,7 +42,7 @@ created: 2026-06-24
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 17-01-01 | P01 | 0 | FW-01 | — | N/A | unit | `./gradlew test --tests "com.anjo.model.FirmwareMessageTest"` | ❌ W0 | ⬜ pending |
 | 17-01-02 | P01 | 0 | FW-01 | T-17-05 | Null timing fields omitted from JSON (no `"speed":null`) | unit | `./gradlew test --tests "com.anjo.model.FirmwareMessageTest"` | ❌ W0 | ⬜ pending |
-| 17-02-01 | P02 | 1 | FW-01 | T-17-01 | speed/blinkPeriod/fadeSteps positive-only guard in RequestValidators | unit | `./gradlew test --tests "com.anjo.validation.RequestValidatorsTest"` | ✅ extend | ⬜ pending |
+| 17-02-01 | P02 | 1 | FW-01 | T-17-01 | speed/blinkPeriod/fadeSteps positive-only guard in RequestValidators | unit | `./gradlew test --tests "com.anjo.validation.RequestValidatorsTest"` | ❌ W0 | ⬜ pending |
 | 17-02-02 | P02 | 1 | FW-01+02 | — | N/A | integration | `./gradlew test --tests "com.anjo.routing.TextApiRouteTest"` | ✅ extend | ⬜ pending |
 | 17-03-01 | P03 | 1 | FW-01+02 | — | N/A | unit | `./gradlew test --tests "com.anjo.zone.FirmwareZoneDriverTest"` | ✅ extend | ⬜ pending |
 | 17-04-01 | P04 | 2 | FW-01 | — | N/A | CI build | GitHub Actions: cmake pico_w build | ❌ W0 | ⬜ pending |
@@ -59,7 +59,7 @@ created: 2026-06-24
 
 - [ ] `src/test/kotlin/com/anjo/model/FirmwareMessageTest.kt` — FirmwareMessage serialization: null timing fields omitted; non-null fields included; FW-01
 - [ ] `.github/workflows/firmware-ci.yml` — build-check for pico_w, pico2_w (cmake), and esp32 (pio run); FW-01, FW-02
-- [ ] Extend `src/test/kotlin/com/anjo/validation/RequestValidatorsTest.kt` — speed ≤ 0 → 422, blinkPeriod ≤ 0 → 422, fadeSteps ≤ 0 → 422; FW-01+02
+- [ ] Create `src/test/kotlin/com/anjo/validation/RequestValidatorsTest.kt` (new file — does not exist yet) — speed ≤ 0 → 422, blinkPeriod ≤ 0 → 422, fadeSteps ≤ 0 → 422; FW-01+02
 - [ ] Extend `src/test/kotlin/com/anjo/zone/FirmwareZoneDriverTest.kt` — send() populates speed/blinkPeriod/fadeSteps in serialized JSON; FW-01+02
 
 ---

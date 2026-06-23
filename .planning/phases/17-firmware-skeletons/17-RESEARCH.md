@@ -705,7 +705,7 @@ Note: `workflow.nyquist_validation` key is absent from `.planning/config.json` �
 | FW-02 | PlatformIO ESP32 project compiles | CI build check | `pio run` in esp32/ | No — Wave 0 |
 | FW-02 | Flash + connect + render on physical ESP32 | manual / physical | — | Human-verify checkpoint |
 | FW-01+02 | POST /api/v1/text with speed=50 returns 202 | integration | `./gradlew test --tests "com.anjo.routing.TextApiRouteTest"` | Extend existing |
-| FW-01+02 | POST /api/v1/text with speed=-1 returns 422 | unit | `./gradlew test --tests "com.anjo.validation.RequestValidatorsTest"` | Extend existing |
+| FW-01+02 | POST /api/v1/text with speed=-1 returns 422 | unit | `./gradlew test --tests "com.anjo.validation.RequestValidatorsTest"` | No — Wave 0 (new file) |
 | FW-01+02 | FirmwareZoneDriver.send() includes speed/blinkPeriod/fadeSteps | unit | `./gradlew test --tests "com.anjo.zone.FirmwareZoneDriverTest"` | Extend existing |
 
 ### Sampling Rate
@@ -719,7 +719,7 @@ Note: `workflow.nyquist_validation` key is absent from `.planning/config.json` �
 - [ ] `src/test/kotlin/com/anjo/model/FirmwareMessageTest.kt` — covers FirmwareMessage serialization with null fields omitted
 - [ ] GitHub Actions workflow `.github/workflows/firmware-ci.yml` — covers pico + esp32 compile checks
 - [ ] Extend `src/test/kotlin/com/anjo/zone/FirmwareZoneDriverTest.kt` — verify send() includes timing fields
-- [ ] Extend `src/test/kotlin/com/anjo/validation/RequestValidatorsTest.kt` — speed/blinkPeriod/fadeSteps validation
+- [ ] Create `src/test/kotlin/com/anjo/validation/RequestValidatorsTest.kt` (new file) — speed/blinkPeriod/fadeSteps validation
 
 ---
 
@@ -804,22 +804,22 @@ Note: `workflow.nyquist_validation` key is absent from `.planning/config.json` �
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **ZoneDriver.send() signature extension**
    - What we know: Adding timing params to `FirmwareZoneDriver.send()` requires updating the `ZoneDriver` interface and all 3 implementations
    - What's unclear: Should timing travel as separate params, a `TextRequest` object, or a new `DisplayCommand` data class?
-   - Recommendation: Introduce a new `data class DisplayCommand(val text: String, val effect: Effect, val speed: Int?, val blinkPeriod: Int?, val fadeSteps: Int?)` and change the interface to `send(cmd: DisplayCommand)`. LocalZoneDriver and NetworkZoneDriver can ignore the timing fields.
+   - **RESOLVED: Separate nullable params chosen over a `DisplayCommand` data class.** The plan (17-01) extends `ScreenDriverService.displayImmediate(...)` and the `ZoneDriver.send(...)` path with three trailing nullable parameters (`speed: Int? = null`, `blinkPeriod: Int? = null`, `fadeSteps: Int? = null`) with defaults. Rationale: default-valued params give the minimal ripple — `LocalZoneDriver` and `NetworkZoneDriver` compile unchanged because the new params default to null, preserving backward compatibility. A new `DisplayCommand` data class was rejected because it would force a signature change at every call site and every implementation even where timing is irrelevant, adding a type with no behavioral benefit for local/network zones. Separate params keep the diff localized to `FirmwareZoneDriver` (which forwards them into `FirmwareMessage`) and the API surface.
 
 2. **Pico captive portal DNS redirect**
    - What we know: Captive portal requires DNS server to redirect all queries to 192.168.4.1; Mongoose provides HTTP server but not a DNS server
    - What's unclear: Is there a lightweight DNS server compatible with pico-sdk + Mongoose?
-   - Recommendation: lwIP includes a DNS server module (`apps/dns`); alternatively, most modern mobile OS captive-portal detection works by HTTP redirect without DNS spoofing. Accept that older clients may need manual navigation to `http://192.168.4.1`. The requirement (D-22) says "serves a captive portal" — not "auto-redirects all domains".
+   - **RESOLVED: No DNS spoofing; rely on HTTP captive-portal detection with documented manual fallback.** lwIP includes a DNS server module (`apps/dns`) but it is not wired in for this phase. Most modern mobile OS captive-portal probes follow an HTTP redirect without DNS spoofing; older clients navigate manually to `http://192.168.4.1`. This is acceptable because D-22 requires "serves a captive portal" — not "auto-redirects all domains". The Pico README (17-03 Task 2) documents the manual-navigation fallback. A full lwIP DNS server is deferred as unnecessary for the requirement.
 
 3. **picowota + Mongoose coexistence**
    - What we know: picowota is a separate binary (bootloader); the app links `picowota_reboot` library only for the reboot trigger
    - What's unclear: Does combining `picowota_build_combined()` in CMakeLists.txt affect the `.uf2` output name?
-   - Recommendation: Verify `picowota_build_combined(textreader)` produces `textreader_combined.uf2` — that's the file to flash initially. Subsequent OTA updates push `textreader.uf2` (app only).
+   - **RESOLVED: `picowota_build_combined(textreader)` produces `textreader_combined.uf2` for the initial flash; OTA pushes app-only `textreader.uf2`.** CMakeLists.txt (17-03) invokes `picowota_build_combined(textreader)` so the BOOTSEL drag-and-drop artifact is `textreader_combined.uf2` (bootloader + app), while subsequent OTA updates push the smaller app-only `textreader.uf2`. The README documents both filenames and which to flash when. The executor verifies the combined artifact name after the first CMake configure.
 
 ---
 

@@ -195,6 +195,7 @@ Requirements: FW-01 (Pico W / Pico 2W), FW-02 (ESP32).
 ## Deferred Ideas
 - Kotlin Native firmware — out of scope (KT-44498 unresolved; C/C++ is correct approach per REQUIREMENTS.md)
 - PostgreSQL / multi-replica considerations — unrelated to firmware
+- **Non-MAX7219 display driver stubs (SSD1306, SSD1309, SSD1327, ST7735, ST7789, ILI9225, ST7687S, GC9A01, SH1106, PCD8544, HT16K33, SSD1680, UC8151, IL0373, WS2812B, etc. from D-08) — deferred to a later phase.** Phase 17 implements ONLY the MAX7219 reference driver per ROADMAP Phase 17 Success Criteria SC-1 (Pico → scroll "Hello" on MAX7219) and SC-2 (ESP32 → render on MAX7219), which reference no other display. D-06 establishes that only the compile-time-selected `DISPLAY_DRIVER` source is built, so MAX7219-only is a clean scope boundary: no stub `.c`/`.cpp`/`.h` files for the other controllers are created in this phase. The 3-function driver interface (`display.h`, D-07) is shared, so a later phase can add each driver's source file without touching the rest of the firmware. The D-08 list remains the authoritative roadmap of drivers to implement across future phases.
 
 </deferred>
 
