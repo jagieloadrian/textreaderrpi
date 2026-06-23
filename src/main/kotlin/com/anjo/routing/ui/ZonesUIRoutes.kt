@@ -26,7 +26,8 @@ fun Route.zonesUIRoutes(zoneRegistry: ZoneRegistry, zoneRepository: ZoneReposito
                 ipAddress = networkZone?.ip ?: zoneStatus.ip,
                 status = zoneStatus.status,
                 discoveryMethod = networkZone?.discoveryMethod,
-                lastSeenAt = networkZone?.lastSeenAt ?: zoneStatus.lastSeenAt
+                lastSeenAt = networkZone?.lastSeenAt ?: zoneStatus.lastSeenAt,
+                displaySubtype = networkZone?.displaySubtype
             )
         }
 

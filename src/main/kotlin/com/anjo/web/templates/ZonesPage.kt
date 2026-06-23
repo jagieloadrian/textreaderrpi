@@ -11,7 +11,10 @@ import kotlinx.html.id
 import kotlinx.html.input
 import kotlinx.html.InputType
 import kotlinx.html.article
+import kotlinx.html.label
+import kotlinx.html.option
 import kotlinx.html.p
+import kotlinx.html.select
 import kotlinx.html.span
 import kotlinx.html.section
 import kotlinx.html.strong
@@ -23,17 +26,84 @@ data class ZoneInfo(
     val ipAddress: String?,
     val status: String,
     val discoveryMethod: String?,
-    val lastSeenAt: String?
+    val lastSeenAt: String?,
+    val displaySubtype: String? = null
 )
 
 fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
     h2 { +"Zones" }
 
     section {
+        h3 { +"Add Zone" }
+        form {
+            id = "addZoneForm"
+            label {
+                htmlFor = "zoneNameInput"
+                +"Zone Name"
+            }
+            input {
+                type = InputType.text
+                id = "zoneNameInput"
+                name = "name"
+                placeholder = "e.g. pico-salon"
+                required = true
+            }
+            label {
+                htmlFor = "zoneTypeSelect"
+                +"Zone Type"
+            }
+            select {
+                id = "zoneTypeSelect"
+                name = "type"
+                option {
+                    value = "NETWORK"
+                    +"Network (another TextReaderRpi)"
+                }
+                option {
+                    value = "FIRMWARE"
+                    +"Firmware (Pico / ESP32)"
+                }
+            }
+            div {
+                id = "ipFieldWrapper"
+                label {
+                    htmlFor = "ipInput"
+                    +"IP Address"
+                }
+                input {
+                    type = InputType.text
+                    id = "ipInput"
+                    name = "ip"
+                    placeholder = "192.168.x.x"
+                }
+            }
+            div {
+                id = "displaySubtypeWrapper"
+                attributes["hidden"] = ""
+                label {
+                    htmlFor = "displaySubtypeInput"
+                    +"Display Type"
+                }
+                input {
+                    type = InputType.text
+                    id = "displaySubtypeInput"
+                    name = "displaySubtype"
+                    placeholder = "e.g. MAX7219, SSD1306, custom"
+                }
+            }
+            button {
+                type = ButtonType.submit
+                +"Add Zone"
+            }
+        }
+        div { id = "addZoneResult" }
+    }
+
+    section {
         h3 { +"Registered Zones" }
         if (zones.isEmpty()) {
             p { strong { +"No zones registered." } }
-            p { +"Connect a local display and restart, or scan the network to discover nearby devices." }
+            p { +"Connect a local display and restart, or add a network or firmware zone below." }
         } else {
             div {
                 attributes["class"] = "zones-grid"
@@ -45,7 +115,11 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
                         p {
                             strong { +zone.id }
                             +" "
-                            val typeLabel = if (zone.isLocal) "Local (${zone.type})" else "Network (${zone.type})"
+                            val typeLabel = when {
+                                zone.isLocal -> "Local (${zone.type})"
+                                zone.type == "FIRMWARE" -> "Firmware (${zone.type})"
+                                else -> "Network (${zone.type})"
+                            }
                             +typeLabel
                             +" "
                             val badgeStyle = when (zone.status) {
@@ -55,6 +129,9 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
                                 else -> "background: var(--md-sys-color-error); color: var(--md-sys-color-on-error); padding: 2px 8px; border-radius: 4px"
                             }
                             span { attributes["style"] = badgeStyle; +zone.status }
+                        }
+                        if (zone.type == "FIRMWARE" && zone.displaySubtype != null) {
+                            p { strong { +"Display:" }; +" ${zone.displaySubtype}" }
                         }
                         if (!zone.isLocal && zone.ipAddress != null) {
                             p { strong { +"IP:" }; +" ${zone.ipAddress}" }
@@ -71,6 +148,7 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
                                 attributes["data-zone-id"] = zone.id
                                 attributes["class"] = "delete-zone-btn"
                                 attributes["style"] = "background: var(--md-sys-color-error); color: var(--md-sys-color-on-error)"
+                                attributes["aria-label"] = "Remove zone ${zone.id}"
                                 +"Remove"
                             }
                             div { attributes["id"] = "deleteResult-${zone.id}" }
@@ -89,24 +167,5 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
             +"Scan for Displays"
         }
         div { id = "scanResult" }
-    }
-
-    section {
-        h3 { +"Add Display by IP" }
-        form {
-            id = "addZoneForm"
-            input {
-                type = InputType.text
-                id = "ipInput"
-                name = "ip"
-                placeholder = "192.168.x.x"
-                required = true
-            }
-            button {
-                type = ButtonType.submit
-                +"Add Zone"
-            }
-        }
-        div { id = "addZoneResult" }
     }
 }

@@ -322,25 +322,53 @@
     }
   }
 
-  async function addZoneByIp(e) {
+  function initZoneForm() {
+    const typeSelect = document.getElementById("zoneTypeSelect");
+    const ipWrapper = document.getElementById("ipFieldWrapper");
+    const ipInput = document.getElementById("ipInput");
+    const subtypeWrapper = document.getElementById("displaySubtypeWrapper");
+    if (!typeSelect || !ipWrapper || !ipInput || !subtypeWrapper) return;
+    typeSelect.addEventListener("change", () => {
+      if (typeSelect.value === "NETWORK") {
+        ipWrapper.removeAttribute("hidden");
+        ipInput.required = true;
+        subtypeWrapper.setAttribute("hidden", "");
+      } else {
+        ipWrapper.setAttribute("hidden", "");
+        ipInput.required = false;
+        subtypeWrapper.removeAttribute("hidden");
+      }
+    });
+  }
+
+  async function addZone(e) {
     e.preventDefault();
-    const ip = (document.getElementById("ipInput")?.value ?? "").trim();
+    const name = (document.getElementById("zoneNameInput")?.value ?? "").trim();
+    const type = document.getElementById("zoneTypeSelect")?.value ?? "NETWORK";
+    const ip = type === "NETWORK" ? (document.getElementById("ipInput")?.value ?? "").trim() : null;
+    const subtype = type === "FIRMWARE" ? (document.getElementById("displaySubtypeInput")?.value ?? "").trim() : null;
     const resultDiv = document.getElementById("addZoneResult");
     if (!resultDiv) return;
     try {
-      const response = await fetch("/api/v1/zones/" + encodeURIComponent(ip), { method: "POST" });
-      if (response.status === 201 || response.status === 200) {
-        resultDiv.textContent = "Zone added. Page reloading...";
-        setTimeout(() => { window.location.href = "/zones"; }, 1000);
+      const response = await fetch("/api/v1/zones", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, type, ip: ip || null, displaySubtype: subtype || null })
+      });
+      if (response.status === 201) {
+        showToast("Zone added successfully.", "success");
+        setTimeout(() => { window.location.reload(); }, 200);
+      } else if (response.status === 422) {
+        const msg = await response.text();
+        resultDiv.textContent = msg;
       } else if (response.status === 409) {
-        resultDiv.textContent = "A zone with this IP is already registered.";
-      } else if (response.status === 400) {
-        resultDiv.textContent = "Enter a valid IP address (e.g. 192.168.1.50).";
+        resultDiv.textContent = "A zone with this name is already registered.";
       } else {
-        resultDiv.textContent = `Could not connect to ${ip}. Verify the device is online.`;
+        const msg = await response.text();
+        resultDiv.textContent = msg || "Could not add zone.";
       }
     } catch (_) {
-      resultDiv.textContent = `Could not connect to ${ip}. Verify the device is online.`;
+      showToast("Could not add zone. Check your connection.", "error");
     }
   }
 
@@ -409,7 +437,10 @@
     const scanBtn = document.getElementById("scanBtn");
     if (scanBtn) scanBtn.addEventListener("click", e => { e.preventDefault(); scanForDisplays(); });
     const addZoneForm = document.getElementById("addZoneForm");
-    if (addZoneForm) addZoneForm.addEventListener("submit", addZoneByIp);
+    if (addZoneForm) {
+      addZoneForm.addEventListener("submit", addZone);
+      initZoneForm();
+    }
     document.querySelectorAll(".delete-zone-btn").forEach(btn => {
       btn.addEventListener("click", e => { e.preventDefault(); deleteZone(btn.dataset.zoneId); });
     });
