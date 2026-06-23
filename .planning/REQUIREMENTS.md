@@ -73,8 +73,8 @@
 | LIVE-01 | Phase 15 | Planned | 15-01, 15-02 |
 | LIVE-02 | Phase 15 | Planned | 15-03 |
 | LIVE-03 | Phase 15 | Planned | 15-02 |
-| ZONE-09 | Phase 16 | Pending | — |
-| ZONE-10 | Phase 16 | Pending | — |
+| ZONE-09 | Phase 16 | Planned | 16-01, 16-03 |
+| ZONE-10 | Phase 16 | Planned | 16-01, 16-02 |
 | FW-01 | Phase 17 | Pending | — |
 | FW-02 | Phase 17 | Pending | — |
 | OPS-01 | Phase 18 | Pending | — |
