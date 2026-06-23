@@ -32,7 +32,7 @@ class ZoneRegistry() {
     private data class ZoneEntry(val driver: ZoneDriver, val isLocal: Boolean, val ip: String?)
 
     private val zones = ConcurrentHashMap<String, ZoneEntry>()
-    private lateinit var wsClient: HttpClient
+    private var wsClient: HttpClient? = null
 
     constructor(
         zonesConfig: ZonesConfig,
@@ -123,7 +123,8 @@ class ZoneRegistry() {
     fun statusOf(zoneId: String): String? = zones[zoneId]?.driver?.status()?.status
 
     fun addNetworkZone(zone: NetworkZone) {
-        addNetworkZone(zone, wsClient)
+        val client = wsClient ?: error("ZoneRegistry: wsClient not initialized")
+        addNetworkZone(zone, client)
     }
 
     fun removeZone(id: String): Boolean {
