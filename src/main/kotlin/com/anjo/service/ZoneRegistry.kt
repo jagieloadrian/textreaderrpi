@@ -13,6 +13,7 @@ import com.anjo.model.Effect
 import com.anjo.model.FailedZone
 import com.anjo.model.NetworkZone
 import com.anjo.model.ZoneStatus
+import com.anjo.zone.FirmwareZoneDriver
 import com.anjo.zone.LocalZoneDriver
 import com.anjo.zone.NetworkZoneDriver
 import com.anjo.zone.ZoneDriver
@@ -46,7 +47,13 @@ class ZoneRegistry() {
         wsClient.let { client ->
             try {
                 val persisted = runBlocking { zoneRepository.findAll() }
-                persisted.forEach { zone -> addNetworkZone(zone, client) }
+                persisted.forEach { zone ->
+                    if (zone.type == DisplayType.FIRMWARE.name) {
+                        registerFirmwareZone(zone.id)
+                    } else {
+                        addNetworkZone(zone, client)
+                    }
+                }
             } catch (e: Exception) {
                 log.warn("Failed to load persisted network zones on startup: ${e.message}")
             }
@@ -77,6 +84,18 @@ class ZoneRegistry() {
 
     fun register(id: String, driver: ZoneDriver) {
         zones[id] = ZoneEntry(driver, isLocal = false, ip = null)
+    }
+
+    fun registerFirmwareZone(id: String) {
+        zones.compute(id) { _, existing ->
+            if (existing?.isLocal == true) existing
+            else ZoneEntry(FirmwareZoneDriver(id), isLocal = false, ip = null)
+        }
+    }
+
+    fun firmwareDriver(id: String): FirmwareZoneDriver? {
+        val entry = zones[id] ?: return null
+        return entry.driver as? FirmwareZoneDriver
     }
 
     suspend fun route(zoneId: String, text: String, effect: Effect): Boolean {
@@ -120,19 +139,23 @@ class ZoneRegistry() {
     }
 
     fun addNetworkZone(zone: NetworkZone, client: HttpClient) {
-        if (zones[zone.id]?.isLocal == true) {
-            log.warn("Ignoring network zone '${zone.id}': conflicts with a local hardware zone")
-            return
-        }
         val ip = zone.ip ?: return
-        val driver = NetworkZoneDriver(
-            id = zone.id,
-            ip = ip,
-            port = 80,
-            client = client,
-            type = zone.type
-        )
-        driver.startConnect()
-        zones.put(zone.id, ZoneEntry(driver, isLocal = false, ip = ip))?.driver?.stop()
+        zones.compute(zone.id) { _, existing ->
+            if (existing?.isLocal == true) {
+                log.warn("Ignoring network zone '${zone.id}': conflicts with a local hardware zone")
+                existing
+            } else {
+                existing?.driver?.stop()
+                val driver = NetworkZoneDriver(
+                    id = zone.id,
+                    ip = ip,
+                    port = 80,
+                    client = client,
+                    type = zone.type
+                )
+                driver.startConnect()
+                ZoneEntry(driver, isLocal = false, ip = ip)
+            }
+        }
     }
 }
