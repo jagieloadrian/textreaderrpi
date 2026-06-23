@@ -1,7 +1,7 @@
 package com.anjo.model
 
 enum class DisplayType {
-    MAX7219, LCD, OLED, UNKNOWN;
+    MAX7219, LCD, OLED, FIRMWARE, UNKNOWN;
 
     companion object {
         fun fromString(s: String): DisplayType =

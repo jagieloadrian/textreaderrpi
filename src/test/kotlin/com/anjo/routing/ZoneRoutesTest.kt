@@ -39,7 +39,7 @@ class ZoneRoutesTest : FunSpec({
             application { module() }
             val response = client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                setBody("""{"ip":"8.8.8.8"}""")
+                setBody("""{"name":"kitchen","type":"NETWORK","ip":"8.8.8.8"}""")
             }
             response.status shouldBe HttpStatusCode.UnprocessableEntity
         }
@@ -50,7 +50,7 @@ class ZoneRoutesTest : FunSpec({
             application { module() }
             val response = client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                setBody("""{"ip":"192.168.1.50"}""")
+                setBody("""{"name":"kitchen","type":"NETWORK","ip":"192.168.1.50"}""")
             }
             response.status.value shouldBe 201
         }
@@ -61,11 +61,11 @@ class ZoneRoutesTest : FunSpec({
             application { module() }
             client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                setBody("""{"ip":"192.168.1.99"}""")
+                setBody("""{"name":"living-room","type":"NETWORK","ip":"192.168.1.99"}""")
             }
             val response = client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                setBody("""{"ip":"192.168.1.99"}""")
+                setBody("""{"name":"living-room","type":"NETWORK","ip":"192.168.1.99"}""")
             }
             response.status shouldBe HttpStatusCode.Conflict
         }
@@ -76,7 +76,7 @@ class ZoneRoutesTest : FunSpec({
             application { module() }
             val response = client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                setBody("""{"ip":"not-an-ip"}""")
+                setBody("""{"name":"kitchen","type":"NETWORK","ip":"not-an-ip"}""")
             }
             response.status shouldBe HttpStatusCode.UnprocessableEntity
         }

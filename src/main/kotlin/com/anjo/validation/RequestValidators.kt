@@ -23,7 +23,8 @@ object RequestValidators {
     }
 
     fun validateAddZoneRequest(req: AddZoneRequest): ValidationResult {
-        val parts = req.ip.split(".")
+        val ip = req.ip ?: return ValidationResult.Invalid("IP must be a valid RFC1918 private address")
+        val parts = ip.split(".")
         if (parts.size != 4) return ValidationResult.Invalid("IP must be a valid RFC1918 private address")
         val octets = try {
             parts.map { it.toInt() }

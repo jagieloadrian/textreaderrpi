@@ -49,28 +49,30 @@ fun Route.zoneRoutes(
 
         post {
             val req = call.receive<AddZoneRequest>()
+            val ip = req.ip
 
-            if (zoneRegistry.containsIp(req.ip)) {
-                return@post call.respond(HttpStatusCode.Conflict, "Zone with IP ${req.ip} is already registered")
+            if (ip != null && zoneRegistry.containsIp(ip)) {
+                return@post call.respond(HttpStatusCode.Conflict, "Zone with IP $ip is already registered")
             }
 
-            val existing = zoneRepository.findById(req.ip)
+            val existing = zoneRepository.findById(req.name)
             if (existing != null) {
-                return@post call.respond(HttpStatusCode.Conflict, "Zone with IP ${req.ip} is already registered")
+                return@post call.respond(HttpStatusCode.Conflict, "Zone with name ${req.name} is already registered")
             }
 
             val zone = NetworkZone(
-                id = req.ip,
-                name = req.ip,
-                ip = req.ip,
-                type = DisplayType.MAX7219.name,
+                id = req.name,
+                name = req.name,
+                ip = ip,
+                type = req.type.ifBlank { DisplayType.MAX7219.name },
                 discoveryMethod = "MANUAL",
                 createdAt = Instant.now().toString(),
-                lastSeenAt = null
+                lastSeenAt = null,
+                displaySubtype = req.displaySubtype
             )
             zoneRepository.upsert(zone)
             zoneRegistry.addNetworkZone(zone)
-            log.info("Manual zone added: ip=${req.ip}")
+            log.info("Manual zone added: name=${req.name} ip=$ip")
             call.respond(HttpStatusCode.Created, zone)
         }
     }

@@ -74,7 +74,7 @@ class NetworkDiscoveryService(
                 }
                 val json = String(recvPacket.data, 0, recvPacket.length)
                 val zone = parseDiscoveryReply(json, recvPacket.address.hostAddress)
-                if (zone != null) {
+                if (zone != null && zone.ip != null) {
                     onDeviceDiscovered(ip = zone.ip, method = "UDP", name = zone.name)
                     discovered.add(zone)
                 }

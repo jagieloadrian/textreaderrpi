@@ -34,6 +34,7 @@ class ZoneRepository {
                     it[type] = zone.type
                     it[discoveryMethod] = zone.discoveryMethod
                     it[lastSeenAt] = zone.lastSeenAt
+                    it[displaySubtype] = zone.displaySubtype
                 }
             } else {
                 NetworkZonesTable.insert {
@@ -44,6 +45,7 @@ class ZoneRepository {
                     it[discoveryMethod] = zone.discoveryMethod
                     it[createdAt] = zone.createdAt
                     it[lastSeenAt] = zone.lastSeenAt
+                    it[displaySubtype] = zone.displaySubtype
                 }
             }
         }
@@ -63,6 +65,7 @@ class ZoneRepository {
         type = this[NetworkZonesTable.type],
         discoveryMethod = this[NetworkZonesTable.discoveryMethod],
         createdAt = this[NetworkZonesTable.createdAt],
-        lastSeenAt = this[NetworkZonesTable.lastSeenAt]
+        lastSeenAt = this[NetworkZonesTable.lastSeenAt],
+        displaySubtype = this[NetworkZonesTable.displaySubtype]
     )
 }

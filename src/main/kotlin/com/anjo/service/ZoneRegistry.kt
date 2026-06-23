@@ -59,7 +59,7 @@ class ZoneRegistry() {
                 DisplayType.MAX7219 -> Max7219Matrix(ctx, zoneConfig.numDevices, zoneId = zoneConfig.chipSelect)
                 DisplayType.LCD -> LcdDisplay(ctx)
                 DisplayType.OLED -> OledDisplay(ctx)
-                DisplayType.UNKNOWN -> {
+                DisplayType.FIRMWARE, DisplayType.UNKNOWN -> {
                     log.warn("Unknown display type '${zoneConfig.type}' for zone '${zoneConfig.id}'; registering OFFLINE")
                     OfflineDisplayDriver
                 }
@@ -124,14 +124,15 @@ class ZoneRegistry() {
             log.warn("Ignoring network zone '${zone.id}': conflicts with a local hardware zone")
             return
         }
+        val ip = zone.ip ?: return
         val driver = NetworkZoneDriver(
             id = zone.id,
-            ip = zone.ip,
+            ip = ip,
             port = 80,
             client = client,
             type = zone.type
         )
         driver.startConnect()
-        zones.put(zone.id, ZoneEntry(driver, isLocal = false, ip = zone.ip))?.driver?.stop()
+        zones.put(zone.id, ZoneEntry(driver, isLocal = false, ip = ip))?.driver?.stop()
     }
 }
