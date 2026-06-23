@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
-current_phase: 16
-current_phase_name: zone-management
-status: executing
-stopped_at: Completed Phase 16 Plan 03 (Zone Management complete)
-last_updated: "2026-06-23T18:53:22.885Z"
+current_phase: 17
+current_phase_name: Firmware Skeletons
+status: planning
+stopped_at: Completed 16-03-PLAN.md — Zone Management phase complete
+last_updated: "2026-06-23T20:05:01.742Z"
 last_activity: 2026-06-23
-last_activity_desc: Phase 16 execution started
+last_activity_desc: Phase 16 complete, transitioned to Phase 17
 progress:
   total_phases: 7
   completed_phases: 3
@@ -20,14 +20,14 @@ progress:
 # Project State & Memory
 
 **Last Updated:** 2026-06-23  
-**Status:** Ready to execute
+**Status:** Ready to plan
 
 ## Current Position
 
-Phase: 16 (zone-management) — EXECUTING
-Plan: 2 of 4
+Phase: 17 — Firmware Skeletons
+Plan: Not started
 Status: Ready to execute
-Last activity: 2026-06-23 — Phase 16 execution started
+Last activity: 2026-06-23 — Phase 16 complete, transitioned to Phase 17
 
 ## Project Context
 
@@ -79,7 +79,7 @@ Last activity: 2026-06-23 — Phase 16 execution started
 |-------|------|--------------|---------------|--------|
 | 14 | History Enhancements | HIST-04, HIST-05, HIST-06 | 3 plans | Not started |
 | 15 | SSE Live Feed | LIVE-01, LIVE-02, LIVE-03 | 3 plans | Complete ✓ |
-| 16 | Zone Management | ZONE-09, ZONE-10 | 3 plans | Not started |
+| 16 | Zone Management | ZONE-09, ZONE-10 | 4 plans | Complete ✓ |
 | 17 | Firmware Skeletons | FW-01, FW-02 | 4 plans | Not started |
 | 18 | Kubernetes + Helm | OPS-01 | 2 plans | Not started |
 | 19 | DRY/YAGNI Refactoring | REF-05 | 2 plans | Not started |
@@ -196,8 +196,9 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | verification | Phase 11 — 11-VERIFICATION.md | human_needed |
 | verification | Phase 12 — 12-VERIFICATION.md | human_needed |
 | verification | Phase 15 — 15-VERIFICATION.md | human_needed |
+| verification | Phase 16 — 16-VERIFICATION.md | human_needed |
 
-*Note: All 5 are human-verify checkpoints (on-device Pi hardware testing / manual SSE validation) that could not be run in CI.*
+*Note: All 6 are human-verify checkpoints (on-device Pi hardware testing / firmware WebSocket validation) that could not be run in CI.*
 
 ---
 
@@ -241,8 +242,8 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 
 ## Session
 
-**Last session:** 2026-06-23T18:51:34.093Z
-**Stopped at:** Completed 16-03-PLAN.md — Zone Management phase complete
+**Last session:** 2026-06-23
+**Stopped at:** Phase 16 complete — Zone Management verified, transitioned to Phase 17
 **Resume file:** None
 
 ## Decisions
@@ -251,4 +252,8 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - [Phase 16-02]: FirmwareZoneDriver.send() uses channel.trySend() only; session.send() only in drain coroutine in attach()
 - [Phase 16-02]: ZoneRegistry.addNetworkZone() migrated to compute() closing non-atomic race (D-06)
 - [Phase 16-03]: ValidationResult.Invalid has no equals override — use .reasons.first() for assertions
-- [Phase 16-03]: req.ip!! safe in NETWORK POST branch because ZoneValidators rejects null/blank ip before route is reached
+- [Phase 16-03]: req.ip null guard via early 400 return (no !! operator) — post code review fix
+- [Phase 16-03]: Zone name validated with `[a-zA-Z0-9._-]{1,64}` regex in ZoneValidators — prevents XSS via data-zone-id attribute
+- [Phase 16-03]: FirmwareZoneDriver drain job tracked via AtomicReference<Job?>, cancelled on re-attach — prevents double-drain race
+- [Phase 16-03]: UDP discovery reply parsed with kotlinx.json JsonObject; FIRMWARE type from UDP rejected — prevents type confusion from rogue LAN devices
+- [Phase 16-04]: addZone() form.reset() on 201 + showToast() for all non-201 paths (422, 409, else) — eliminates resultDiv writes

@@ -31,11 +31,12 @@ files_reviewed_list:
   - src/test/kotlin/com/anjo/routing/ZoneRoutesTest.kt
   - src/test/kotlin/com/anjo/validation/ZoneValidatorsTest.kt
   - src/test/kotlin/com/anjo/zone/FirmwareZoneDriverTest.kt
+  - src/main/resources/static/live-feed.js
 findings:
-  critical: 4
+  critical: 5
   warning: 5
   info: 3
-  total: 12
+  total: 13
 status: issues_found
 ---
 
@@ -43,7 +44,7 @@ status: issues_found
 
 **Reviewed:** 2026-06-23T00:00:00Z
 **Depth:** standard
-**Files Reviewed:** 27
+**Files Reviewed:** 27 + live-feed.js (user-reported)
 **Status:** issues_found
 
 ## Summary
@@ -143,6 +144,35 @@ private fun parseDiscoveryReply(json: String, senderIp: String): NetworkZone? {
     }
 }
 ```
+
+---
+
+### CR-05: `live-feed.js` navigation trap — `window.location.reload()` in SSE `onerror` intercepts page navigation
+
+**File:** `src/main/resources/static/live-feed.js:13-15`
+
+```js
+src.onerror = () => {
+  if (src.readyState === EventSource.CLOSED) window.location.reload();
+};
+```
+
+When the user navigates away from `/status` to any other page, the browser closes the open `EventSource` connection to `/api/v1/live`. This fires `onerror` with `readyState === EventSource.CLOSED` (the browser closed it, not a server error). The handler then calls `window.location.reload()`, which interrupts the in-progress navigation and snaps the user back to the status page. The result: the status page is effectively un-navigable — clicking any nav link immediately reloads `/status`.
+
+The `window.location.reload()` is also unnecessary for its intended purpose: the SSE protocol automatically reconnects after an error (the browser retries with the interval set by the server's `retry:` field, defaulting to 3 seconds). There is no need to manually force a reload.
+
+**Fix:** Remove the reload call. Handle real connection errors (non-navigation closes) with a UI indicator only:
+
+```js
+src.onerror = () => {
+  const textEl = document.getElementById('live-text');
+  if (textEl && src.readyState !== EventSource.OPEN) {
+    textEl.textContent = '— (reconnecting…)';
+  }
+};
+```
+
+Or simply remove the handler entirely — SSE reconnects automatically without any manual intervention.
 
 ---
 

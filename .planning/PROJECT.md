@@ -82,9 +82,9 @@ Simple, reliable one-way display control from any browser on the home network.
 ### Validated (v1.2)
 
 - ✓ SSE live feed (`GET /api/v1/live`) — real-time event stream of displayed text; status page widget via EventSource — Phase 15
+- ✓ Dynamic zone creation via API (without restart) — `POST /api/v1/zones` + Zones UI page with Add Zone form, type toggle, toast feedback — Phase 16
 
 ### Active (v1.2)
-- [ ] Dynamic zone creation via API (without restart)
 - [ ] Full-text search in display history
 - [ ] Export history to CSV
 - [ ] Firmware submodule: RPi Pico (PicoW/Pico2/Pico2W) — Kotlin Native WebSocket receiver + local display rendering
@@ -155,6 +155,12 @@ Simple, reliable one-way display control from any browser on the home network.
 | liveRoutes in SEPARATE `route("/api/v1")` outside `installApiRateLimiting` | ✓ Good — long-lived SSE connections + 30s heartbeats don't count against 60 req/min limit | 15 |
 | `textContent` for live-feed.js DOM updates (never innerHTML) | ✓ Good — SSE-delivered data treated as untrusted at DOM boundary; XSS-safe | 15 |
 | live-feed.js loaded via `headExtra` in StatusPage only | ✓ Good — limits always-open SSE connection to /status page; doesn't affect other routes | 15 |
+| Zone name validated with `[a-zA-Z0-9._-]{1,64}` regex in ZoneValidators | ✓ Good — prevents XSS via kotlinx.html `attributes[key]=value` (unescaped) + enforces DB varchar(64) bound | 16 |
+| req.ip null guard via early 400 return (no !! operator) | ✓ Good — eliminates NPE risk if validator ever bypassed; explicit error message | 16 |
+| FirmwareZoneDriver drain job tracked via AtomicReference<Job?>, cancelled on re-attach | ✓ Good — prevents double-drain race on rapid firmware reconnect | 16 |
+| UDP discovery reply parsed with kotlinx.json; FIRMWARE type from UDP rejected | ✓ Good — prevents type confusion from rogue LAN devices; consistent with parseDiscoveryReply SSRF guard | 16 |
+| addZone() form.reset() on 201 + showToast() for all error paths | ✓ Good — UX gap closure: blank fields after success + styled error toasts for 422/409 | 16 |
+| V6 migration: ip column nullable + display_subtype added to network_zones | ✓ Good — FIRMWARE zones have no IP; display_subtype holds hardware type for non-Network zones | 16 |
 
 ## Constraints
 
@@ -195,4 +201,4 @@ This document evolves at phase transitions and milestone boundaries.
 - Kompresja .planning/, usunięcie docs/, update README
 
 ---
-*Last updated: 2026-06-23 — After Phase 15 (SSE Live Feed).*
+*Last updated: 2026-06-23 — After Phase 16 (Zone Management).*
