@@ -11,12 +11,13 @@ import io.ktor.server.websocket.WebSockets
 
 fun Application.configureHTTP() {
     install(CORS) {
+        allowHost("localhost")
+        allowHost("raspberrypi.local")
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Put)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
         allowHeader(HttpHeaders.Authorization)
-        anyHost()
     }
     install(DefaultHeaders) {
         header("X-Engine", "Ktor")
