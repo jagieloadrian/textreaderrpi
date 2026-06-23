@@ -38,7 +38,7 @@ class LiveRoutesTest : FunSpec({
             client.prepareGet("/api/v1/live").execute { response ->
                 val channel = response.bodyAsChannel()
                 val lines = mutableListOf<String>()
-                repeat(3) {
+                repeat(4) {
                     val line = channel.readLine() ?: return@repeat
                     lines.add(line)
                 }
