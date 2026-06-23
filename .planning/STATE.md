@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 17
-current_phase_name: Firmware Skeletons
-status: planning
+current_phase_name: firmware-skeletons
+status: executing
 stopped_at: Phase 17 UI-SPEC approved
-last_updated: "2026-06-23T22:37:10.999Z"
+last_updated: "2026-06-23T23:09:50.736Z"
 last_activity: 2026-06-23
-last_activity_desc: Phase 16 complete, transitioned to Phase 17
+last_activity_desc: Phase 17 execution started
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 10
+  total_plans: 16
   completed_plans: 10
   percent: 43
 ---
@@ -20,14 +20,14 @@ progress:
 # Project State & Memory
 
 **Last Updated:** 2026-06-23  
-**Status:** Ready to plan
+**Status:** Ready to execute
 
 ## Current Position
 
-Phase: 17 — Firmware Skeletons
-Plan: 6 plans created (17-01 .. 17-06), not started
+Phase: 17 (firmware-skeletons) — EXECUTING
+Plan: 1 of 6
 Status: Ready to execute
-Last activity: 2026-06-24 — Phase 17 planned (6 plans, 4 waves)
+Last activity: 2026-06-23 — Phase 17 execution started
 
 ## Project Context
 
