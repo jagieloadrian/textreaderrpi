@@ -33,6 +33,7 @@ dependencies {
     implementation(ktorLibs.ktor.server.host.common)
     implementation(ktorLibs.ktor.server.netty)
     implementation(ktorLibs.ktor.server.sse)
+    implementation(ktorLibs.ktor.server.websockets)
 
     // Kotlin
     implementation(ktorLibs.kotlinx.coroutines.core)
