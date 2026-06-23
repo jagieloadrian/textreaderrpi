@@ -59,10 +59,11 @@ class ZoneRoutesTest : FunSpec({
     test("POST /api/v1/zones for a duplicate IP returns 409") {
         testApplication {
             application { module() }
-            client.post("/api/v1/zones") {
+            val firstResponse = client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody("""{"name":"living-room","type":"NETWORK","ip":"192.168.1.99"}""")
             }
+            firstResponse.status.value shouldBe 201
             val response = client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody("""{"name":"living-room","type":"NETWORK","ip":"192.168.1.99"}""")
