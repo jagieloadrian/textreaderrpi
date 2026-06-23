@@ -5,8 +5,8 @@ milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 17
 current_phase_name: Firmware Skeletons
 status: planning
-stopped_at: Phase 17 context gathered
-last_updated: "2026-06-23T20:42:03.839Z"
+stopped_at: context exhaustion at 75% (2026-06-23)
+last_updated: "2026-06-23T20:43:07.366Z"
 last_activity: 2026-06-23
 last_activity_desc: Phase 16 complete, transitioned to Phase 17
 progress:
@@ -242,8 +242,8 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 
 ## Session
 
-**Last session:** 2026-06-23T20:42:03.827Z
-**Stopped at:** Phase 17 context gathered
+**Last session:** 2026-06-23T20:43:07.355Z
+**Stopped at:** context exhaustion at 75% (2026-06-23)
 **Resume file:** .planning/phases/17-firmware-skeletons/17-CONTEXT.md
 
 ## Decisions
