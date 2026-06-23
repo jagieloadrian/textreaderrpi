@@ -6,6 +6,7 @@ import com.anjo.model.FirmwareMessage
 import com.anjo.model.ZoneStatus
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.Frame
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.launch
@@ -17,10 +18,12 @@ class FirmwareZoneDriver(private val id: String) : ZoneDriver {
 
     private val channel = Channel<String>(capacity = 64)
     private val sessionRef = AtomicReference<DefaultWebSocketServerSession?>(null)
+    private val drainJob = AtomicReference<Job?>(null)
 
     fun attach(session: DefaultWebSocketServerSession) {
+        drainJob.getAndSet(null)?.cancel()
         sessionRef.set(session)
-        session.launch {
+        val job = session.launch {
             try {
                 for (msg in channel) {
                     session.send(Frame.Text(msg))
@@ -28,6 +31,7 @@ class FirmwareZoneDriver(private val id: String) : ZoneDriver {
             } catch (_: ClosedReceiveChannelException) {
             }
         }
+        drainJob.set(job)
     }
 
     fun detach() {
