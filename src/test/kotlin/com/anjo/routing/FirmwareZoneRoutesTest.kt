@@ -59,6 +59,7 @@ class FirmwareZoneRoutesTest : FunSpec({
             val wsClient = createClient { install(WebSockets) }
             wsClient.webSocket("/ws/zone/pico-ws-offline") {
                 close(CloseReason(CloseReason.Codes.NORMAL, "test done"))
+                closeReason.await()
             }
             registry.statusOf("pico-ws-offline") shouldBe "OFFLINE"
             registry.contains("pico-ws-offline") shouldBe true
