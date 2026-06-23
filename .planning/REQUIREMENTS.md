@@ -20,8 +20,8 @@
 
 ## Zone Management
 
-- [ ] **ZONE-09**: User can create a new network zone via form on `/zones` page (name + IP + type, 422 for local hardware types)
-- [ ] **ZONE-10**: Pico/ESP32 firmware can connect to server as a zone via inbound WebSocket (`GET /ws/zone/{id}`, FirmwareZoneDriver)
+- [x] **ZONE-09**: User can create a new network zone via form on `/zones` page (name + IP + type, 422 for local hardware types)
+- [x] **ZONE-10**: Pico/ESP32 firmware can connect to server as a zone via inbound WebSocket (`GET /ws/zone/{id}`, FirmwareZoneDriver)
 
 ## Firmware (C/C++)
 
