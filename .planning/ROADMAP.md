@@ -142,7 +142,27 @@ Plans:
   5. OTA firmware update: a new firmware binary can be pushed to the device over WiFi without physical access (Pico: pico-sdk HTTP OTA or equivalent; ESP32: ArduinoOTA / ESP.update())
   6. WiFi captive portal provisioning: a device with no WiFi credentials stored boots into AP mode and serves a captive portal page where the user enters SSID/password; credentials are saved to flash and the device reboots into normal mode
 
-**Plans**: TBD (estimated 5-6 plans)
+**Plans**: 6 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 17-01-PLAN.md — Server wire protocol: FirmwareMessage + ZoneDriver.send timing fields (speed/blinkPeriod/fadeSteps), threaded through ZoneRegistry + ScreenDriverService (FW-01)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 17-02-PLAN.md — TextRequest timing fields + RequestValidators positive-int guards + TextRoutes forwarding + API tests (FW-01, FW-02)
+- [ ] 17-03-PLAN.md — Pico W/2W firmware: pico-sdk CMake, Mongoose WS, cJSON, MAX7219 driver + 5x8 font + 4 effects, reconnect, picowota OTA, Mongoose captive portal, README (FW-01)
+- [ ] 17-04-PLAN.md — ESP32 firmware: PlatformIO, ArduinoWebsockets, ArduinoJson, MD_Parola MAX7219 + 4 effects, reconnect, ArduinoOTA, WiFiManager captive portal, README (FW-02)
+
+**Wave 3** *(blocked on Wave 2 firmware)*
+
+- [ ] 17-05-PLAN.md — Firmware CI: firmware-ci.yml build-check pico_w + pico2_w (cmake) + esp32 (pio run) + flashable artifact upload (FW-01, FW-02)
+
+**Wave 4** *(blocked on Wave 1-3)*
+
+- [ ] 17-06-PLAN.md — Human-verify checkpoint: physical Pico W/2W + ESP32 flash, scroll, reconnect, OTA, captive portal (FW-01, FW-02)
 
 ### Phase 18: Kubernetes + Helm
 
@@ -209,7 +229,7 @@ Plans:
 | 14 | History Enhancements | v1.2 | 0/3 | Not started | — |
 | 15 | SSE Live Feed | v1.2 | 0/3 | Not started | — |
 | 16 | Zone Management | v1.2 | 3/3 | ✅ Complete | 2026-06-23 |
-| 17 | Firmware Skeletons | v1.2 | 0/4 | Not started | — |
+| 17 | Firmware Skeletons | v1.2 | 0/6 | Not started | — |
 | 18 | Kubernetes + Helm | v1.2 | 0/2 | Not started | — |
 | 19 | DRY/YAGNI Refactoring | v1.2 | 0/2 | Not started | — |
 | 20 | Cleanup + Docs | v1.2 | 0/2 | Not started | — |

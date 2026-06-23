@@ -75,8 +75,8 @@
 | LIVE-03 | Phase 15 | Planned | 15-02 |
 | ZONE-09 | Phase 16 | Planned | 16-01, 16-03 |
 | ZONE-10 | Phase 16 | Planned | 16-01, 16-02 |
-| FW-01 | Phase 17 | Pending | — |
-| FW-02 | Phase 17 | Pending | — |
+| FW-01 | Phase 17 | Planned | 17-01, 17-02, 17-03, 17-05, 17-06 |
+| FW-02 | Phase 17 | Planned | 17-02, 17-04, 17-05, 17-06 |
 | OPS-01 | Phase 18 | Pending | — |
 | REF-05 | Phase 19 | Pending | — |
 | CLEAN-01 | Phase 20 | Pending | — |
