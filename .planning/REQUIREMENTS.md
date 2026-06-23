@@ -14,9 +14,9 @@
 
 ## Live Feed
 
-- [ ] **LIVE-01**: User can subscribe to a real-time SSE stream of display events (`GET /api/v1/live`, MutableSharedFlow replay=5)
-- [ ] **LIVE-02**: Status page shows real-time currently-displayed text via EventSource widget (no page reload needed)
-- [ ] **LIVE-03**: SSE connection stays alive through proxies via 30-second heartbeat comment frames
+- [x] **LIVE-01**: User can subscribe to a real-time SSE stream of display events (`GET /api/v1/live`, MutableSharedFlow replay=5)
+- [x] **LIVE-02**: Status page shows real-time currently-displayed text via EventSource widget (no page reload needed)
+- [x] **LIVE-03**: SSE connection stays alive through proxies via 30-second heartbeat comment frames
 
 ## Zone Management
 

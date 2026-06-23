@@ -186,7 +186,7 @@ class ScreenDriverService(
         try {
             val record = historyRepository?.insert(HistoryRecord(text = text, effect = effect, source = source, scheduleId = scheduleId, webhookStatus = webhookStatus, zoneId = zoneId))
             if (record != null) {
-                displayEventBus?.emit(DisplayEvent(id = record.id, text = record.text, effect = record.effect, zoneId = record.zoneId, displayedAt = record.displayedAt))
+                displayEventBus?.tryEmit(DisplayEvent(id = record.id, text = record.text, effect = record.effect, zoneId = record.zoneId, displayedAt = record.displayedAt))
             }
         } catch (e: Exception) {
             log.warn("History insert failed (non-fatal): ${e.message}", e)
