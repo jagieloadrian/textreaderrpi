@@ -5,8 +5,8 @@ milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 17
 current_phase_name: Firmware Skeletons
 status: planning
-stopped_at: Completed 16-03-PLAN.md — Zone Management phase complete
-last_updated: "2026-06-23T20:05:01.742Z"
+stopped_at: Phase 17 context gathered
+last_updated: "2026-06-23T20:42:03.839Z"
 last_activity: 2026-06-23
 last_activity_desc: Phase 16 complete, transitioned to Phase 17
 progress:
@@ -242,9 +242,9 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 
 ## Session
 
-**Last session:** 2026-06-23
-**Stopped at:** Phase 16 complete — Zone Management verified, transitioned to Phase 17
-**Resume file:** None
+**Last session:** 2026-06-23T20:42:03.827Z
+**Stopped at:** Phase 17 context gathered
+**Resume file:** .planning/phases/17-firmware-skeletons/17-CONTEXT.md
 
 ## Decisions
 
