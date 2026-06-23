@@ -29,6 +29,8 @@ class FirmwareZoneDriver(private val id: String) : ZoneDriver {
                     session.send(Frame.Text(msg))
                 }
             } catch (_: ClosedReceiveChannelException) {
+            } finally {
+                sessionRef.compareAndSet(session, null)
             }
         }
         drainJob.set(job)
