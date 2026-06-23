@@ -5,10 +5,10 @@ milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 16
 current_phase_name: Zone Management
 status: planning
-stopped_at: Phase 15 context gathered
-last_updated: "2026-06-23T04:56:22.008Z"
+stopped_at: Phase 16 context gathered
+last_updated: "2026-06-23T05:45:38.275Z"
 last_activity: 2026-06-23
-last_activity_desc: Phase 15 complete, transitioned to Phase 16
+last_activity_desc: Phase 15 complete (UAT + security), transitioned to Phase 16
 progress:
   total_phases: 7
   completed_phases: 2
@@ -237,6 +237,6 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 
 ## Session
 
-**Last session:** 2026-06-23
-**Stopped at:** Phase 15 complete, ready to plan Phase 16
-**Resume file:** None
+**Last session:** 2026-06-23T05:45:38.265Z
+**Stopped at:** Phase 16 context gathered
+**Resume file:** .planning/phases/16-zone-management/16-CONTEXT.md
