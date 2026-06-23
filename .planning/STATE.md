@@ -4,9 +4,9 @@ milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 16
 current_phase_name: Zone Management
-status: planning
-stopped_at: Phase 16 context gathered
-last_updated: "2026-06-23T05:45:38.275Z"
+status: executing
+stopped_at: Phase 16 UI-SPEC approved
+last_updated: "2026-06-23T06:28:43.725Z"
 last_activity: 2026-06-23
 last_activity_desc: Phase 15 complete (UAT + security), transitioned to Phase 16
 progress:
@@ -20,13 +20,13 @@ progress:
 # Project State & Memory
 
 **Last Updated:** 2026-06-23  
-**Status:** Ready to plan
+**Status:** Ready to execute
 
 ## Current Position
 
 Phase: 16 — Zone Management
 Plan: Not started
-Status: Ready to plan
+Status: Ready to execute
 Last activity: 2026-06-23 — Phase 15 complete (UAT + security), transitioned to Phase 16
 
 ## Project Context
@@ -237,6 +237,6 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 
 ## Session
 
-**Last session:** 2026-06-23T05:45:38.265Z
-**Stopped at:** Phase 16 context gathered
-**Resume file:** .planning/phases/16-zone-management/16-CONTEXT.md
+**Last session:** 2026-06-23T05:57:12.424Z
+**Stopped at:** Phase 16 UI-SPEC approved
+**Resume file:** .planning/phases/16-zone-management/16-UI-SPEC.md

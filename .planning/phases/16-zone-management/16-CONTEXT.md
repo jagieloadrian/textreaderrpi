@@ -49,7 +49,7 @@ Requirements: ZONE-09, ZONE-10.
   1. **Local** — Pi hardware (MAX7219/LCD/OLED via SPI/I2C). Config-only at startup. Not creatable via API.
   2. **Network** — Another TextReaderRpi node on the network. `NetworkZoneDriver` connects outbound WS to their `/ws` endpoint. Discovered via UDP scan or added manually by IP.
   3. **Firmware** — Pico/ESP32 microcontroller. `FirmwareZoneDriver` accepts inbound WS on `/ws/zone/{id}`. Device finds the server (hardcoded IP in firmware). NOT discovered via UDP scan.
-- **D-13:** Autodiscovery (UDP scan / `NetworkDiscoveryService`) works only for Network zones (other TextReaderRpi nodes that respond to UDP broadcasts). Firmware devices do not respond to UDP — they connect directly. No autodiscovery for firmware zones.
+- **D-13** [informational]: Autodiscovery (UDP scan / `NetworkDiscoveryService`) works only for Network zones (other TextReaderRpi nodes that respond to UDP broadcasts). Firmware devices do not respond to UDP — they connect directly. No autodiscovery for firmware zones.
 
 ### Claude's Discretion
 
