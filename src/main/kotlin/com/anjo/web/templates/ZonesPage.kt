@@ -117,7 +117,7 @@ fun FlowContent.zonesPage(zones: List<ZoneInfo>) {
                             +" "
                             val typeLabel = when {
                                 zone.isLocal -> "Local (${zone.type})"
-                                zone.type == "FIRMWARE" -> "Firmware (${zone.type})"
+                                zone.type == "FIRMWARE" -> "Firmware"
                                 else -> "Network (${zone.type})"
                             }
                             +typeLabel
