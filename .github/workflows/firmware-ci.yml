@@ -1,0 +1,91 @@
+name: Firmware CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firmware-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pico:
+    name: Pico W firmware (${{ matrix.board }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        board: [pico_w, pico2_w]
+
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install ARM toolchain and build tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-arm-none-eabi cmake ninja-build
+
+      - name: Clone pico-sdk 2.1.1
+        run: |
+          git clone --depth 1 --branch 2.1.1 \
+            https://github.com/raspberrypi/pico-sdk.git /opt/pico-sdk
+          cd /opt/pico-sdk && git submodule update --init --recursive
+          echo "PICO_SDK_PATH=/opt/pico-sdk" >> "$GITHUB_ENV"
+
+      - name: CMake configure (${{ matrix.board }})
+        run: |
+          cmake -S firmware/pico -B firmware/pico/build \
+            -DPICO_BOARD=${{ matrix.board }} \
+            -DCMAKE_BUILD_TYPE=MinSizeRel
+
+      - name: Build textreader
+        run: cmake --build firmware/pico/build --target textreader -j$(nproc)
+
+      - name: Upload Pico firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pico-${{ matrix.board }}-firmware
+          path: |
+            firmware/pico/build/textreader.uf2
+            firmware/pico/build/textreader_combined.uf2
+          if-no-files-found: error
+
+  esp32:
+    name: ESP32 firmware
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Build ESP32 firmware
+        run: pio run -e esp32dev
+        working-directory: firmware/esp32
+
+      - name: Upload ESP32 firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32-firmware
+          path: |
+            firmware/esp32/.pio/build/esp32dev/firmware.bin
+            firmware/esp32/.pio/build/esp32dev/firmware.elf
+          if-no-files-found: error
