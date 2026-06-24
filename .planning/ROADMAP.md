@@ -142,13 +142,13 @@ Plans:
   5. OTA firmware update: a new firmware binary can be pushed to the device over WiFi without physical access (Pico: pico-sdk HTTP OTA or equivalent; ESP32: ArduinoOTA / ESP.update())
   6. WiFi captive portal provisioning: a device with no WiFi credentials stored boots into AP mode and serves a captive portal page where the user enters SSID/password; credentials are saved to flash and the device reboots into normal mode
 
-**Plans**: 6 plans
+**Plans**: 1/6 plans executed
 
 Plans:
 
 **Wave 1**
 
-- [ ] 17-01-PLAN.md — Server wire protocol: FirmwareMessage + ZoneDriver.send timing fields (speed/blinkPeriod/fadeSteps), threaded through ZoneRegistry + ScreenDriverService (FW-01)
+- [x] 17-01-PLAN.md — Server wire protocol: FirmwareMessage + ZoneDriver.send timing fields (speed/blinkPeriod/fadeSteps), threaded through ZoneRegistry + ScreenDriverService (FW-01)
 
 **Wave 2** *(blocked on Wave 1)*
 
