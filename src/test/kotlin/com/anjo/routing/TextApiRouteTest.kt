@@ -139,4 +139,27 @@ class TextApiRouteTest : FunSpec({
             response.status shouldBe HttpStatusCode.BadRequest
         }
     }
+
+    test("should return 202 when valid positive timing params are provided") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/text") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"Hello","speed":50,"blinkPeriod":500,"fadeSteps":8}""")
+            }
+            response.status shouldBe HttpStatusCode.Accepted
+        }
+    }
+
+    test("should return 422 when speed is negative on POST /api/v1/text") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/text") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"text":"Hello","speed":-1}""")
+            }
+            response.status shouldBe HttpStatusCode.UnprocessableEntity
+            response.bodyAsText() shouldContain "error"
+        }
+    }
 })

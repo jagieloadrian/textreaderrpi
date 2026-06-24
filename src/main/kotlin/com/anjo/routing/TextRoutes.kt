@@ -27,7 +27,7 @@ fun Route.textRoutes(screenDriverService: ScreenDriverService) {
 
         log.info("Text received: length=${request.text.length} effect=${request.effect} conflictPolicy=${request.conflictPolicy} zone=$zoneId")
 
-        when (val result = screenDriverService.displayImmediate(request.text, request.effect, request.conflictPolicy, zoneId)) {
+        when (val result = screenDriverService.displayImmediate(request.text, request.effect, request.conflictPolicy, zoneId, speed = request.speed, blinkPeriod = request.blinkPeriod, fadeSteps = request.fadeSteps)) {
             is DisplayResult.ZoneNotFound -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "Zone '$zoneId' not found"))
             is DisplayResult.ZoneOffline -> call.respond(HttpStatusCode.ServiceUnavailable, mapOf("error" to "Zone '$zoneId' is OFFLINE"))
             is DisplayResult.Accepted -> call.respond(
