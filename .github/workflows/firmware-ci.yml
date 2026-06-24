@@ -38,6 +38,7 @@ jobs:
           sudo apt-get install -y gcc-arm-none-eabi cmake ninja-build
 
       - name: Restore/cache pico-sdk
+        id: cache-pico
         uses: actions/cache@v4
         with:
           path: |
@@ -47,7 +48,7 @@ jobs:
             pico-sdk-${{ runner.os }}-
 
       - name: Clone pico-sdk 2.1.1 (if cache miss)
-        if: "!ne(runner.os, 'X') && steps.restore-cache.outputs.cache-hit != 'true' || true"
+        if: steps.cache-pico.outputs.cache-hit != 'true'
         run: |
           # Clone into workspace to avoid permission issues writing to /opt
           git clone --depth 1 --branch 2.1.1 \
@@ -92,6 +93,7 @@ jobs:
           python-version: "3.x"
 
       - name: Restore/cache esp-idf
+        id: cache-esp
         uses: actions/cache@v4
         with:
           path: |
@@ -118,14 +120,14 @@ jobs:
 
       - name: CMake configure (esp32)
         run: |
-          . /opt/esp-idf/export.sh
+          . ${{ env.IDF_PATH }}/export.sh
           cmake -S firmware/esp32 -B firmware/esp32/build \
             -DIDF_TARGET=esp32 \
             -DCMAKE_BUILD_TYPE=MinSizeRel
 
       - name: Build ESP32 firmware
         run: |
-          . /opt/esp-idf/export.sh
+          . ${{ env.IDF_PATH }}/export.sh
           cmake --build firmware/esp32/build -j$(nproc)
 
       - name: Upload ESP32 firmware artifacts
