@@ -58,32 +58,6 @@ jobs:
 
       - name: CMake configure (${{ matrix.board }})
         run: |
-          # Ensure project has minimal config.h and lwipopts.h to satisfy SDK includes in CI
-          if [ ! -f firmware/pico/config.h ]; then
-            cat > firmware/pico/config.h <<'EOF'
-#ifndef CONFIG_H
-#define CONFIG_H
-#define WIFI_SSID ""
-#define WIFI_PASS ""
-#define SERVER_HOST ""
-#define SERVER_PORT 8080
-#define ZONE_ID "pico"
-#define NUM_DEVICES 4
-#define RECONNECT_INTERVAL_MS 5000
-#define FLASH_CRED_OFFSET (256*1024)
-#endif
-EOF
-          fi
-          if [ ! -f firmware/pico/src/lwipopts.h ]; then
-            cat > firmware/pico/src/lwipopts.h <<'EOF'
-#ifndef LWIPOPTS_H
-#define LWIPOPTS_H
-#define LWIP_SOCKET 1
-#define SO_REUSE 1
-// Minimal options for CI builds; adjust for hardware-specific configs
-#endif
-EOF
-          fi
           cmake -S firmware/pico -B firmware/pico/build \
             -DPICO_BOARD=${{ matrix.board }} \
             -DCMAKE_BUILD_TYPE=MinSizeRel
