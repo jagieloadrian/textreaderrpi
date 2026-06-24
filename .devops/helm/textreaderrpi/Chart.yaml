@@ -1,0 +1,17 @@
+apiVersion: v2
+name: textreaderrpi
+description: "Kubernetes Helm chart for TextReaderRpi — a Raspberry Pi text display controller"
+type: application
+version: 1.0.0
+appVersion: "1.2"
+home: "https://github.com/yourusername/textreaderrpi"
+sources:
+  - "https://github.com/yourusername/textreaderrpi"
+keywords:
+  - "kubernetes"
+  - "helm"
+  - "raspberrypi"
+  - "display"
+maintainers:
+  - name: "TextReader Team"
+

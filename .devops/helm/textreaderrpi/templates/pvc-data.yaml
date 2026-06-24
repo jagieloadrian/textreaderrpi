@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "textreaderrpi.fullname" . }}-data
+  labels:
+    {{- include "textreaderrpi.labels" . | nindent 4 }}
+    volume: data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.persistence.data.storageClass }}
+  storageClassName: {{ .Values.persistence.data.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.data.size | quote }}
+

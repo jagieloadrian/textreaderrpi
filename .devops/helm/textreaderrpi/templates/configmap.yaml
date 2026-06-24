@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: textreaderrpi-config
+  labels:
+    {{- include "textreaderrpi.labels" . | nindent 4 }}
+data:
+  # JVM Heap cap (must be within 256 MB limit for Pi)
+  JAVA_TOOL_OPTIONS: "-Xmx220m"
+
+  # Application basics
+  PORT: "8080"
+
+  # Display configuration
+  DISPLAY_TYPE: "MAX7219"
+  MAX7219_NUM_DEVICES: "2"
+  GPIO_SPI_CE: "8"
+  GPIO_SPI_MOSI: "10"
+  GPIO_SPI_MISO: "9"
+  GPIO_SPI_SCK: "11"
+  I2C_BUS: "1"
+
+  # Hardware timeouts
+  SPI_TIMEOUT_MS: "1000"
+  GPIO_TIMEOUT_MS: "500"
+
+  # API configuration
+  API_MAX_TEXT_LENGTH: "128"
+  API_QUEUE_SIZE: "10"
+  API_RATE_LIMIT: "60"
+  API_METRICS_RATE_LIMIT: "120"
+
+  # Retry configuration
+  RETRY_MAX_ATTEMPTS: "5"
+  RETRY_INITIAL_DELAY_MS: "1000"
+  RETRY_MAX_DELAY_MS: "30000"
+  RETRY_FACTOR: "2.0"
+
+  # Metrics & Logging
+  METRICS_ENABLED: "true"
+  METRICS_PREFIX: "textreaderrpi"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  SCREEN_DRIVER_MAX_SLOTS: "10"
+  SCROLL_SPEED: "16"
+  REFRESH_RATE: "60"
+
+  # Database
+  DATABASE_URL: "jdbc:h2:file:/data/schedules;DB_CLOSE_DELAY=-1;AUTO_SERVER=FALSE"
+  DATABASE_DRIVER: "org.h2.Driver"
+  DATABASE_POOL_SIZE: "5"
+

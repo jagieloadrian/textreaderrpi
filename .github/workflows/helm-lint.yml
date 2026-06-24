@@ -1,0 +1,44 @@
+name: Helm Lint
+
+on:
+  pull_request:
+    paths:
+      - '.devops/helm/textreaderrpi/**'
+      - '.github/workflows/helm-lint.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '.devops/helm/textreaderrpi/**'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - name: Helm Lint (default)
+        run: |
+          helm lint .devops/helm/textreaderrpi/
+
+      - name: Helm Template (default)
+        run: |
+          helm template textreaderrpi .devops/helm/textreaderrpi/
+
+      - name: Helm Template (hardwareAccess=true)
+        run: |
+          helm template textreaderrpi .devops/helm/textreaderrpi/ --set hardwareAccess.enabled=true
+
+      - name: Helm Template (rbac.create=false)
+        run: |
+          helm template textreaderrpi .devops/helm/textreaderrpi/ --set rbac.create=false
+
+      - name: Helm Template (ingress.enabled=true)
+        run: |
+          helm template textreaderrpi .devops/helm/textreaderrpi/ --set ingress.enabled=true
+
