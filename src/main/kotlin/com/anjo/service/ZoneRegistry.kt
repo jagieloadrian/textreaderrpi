@@ -98,14 +98,14 @@ class ZoneRegistry() {
         return entry.driver as? FirmwareZoneDriver
     }
 
-    suspend fun route(zoneId: String, text: String, effect: Effect): Boolean {
-        return zones[zoneId]?.driver?.send(text, effect) ?: false
+    suspend fun route(zoneId: String, text: String, effect: Effect, speed: Int? = null, blinkPeriod: Int? = null, fadeSteps: Int? = null): Boolean {
+        return zones[zoneId]?.driver?.send(text, effect, speed, blinkPeriod, fadeSteps) ?: false
     }
 
-    suspend fun broadcast(text: String, effect: Effect): BroadcastResult {
+    suspend fun broadcast(text: String, effect: Effect, speed: Int? = null, blinkPeriod: Int? = null, fadeSteps: Int? = null): BroadcastResult {
         val results = coroutineScope {
             zones.map { (id, entry) ->
-                id to async { runCatching { entry.driver.send(text, effect) }.getOrDefault(false) }
+                id to async { runCatching { entry.driver.send(text, effect, speed, blinkPeriod, fadeSteps) }.getOrDefault(false) }
             }.map { (id, deferred) ->
                 id to deferred.await()
             }

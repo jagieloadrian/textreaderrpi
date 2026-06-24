@@ -13,7 +13,7 @@ class LocalZoneDriver(
 
     private val log = LoggerFactory.getLogger(LocalZoneDriver::class.java)
 
-    override suspend fun send(text: String, effect: Effect): Boolean {
+    override suspend fun send(text: String, effect: Effect, speed: Int?, blinkPeriod: Int?, fadeSteps: Int?): Boolean {
         return try {
             driver.write(text)
             true

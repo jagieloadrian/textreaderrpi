@@ -40,14 +40,17 @@ class FirmwareZoneDriver(private val id: String) : ZoneDriver {
         sessionRef.set(null)
     }
 
-    override suspend fun send(text: String, effect: Effect): Boolean {
+    override suspend fun send(text: String, effect: Effect, speed: Int?, blinkPeriod: Int?, fadeSteps: Int?): Boolean {
         if (sessionRef.get() == null) return false
         val json = Json.encodeToString(
             FirmwareMessage(
                 text = text,
                 effect = effect.name,
                 zoneId = id,
-                ts = Instant.now().toString()
+                ts = Instant.now().toString(),
+                speed = speed,
+                blinkPeriod = blinkPeriod,
+                fadeSteps = fadeSteps
             )
         )
         return channel.trySend(json).isSuccess

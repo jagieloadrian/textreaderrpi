@@ -55,7 +55,7 @@ class NetworkZoneDriver(
         }
     }
 
-    override suspend fun send(text: String, effect: Effect): Boolean {
+    override suspend fun send(text: String, effect: Effect, speed: Int?, blinkPeriod: Int?, fadeSteps: Int?): Boolean {
         val s = session ?: return false
         return try {
             s.send(Frame.Text("""{"text":${kotlinx.serialization.json.Json.encodeToString(text)},"effect":"${effect.name}"}"""))

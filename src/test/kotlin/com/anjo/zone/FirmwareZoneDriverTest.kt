@@ -1,10 +1,29 @@
 package com.anjo.zone
 
 import com.anjo.model.Effect
+import com.anjo.module
 import com.anjo.service.ZoneRegistry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.di.DependencyKey
+import io.ktor.server.plugins.di.dependencies
+import io.ktor.server.plugins.di.getBlocking
+import io.ktor.server.testing.testApplication
+import io.ktor.websocket.CloseReason
+import io.ktor.websocket.Frame
+import io.ktor.websocket.close
+import io.ktor.websocket.readText
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlin.time.Duration.Companion.milliseconds
 
 class FirmwareZoneDriverTest : FunSpec({
 
@@ -45,5 +64,33 @@ class FirmwareZoneDriverTest : FunSpec({
         registry.registerFirmwareZone("pico-salon")
         registry.contains("pico-salon") shouldBe true
         registry.statusOf("pico-salon") shouldBe "OFFLINE"
+    }
+
+    test("send with attached session and speed param produces JSON frame with speed field") {
+        val server = embeddedServer(Netty, port = 0) { module() }
+        server.start(wait = false)
+        val client = HttpClient(CIO) { install(WebSockets) }
+        try {
+            val port = server.engine.resolvedConnectors().first().port
+            val registry = server.application.dependencies.getBlocking<ZoneRegistry>(DependencyKey<ZoneRegistry>())
+            registry.registerFirmwareZone("pico-timing-test")
+            val driver = registry.firmwareDriver("pico-timing-test")!!
+
+            var receivedJson: String? = null
+            client.webSocket("ws://localhost:$port/ws/zone/pico-timing-test") {
+                delay(50.milliseconds)
+                driver.send("hi", Effect.SCROLL, speed = 120)
+                val frame = incoming.receive() as Frame.Text
+                receivedJson = frame.readText()
+                close(CloseReason(CloseReason.Codes.NORMAL, "done"))
+            }
+
+            receivedJson shouldContain "\"speed\":120"
+            receivedJson shouldNotContain "blinkPeriod"
+            receivedJson shouldNotContain "fadeSteps"
+        } finally {
+            client.close()
+            server.stop(0, 0)
+        }
     }
 })
