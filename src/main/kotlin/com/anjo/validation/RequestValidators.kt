@@ -18,6 +18,10 @@ object RequestValidators {
             )
         }
 
+        req.speed?.let { if (it <= 0) return ValidationResult.Invalid("speed must be a positive integer") }
+        req.blinkPeriod?.let { if (it <= 0) return ValidationResult.Invalid("blinkPeriod must be a positive integer") }
+        req.fadeSteps?.let { if (it <= 0) return ValidationResult.Invalid("fadeSteps must be a positive integer") }
+
         return ValidationResult.Valid
     }
 
