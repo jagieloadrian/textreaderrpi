@@ -61,9 +61,12 @@ jobs:
           if-no-files-found: error
 
   esp32:
-    name: ESP32 firmware
+    name: ESP32 firmware (${{ matrix.env }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      matrix:
+        env: [esp32dev, esp32-s3, esp32-s2, esp32-c3, esp32-c2]
 
     steps:
       - name: Checkout
@@ -77,15 +80,15 @@ jobs:
       - name: Install PlatformIO
         run: pip install platformio
 
-      - name: Build ESP32 firmware
-        run: pio run -e esp32dev
+      - name: Build ESP32 firmware (${{ matrix.env }})
+        run: pio run -e ${{ matrix.env }}
         working-directory: firmware/esp32
 
       - name: Upload ESP32 firmware artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: esp32-firmware
+          name: esp32-${{ matrix.env }}-firmware
           path: |
-            firmware/esp32/.pio/build/esp32dev/firmware.bin
-            firmware/esp32/.pio/build/esp32dev/firmware.elf
+            firmware/esp32/.pio/build/${{ matrix.env }}/firmware.bin
+            firmware/esp32/.pio/build/${{ matrix.env }}/firmware.elf
           if-no-files-found: error
