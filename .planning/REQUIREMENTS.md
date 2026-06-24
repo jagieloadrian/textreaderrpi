@@ -26,7 +26,7 @@
 ## Firmware (C/C++)
 
 - [x] **FW-01**: RPi Pico W / Pico 2W firmware skeleton connects via WiFi, opens WebSocket to server, receives text+effect JSON, renders on attached MAX7219 (`firmware/pico/`, C, pico-sdk)
-- [ ] **FW-02**: ESP32 series firmware skeleton connects via WiFi, opens WebSocket to server, receives text+effect JSON, renders on attached MAX7219 (`firmware/esp32/`, C++, Arduino + ArduinoWebsockets)
+- [x] **FW-02**: ESP32 series firmware skeleton connects via WiFi, opens WebSocket to server, receives text+effect JSON, renders on attached MAX7219 (`firmware/esp32/`, C++, Arduino + ArduinoWebsockets)
 
 ## Kubernetes + Helm
 

@@ -142,7 +142,7 @@ Plans:
   5. OTA firmware update: a new firmware binary can be pushed to the device over WiFi without physical access (Pico: pico-sdk HTTP OTA or equivalent; ESP32: ArduinoOTA / ESP.update())
   6. WiFi captive portal provisioning: a device with no WiFi credentials stored boots into AP mode and serves a captive portal page where the user enters SSID/password; credentials are saved to flash and the device reboots into normal mode
 
-**Plans**: 1/6 plans executed
+**Plans**: 2/6 plans executed
 
 Plans:
 
@@ -152,7 +152,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 17-02-PLAN.md — TextRequest timing fields + RequestValidators positive-int guards + TextRoutes forwarding + API tests (FW-01, FW-02)
+- [x] 17-02-PLAN.md — TextRequest timing fields + RequestValidators positive-int guards + TextRoutes forwarding + API tests (FW-01, FW-02)
 - [ ] 17-03-PLAN.md — Pico W/2W firmware: pico-sdk CMake, Mongoose WS, cJSON, MAX7219 driver + 5x8 font + 4 effects, reconnect, picowota OTA, Mongoose captive portal, README (FW-01)
 - [ ] 17-04-PLAN.md — ESP32 firmware: PlatformIO, ArduinoWebsockets, ArduinoJson, MD_Parola MAX7219 + 4 effects, reconnect, ArduinoOTA, WiFiManager captive portal, README (FW-02)
 
