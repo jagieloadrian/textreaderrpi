@@ -39,18 +39,8 @@ jobs:
         with:
           gradle-version: 9.4.0
 
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Build, test, and verify coverage gate
-        run: ./gradlew --no-daemon clean test jacocoTestReport jacocoTestCoverageVerification
+        run: gradle --no-daemon clean test jacocoTestReport jacocoTestCoverageVerification
 
       - name: Upload test report
         if: always()
