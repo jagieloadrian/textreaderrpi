@@ -37,10 +37,11 @@ jobs:
 
       - name: Clone pico-sdk 2.1.1
         run: |
+          # Clone into workspace to avoid permission issues writing to /opt
           git clone --depth 1 --branch 2.1.1 \
-            https://github.com/raspberrypi/pico-sdk.git /opt/pico-sdk
-          cd /opt/pico-sdk && git submodule update --init --recursive
-          echo "PICO_SDK_PATH=/opt/pico-sdk" >> "$GITHUB_ENV"
+            https://github.com/raspberrypi/pico-sdk.git $GITHUB_WORKSPACE/pico-sdk
+          cd $GITHUB_WORKSPACE/pico-sdk && git submodule update --init --recursive
+          echo "PICO_SDK_PATH=$GITHUB_WORKSPACE/pico-sdk" >> "$GITHUB_ENV"
 
       - name: CMake configure (${{ matrix.board }})
         run: |
@@ -81,10 +82,11 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y git wget flex bison gperf cmake ninja-build \
             libssl-dev libusb-1.0-0 libffi-dev dfu-util
+          # Clone into workspace to avoid permission issues writing to /opt
           git clone --depth 1 --branch v5.2.1 \
-            https://github.com/espressif/esp-idf.git /opt/esp-idf
-          cd /opt/esp-idf && ./install.sh esp32
-          echo "IDF_PATH=/opt/esp-idf" >> "$GITHUB_ENV"
+            https://github.com/espressif/esp-idf.git $GITHUB_WORKSPACE/esp-idf
+          cd $GITHUB_WORKSPACE/esp-idf && ./install.sh esp32
+          echo "IDF_PATH=$GITHUB_WORKSPACE/esp-idf" >> "$GITHUB_ENV"
 
       - name: CMake configure (esp32)
         run: |
