@@ -1,8 +1,8 @@
 # TextReader Pico W Firmware
 
-Firmware for Raspberry Pi Pico W and Pico 2W that drives a MAX7219 LED matrix
-display over SPI, receives text + effect commands from the TextReader server via
-WebSocket, and provisions WiFi credentials through a captive portal on first boot.
+Firmware for Raspberry Pi Pico W and Pico 2W that drives a display over SPI or
+I2C, receives text + effect commands from the TextReader server via WebSocket,
+and provisions WiFi credentials through a captive portal on first boot.
 
 ## Toolchain Requirements
 
@@ -49,7 +49,7 @@ plugging USB). Flashes `textreader_combined.uf2` automatically.
 2. Copy `textreader_combined.uf2` to the drive.
 3. The board reboots automatically.
 
-## MAX7219 Wiring
+## MAX7219 Wiring (default)
 
 | Pico W GPIO | MAX7219 Pin | Signal |
 |-------------|-------------|--------|
@@ -60,6 +60,28 @@ plugging USB). Flashes `textreader_combined.uf2` automatically.
 | GND (pin 38) | GND | Ground |
 
 Chain additional modules via DOUT → DIN. Update `NUM_DEVICES` in `config.h`.
+
+## I2C Display Wiring (SSD1306, SSD1309, SSD1327, HT16K33)
+
+| Pico W GPIO | Display Pin |
+|-------------|-------------|
+| GP4 (I2C0 SDA) | SDA |
+| GP5 (I2C0 SCL) | SCL |
+| 3V3 | VCC |
+| GND | GND |
+
+## SPI Display Wiring (SH1106, ST7735, ST7789, ILI9225, PCD8544, SSD1680)
+
+| Pico W GPIO | Display Pin |
+|-------------|-------------|
+| GP19 (SPI0 TX) | SDA / MOSI |
+| GP18 (SPI0 SCK) | SCL / CLK |
+| GP17 | CS |
+| GP20 | DC / RS |
+| GP21 | RST |
+| GP22 | BUSY *(SSD1680 only)* |
+| 3V3 | VCC |
+| GND | GND |
 
 ## First-Boot WiFi Provisioning
 
