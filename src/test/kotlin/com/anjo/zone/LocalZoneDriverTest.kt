@@ -6,6 +6,7 @@ import com.anjo.driver.OfflineDisplayDriver
 import com.anjo.model.Effect
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -26,7 +27,7 @@ class LocalZoneDriverTest : FunSpec({
     test("should return false when the wrapped driver throws on send") {
         val driver = mockk<DisplayDriver>(relaxed = true)
         every { driver.status() } returns DisplayStatus(isActive = false, hardwareAvailable = true)
-        every { driver.write(any()) } throws RuntimeException("SPI failure")
+        coEvery { driver.displayStatic(any()) } throws RuntimeException("SPI failure")
         val zoneDriver = LocalZoneDriver(id = "main", type = "MAX7219", driver = driver)
 
         runTest {
