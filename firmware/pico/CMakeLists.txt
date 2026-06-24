@@ -21,7 +21,11 @@ FetchContent_Declare(cjson
 set(ENABLE_CJSON_TEST OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(cjson)
 
-add_subdirectory(picowota)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/picowota/CMakeLists.txt)
+    add_subdirectory(picowota)
+else()
+    message(WARNING "picowota subdirectory not found; OTA features will be disabled for this build")
+endif()
 
 add_executable(textreader
     src/main.c
@@ -93,13 +97,17 @@ target_link_libraries(textreader
     pico_stdlib
     pico_cyw43_arch_lwip_threadsafe_background
     cjson
-    picowota_reboot
+    $<$<TARGET_EXISTS:picowota_reboot>:picowota_reboot>
 )
 
 pico_enable_stdio_usb(textreader 1)
 pico_enable_stdio_uart(textreader 0)
 pico_add_extra_outputs(textreader)
-picowota_build_combined(textreader)
+if(COMMAND picowota_build_combined)
+    picowota_build_combined(textreader)
+else()
+    message(STATUS "picowota_build_combined not available; skipping combined uf2 target")
+endif()
 
 add_custom_target(flash
     COMMAND picotool load -f ${CMAKE_CURRENT_BINARY_DIR}/textreader_combined.uf2 --force
