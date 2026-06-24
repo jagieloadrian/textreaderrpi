@@ -8,7 +8,23 @@
     "useAI": true,
     "parallelPhases": false,
     "autoCommit": true,
-    "_auto_chain_active": false
+    "_auto_chain_active": false,
+    "research": true,
+    "nyquist_validation": true,
+    "pattern_mapper": true,
+    "ui_phase": true,
+    "ui_safety_gate": true,
+    "ai_integration_phase": true,
+    "tdd_mode": false,
+    "code_review": true,
+    "ui_review": true,
+    "plan_check": true,
+    "verifier": true,
+    "auto_advance": false,
+    "research_before_questions": false,
+    "skip_discuss": false,
+    "use_worktrees": true,
+    "code_review_depth": "standard"
   },
   "team": {
     "size": "solo",
@@ -23,5 +39,23 @@
     "testCoverage": 70,
     "documentation": true,
     "codeReview": "self"
+  },
+  "intel": {
+    "enabled": false
+  },
+  "graphify": {
+    "enabled": false
+  },
+  "model_profile": "adaptive",
+  "commit_docs": true,
+  "plan_review": {
+    "source_grounding": true
+  },
+  "git": {
+    "branching_strategy": "none",
+    "create_tag": true
+  },
+  "hooks": {
+    "context_warnings": true
   }
 }
