@@ -1,0 +1,4 @@
+#pragma once
+
+#define MG_ARCH        MG_ARCH_PICOSDK
+#define MG_ENABLE_LWIP 1
