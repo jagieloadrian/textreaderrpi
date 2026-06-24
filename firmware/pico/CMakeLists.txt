@@ -85,7 +85,7 @@ endif()
 target_include_directories(textreader PRIVATE
     src
     lib/mongoose
-    font
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common
     ${cjson_SOURCE_DIR}
 )
 

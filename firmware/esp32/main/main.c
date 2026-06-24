@@ -5,7 +5,7 @@
 #include "esp_event.h"
 #include "captive_portal.h"
 #include "ws_client.h"
-#include "driver/display.h"
+#include "display.h"
 
 void app_main(void) {
     esp_err_t ret = nvs_flash_init();

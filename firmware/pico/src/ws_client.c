@@ -1,6 +1,6 @@
 #include "ws_client.h"
 #include "json_parser.h"
-#include "driver/display.h"
+#include "display.h"
 #include "config.h"
 #include "mongoose.h"
 #include "pico/stdlib.h"
@@ -20,20 +20,20 @@ static void ws_handler(struct mg_connection *c, int ev, void *ev_data) {
         if (len >= (int)sizeof(buf)) len = (int)sizeof(buf) - 1;
         memcpy(buf, wm->data.buf, (size_t)len);
         buf[len] = '\0';
-        parse_and_display(buf);
+        parse_message(buf);
     } else if (ev == MG_EV_CLOSE) {
         s_connected = false;
     }
     (void)c;
 }
 
-void ws_task(void) {
+void ws_client_start(void) {
     struct mg_mgr mgr;
     mg_mgr_init(&mgr);
 
     for (;;) {
         if (!s_connected) {
-            display_text("Connecting...", "BLINK", 500);
+            display_text("Connecting...", "BLINK", 500, 500, 8);
             char url[128];
             snprintf(url, sizeof(url), "ws://%s:%d/ws/zone/%s",
                      SERVER_HOST, SERVER_PORT, ZONE_ID);

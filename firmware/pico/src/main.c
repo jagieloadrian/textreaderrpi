@@ -3,7 +3,7 @@
 #include "hardware/flash.h"
 #include "ws_client.h"
 #include "captive_portal.h"
-#include "driver/display.h"
+#include "display.h"
 #include "config.h"
 #include <string.h>
 #include <stdio.h>
@@ -32,7 +32,7 @@ int main(void) {
     bool has_creds = load_creds(&cred);
 
     if (!has_creds) {
-        captive_portal_start();
+        wifi_start();
         return 0;
     }
 
@@ -44,7 +44,7 @@ int main(void) {
     }
 
     display_init();
-    ws_task();
+    ws_client_start();
 
     cyw43_arch_deinit();
     return 0;

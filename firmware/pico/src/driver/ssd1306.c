@@ -2,7 +2,7 @@
 
 #include "ssd1306.h"
 #include "display.h"
-#include "../../font/font5x8.h"
+#include "font/font5x8.h"
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
 #include <string.h>

@@ -1,6 +1,6 @@
 #include "ota.h"
 #include "picowota/reboot.h"
 
-void trigger_ota(void) {
+void ota_trigger(void) {
     picowota_reboot(true);
 }

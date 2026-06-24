@@ -116,7 +116,7 @@ static void write_creds_to_flash(const cred_t *cred) {
     restore_interrupts(ints);
 }
 
-void captive_portal_start(void) {
+void wifi_start(void) {
     cyw43_arch_enable_ap_mode("TextReader-Setup", NULL, CYW43_AUTH_OPEN);
 
     struct mg_mgr mgr;

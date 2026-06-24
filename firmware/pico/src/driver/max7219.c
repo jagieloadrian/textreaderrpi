@@ -66,7 +66,7 @@ void display_clear(void) {
     }
 }
 
-static void render_columns(const uint8_t *cols, int offset) {
+static void render_columns(int offset) {
     for (int row = 0; row < 8; row++) {
         uint8_t buf[NUM_DEVICES * 2];
         for (int d = 0; d < NUM_DEVICES; d++) {
@@ -79,7 +79,6 @@ static void render_columns(const uint8_t *cols, int offset) {
         spi_write_blocking(MAX7219_SPI, buf, sizeof(buf));
         gpio_put(MAX7219_PIN_CS, 1);
     }
-    (void)cols;
 }
 
 static int build_text_bitmap(const char *text) {
@@ -100,57 +99,56 @@ static int build_text_bitmap(const char *text) {
     return idx;
 }
 
-void display_text(const char *text, const char *effect, int speed_ms) {
+void display_text(const char *text, const char *effect, int speed_ms, int blink_period_ms, int fade_steps) {
     if (speed_ms <= 0) speed_ms = 1;
     if (speed_ms > 5000) speed_ms = 5000;
+    if (blink_period_ms <= 0) blink_period_ms = 500;
+    if (fade_steps <= 0) fade_steps = 8;
 
-    int blink_period = speed_ms;
-    int fade_steps   = 8;
-    int display_w    = NUM_DEVICES * 8;
+    int display_w = NUM_DEVICES * 8;
 
     if (strcmp(effect, "SCROLL") == 0) {
         s_bitmap_len = build_text_bitmap(text);
         int offset = 0;
         while (offset <= s_bitmap_len - display_w) {
-            render_columns(NULL, offset);
+            render_columns(offset);
             sleep_ms((uint32_t)speed_ms);
             offset++;
         }
     } else if (strcmp(effect, "BLINK") == 0) {
         s_bitmap_len = build_text_bitmap(text);
-        render_columns(NULL, 0);
+        render_columns(0);
         for (int i = 0; i < 6; i++) {
-            sleep_ms((uint32_t)blink_period);
+            sleep_ms((uint32_t)blink_period_ms);
             max7219_send_all(REG_SHUTDOWN, 0x00);
-            sleep_ms((uint32_t)blink_period);
+            sleep_ms((uint32_t)blink_period_ms);
             max7219_send_all(REG_SHUTDOWN, 0x01);
-            render_columns(NULL, 0);
+            render_columns(0);
         }
     } else if (strcmp(effect, "REVERSE") == 0) {
         s_bitmap_len = build_text_bitmap(text);
         int rev_offset = (s_bitmap_len > display_w) ? s_bitmap_len - display_w : 0;
         while (rev_offset >= 0) {
-            render_columns(NULL, rev_offset);
+            render_columns(rev_offset);
             sleep_ms((uint32_t)speed_ms);
             rev_offset--;
         }
     } else if (strcmp(effect, "FADE") == 0) {
         s_bitmap_len = build_text_bitmap(text);
-        render_columns(NULL, 0);
+        render_columns(0);
+        int div = (fade_steps > 1) ? fade_steps - 1 : 1;
         for (int step = 0; step < fade_steps; step++) {
-            uint8_t intensity = (uint8_t)((step * 15) / (fade_steps - 1));
-            max7219_send_all(REG_INTENSITY, intensity);
+            max7219_send_all(REG_INTENSITY, (uint8_t)((step * 15) / div));
             sleep_ms((uint32_t)(speed_ms / fade_steps));
         }
         for (int step = fade_steps - 1; step >= 0; step--) {
-            uint8_t intensity = (uint8_t)((step * 15) / (fade_steps - 1));
-            max7219_send_all(REG_INTENSITY, intensity);
+            max7219_send_all(REG_INTENSITY, (uint8_t)((step * 15) / div));
             sleep_ms((uint32_t)(speed_ms / fade_steps));
         }
         max7219_send_all(REG_INTENSITY, 0x04);
     } else {
         s_bitmap_len = build_text_bitmap(text);
-        render_columns(NULL, 0);
+        render_columns(0);
         sleep_ms(2000);
     }
 }

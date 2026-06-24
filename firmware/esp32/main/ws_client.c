@@ -1,6 +1,6 @@
 #include "ws_client.h"
 #include "json_parser.h"
-#include "driver/display.h"
+#include "display.h"
 #include "config.h"
 #include "esp_websocket_client.h"
 #include "esp_log.h"

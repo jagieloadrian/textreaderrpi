@@ -1,6 +1,6 @@
 #include "json_parser.h"
 #include "ota.h"
-#include "driver/display.h"
+#include "display.h"
 #include "cJSON.h"
 #include <string.h>
 
