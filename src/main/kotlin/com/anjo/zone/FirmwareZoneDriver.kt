@@ -37,6 +37,7 @@ class FirmwareZoneDriver(private val id: String) : ZoneDriver {
     }
 
     fun detach() {
+        drainJob.getAndSet(null)?.cancel()
         sessionRef.set(null)
     }
 
@@ -56,12 +57,15 @@ class FirmwareZoneDriver(private val id: String) : ZoneDriver {
         return channel.trySend(json).isSuccess
     }
 
-    override fun status(): ZoneStatus = ZoneStatus(
-        id = id,
-        type = DisplayType.FIRMWARE.name,
-        status = if (sessionRef.get() != null) "ONLINE" else "OFFLINE",
-        error = if (sessionRef.get() == null) "OFFLINE" else null
-    )
+    override fun status(): ZoneStatus {
+        val online = sessionRef.get() != null && drainJob.get() != null && !(drainJob.get()?.isCancelled ?: true)
+        return ZoneStatus(
+            id = id,
+            type = DisplayType.FIRMWARE.name,
+            status = if (online) "ONLINE" else "OFFLINE",
+            error = if (!online) "OFFLINE" else null
+        )
+    }
 
     override fun stop() {
         channel.close()
