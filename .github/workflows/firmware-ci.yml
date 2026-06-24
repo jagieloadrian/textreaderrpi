@@ -61,34 +61,48 @@ jobs:
           if-no-files-found: error
 
   esp32:
-    name: ESP32 firmware (${{ matrix.env }})
+    name: ESP32 firmware (esp32)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        env: [esp32dev, esp32-s3, esp32-s2, esp32-c3, esp32-c2]
+    timeout-minutes: 45
 
     steps:
-      - name: Checkout
+      - name: Checkout (with submodules)
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Set up Python 3.x
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
-      - name: Install PlatformIO
-        run: pip install platformio
+      - name: Install ESP-IDF v5.2.1
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y git wget flex bison gperf cmake ninja-build \
+            libssl-dev libusb-1.0-0 libffi-dev dfu-util
+          git clone --depth 1 --branch v5.2.1 \
+            https://github.com/espressif/esp-idf.git /opt/esp-idf
+          cd /opt/esp-idf && ./install.sh esp32
+          echo "IDF_PATH=/opt/esp-idf" >> "$GITHUB_ENV"
 
-      - name: Build ESP32 firmware (${{ matrix.env }})
-        run: pio run -e ${{ matrix.env }}
-        working-directory: firmware/esp32
+      - name: CMake configure (esp32)
+        run: |
+          . /opt/esp-idf/export.sh
+          cmake -S firmware/esp32 -B firmware/esp32/build \
+            -DIDF_TARGET=esp32 \
+            -DCMAKE_BUILD_TYPE=MinSizeRel
+
+      - name: Build ESP32 firmware
+        run: |
+          . /opt/esp-idf/export.sh
+          cmake --build firmware/esp32/build -j$(nproc)
 
       - name: Upload ESP32 firmware artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: esp32-${{ matrix.env }}-firmware
+          name: esp32-firmware
           path: |
-            firmware/esp32/.pio/build/${{ matrix.env }}/firmware.bin
-            firmware/esp32/.pio/build/${{ matrix.env }}/firmware.elf
+            firmware/esp32/build/textreader.bin
+            firmware/esp32/build/textreader.elf
           if-no-files-found: error

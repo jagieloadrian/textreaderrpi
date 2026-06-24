@@ -100,3 +100,9 @@ pico_enable_stdio_usb(textreader 1)
 pico_enable_stdio_uart(textreader 0)
 pico_add_extra_outputs(textreader)
 picowota_build_combined(textreader)
+
+add_custom_target(flash
+    COMMAND picotool load -f ${CMAKE_CURRENT_BINARY_DIR}/textreader_combined.uf2 --force
+    DEPENDS textreader
+    COMMENT "Flashing textreader_combined.uf2 via picotool"
+)

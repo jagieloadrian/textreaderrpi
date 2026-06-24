@@ -1,6 +1,6 @@
 #ifndef CAPTIVE_PORTAL_H
 #define CAPTIVE_PORTAL_H
 
-void setup_wifi(void);
+void wifi_start(void);
 
 #endif
