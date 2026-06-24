@@ -12,8 +12,11 @@ Deliver a Helm chart in `.devops/helm/textreaderrpi/` that deploys TextReaderRpi
 - Expose a `hardwareAccess.enabled` toggle that mounts `/dev/spidev0.0` + `/dev/i2c-1` when true, and sets `DISPLAY_TYPE=OFFLINE` when false
 - Cap JVM heap at `-Xmx220m` via `JAVA_TOOL_OPTIONS`
 - Use a PVC for H2 data (`/data`) and a PVC for logs (`/app/logs`)
+- Include an Ingress resource (optional, toggled via `ingress.enabled`)
+- Include a ServiceAccount + RBAC (Role + RoleBinding) for the pod
+- **Always** run exactly 1 replica — hardcoded, not configurable
 
-No new application features. No ingress, TLS, HPA, RBAC, or multi-replica. This is a packaging phase only.
+No new application features. No TLS, HPA, or multi-replica. This is a packaging phase only.
 
 Requirement: OPS-01
 
@@ -53,6 +56,20 @@ Requirement: OPS-01
 - **D-12:** Readiness probe → `GET /health/ready` (Ktor readiness, already implemented).
 - Initial delay: 20s (matches docker-compose `start_period`), interval: 30s, timeout: 5s, failure threshold: 3.
 
+### Replicas
+
+- **D-13:** `replicas` is hardcoded to `1` in the Deployment spec — **not a values.yaml knob**. Rationale: Pi hardware (SPI/I2C devices, H2 file DB) cannot be shared across multiple pods. A second pod would crash on startup trying to acquire the same SPI device or lock the same H2 file. HPA is also excluded for the same reason.
+
+### Ingress
+
+- **D-14:** `ingress.enabled: false` by default. When enabled, creates a standard `networking.k8s.io/v1` Ingress resource. `ingress.host` configurable (e.g., `textreader.local`). No TLS in this phase — TLS deferred to v1.3+.
+- **D-15:** `ingress.className: ""` (empty string) by default — works with K3s Traefik without specifying a class. User can override.
+
+### RBAC
+
+- **D-16:** Chart creates a dedicated `ServiceAccount` (`{{ .Release.Name }}-sa`). A `Role` with minimal permissions (only `get`/`list` on `pods` in its own namespace — needed for Pi node self-awareness) + `RoleBinding` binding the SA to the Role.
+- **D-17:** `rbac.create: true` in values.yaml. When false, no Role/RoleBinding created and the pod uses the `default` ServiceAccount.
+
 </decisions>
 
 <canonical_refs>
@@ -84,7 +101,7 @@ Requirement: OPS-01
 - `privileged: true` is already required in docker-compose — same flag applies in K8s securityContext.
 
 ### Integration Points
-- Chart templates: `templates/deployment.yaml`, `templates/configmap.yaml`, `templates/secret.yaml`, `templates/pvc-data.yaml`, `templates/pvc-logs.yaml`, `templates/service.yaml`, `Chart.yaml`, `values.yaml`.
+- Chart templates: `templates/deployment.yaml`, `templates/configmap.yaml`, `templates/secret.yaml`, `templates/pvc-data.yaml`, `templates/pvc-logs.yaml`, `templates/service.yaml`, `templates/ingress.yaml`, `templates/serviceaccount.yaml`, `templates/rbac.yaml`, `Chart.yaml`, `values.yaml`.
 - No new application code. No changes to `src/`.
 
 </code_context>
@@ -101,10 +118,9 @@ Requirement: OPS-01
 <deferred>
 ## Deferred Ideas
 
-- Ingress + TLS — listed in REQUIREMENTS.md "Future Requirements (v1.3+)". Do NOT add.
-- HPA (autoscaling) — deferred, single-replica only for v1.2.
-- RBAC / ServiceAccount — not required by OPS-01.
-- Multi-replica with PostgreSQL backend — deferred to v1.3+.
+- TLS on Ingress — deferred to v1.3+.
+- HPA (autoscaling) — permanently excluded; Pi hardware constraint means 1 pod always.
+- Multi-replica with PostgreSQL backend — deferred to v1.3+. H2 file DB + SPI devices are single-consumer only.
 - Secret management via external-secrets-operator — out of scope; plain K8s Secret is sufficient for home lab.
 
 </deferred>
