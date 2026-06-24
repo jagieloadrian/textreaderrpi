@@ -116,7 +116,14 @@ jobs:
 
       - name: Install ESP-IDF Python requirements
         run: |
-          python3 -m pip install --user -r ${{ github.workspace }}/esp-idf/requirements.txt
+          # Install requirements from the most likely locations in esp-idf
+          if [ -f "${{ github.workspace }}/esp-idf/requirements.txt" ]; then
+            python3 -m pip install --user -r "${{ github.workspace }}/esp-idf/requirements.txt"
+          elif [ -f "${{ github.workspace }}/esp-idf/tools/requirements/requirements.core.txt" ]; then
+            python3 -m pip install --user -r "${{ github.workspace }}/esp-idf/tools/requirements/requirements.core.txt"
+          else
+            echo "No requirements file found in esp-idf; skipping pip install"
+          fi
 
       - name: CMake configure (esp32)
         run: |
