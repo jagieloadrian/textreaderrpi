@@ -70,7 +70,7 @@ void display_clear(void) {
     pcd8544_flush();
 }
 
-void display_text(const char *text, const char *effect, int speed_ms) {
+void display_text(const char *text, const char *effect, int speed_ms, int blink_period_ms, int fade_steps) {
     int sp = clamp_speed(speed_ms);
     static uint8_t bmp[512];
     int bmp_len;

@@ -10,22 +10,44 @@ WebSocket, and provisions WiFi credentials through a captive portal on first boo
 |------|----------------|-------|
 | CMake | 3.13 | Build system |
 | arm-none-eabi-gcc | 10.3 | Embedded cross-compiler |
-| pico-sdk | 2.x | Set `PICO_SDK_PATH` env var |
-| picowota | git submodule | OTA bootloader (init with `git submodule update --init`) |
+| pico-sdk | 2.1.1 | Set `PICO_SDK_PATH` env var |
+| picotool | latest | Required for `cmake --build --target flash` |
+| picowota | git submodule | OTA bootloader — init with `git submodule update --init --recursive` |
 | cJSON | 1.7.19 | Fetched automatically via FetchContent |
-| Mongoose | 7.21 | Bundled in `lib/mongoose/` — two-file drop-in |
+| Mongoose | 7.21 | Bundled in `lib/mongoose/` |
+
+Shared headers (font, display interface, etc.) live in `firmware/common/` and are
+included automatically — no extra setup needed.
 
 ## Building
 
-```
-mkdir build && cd build
-cmake .. -DPICO_BOARD=pico_w     # or pico2_w for Pico 2W
-cmake --build . -j$(nproc)
+```sh
+export PICO_SDK_PATH=/path/to/pico-sdk
+
+cmake -S firmware/pico -B firmware/pico/build -DPICO_BOARD=pico_w
+cmake --build firmware/pico/build -j$(nproc)
 ```
 
-Outputs produced in `build/`:
-- `textreader.uf2` — application image (used for OTA updates after first flash)
-- `textreader_combined.uf2` — bootloader + application (required for first flash)
+Use `-DPICO_BOARD=pico2_w` for Pico 2W.
+
+Outputs in `firmware/pico/build/`:
+- `textreader.uf2` — application image (OTA updates)
+- `textreader_combined.uf2` — bootloader + application (first flash)
+
+## Flashing
+
+```sh
+cmake --build firmware/pico/build --target flash
+```
+
+Requires picotool on `PATH` and the Pico in BOOTSEL mode (hold button while
+plugging USB). Flashes `textreader_combined.uf2` automatically.
+
+### Manual first flash (drag-and-drop)
+
+1. Hold BOOTSEL while connecting USB — the board mounts as a USB drive.
+2. Copy `textreader_combined.uf2` to the drive.
+3. The board reboots automatically.
 
 ## MAX7219 Wiring
 
@@ -37,57 +59,61 @@ Outputs produced in `build/`:
 | 3V3 (pin 36) | VCC | Power |
 | GND (pin 38) | GND | Ground |
 
-Chain additional MAX7219 modules by connecting DOUT of one to DIN of the next.
-Update `NUM_DEVICES` in `config.h` to match the chain length.
-
-## Flash Procedure
-
-### First Flash (physical access required)
-
-1. Hold the BOOTSEL button on the Pico W while connecting USB.
-2. The board mounts as a USB mass storage device.
-3. Copy `textreader_combined.uf2` to the drive — this installs both the OTA
-   bootloader and the application.
-4. The board reboots automatically after the copy completes.
-
-### OTA Updates (over WiFi, after first flash)
-
-1. The server sends `{"cmd":"ota"}` over the WebSocket connection.
-2. The firmware calls `picowota_reboot(true)` to enter the bootloader.
-3. Use the picowota upload tool to push `textreader.uf2` over the network.
+Chain additional modules via DOUT → DIN. Update `NUM_DEVICES` in `config.h`.
 
 ## First-Boot WiFi Provisioning
 
-When no WiFi credentials are stored in flash the firmware starts in AP mode:
+When no credentials are stored in flash the firmware starts AP mode:
 
-1. On your phone or laptop, connect to the WiFi network named `TextReader-Setup`
-   (open network, no password).
-2. Open a browser and navigate to `http://192.168.4.1` (the page may appear
-   automatically as a captive portal on mobile devices).
-3. Enter your WiFi network name (SSID) and password, then tap Connect to WiFi.
-4. The board saves credentials to flash and reboots into STA mode.
-5. Reconnect your device to your regular WiFi network.
+1. Connect to `TextReader-Setup` (open WiFi, no password).
+2. Navigate to `http://192.168.4.1` (opens automatically as captive portal on mobile).
+3. Enter SSID and password, tap **Connect to WiFi**.
+4. Credentials are saved to flash and the board reboots in STA mode.
+
+## OTA Updates
+
+The server sends `{"command":"ota"}` over WebSocket; the firmware calls
+`picowota_reboot(true)` and enters the bootloader. Push `textreader.uf2`
+via picowota's upload tool over the network.
 
 ## Configuration
 
-Edit `config.h` before building to override defaults:
+Edit `config.h` before building:
 
 | Constant | Default | Description |
 |----------|---------|-------------|
-| `WIFI_SSID` | `""` | Fallback SSID if flash creds fail |
+| `WIFI_SSID` | `""` | Fallback SSID if stored creds fail |
 | `WIFI_PASS` | `""` | Fallback password |
 | `SERVER_HOST` | `""` | TextReader server hostname or IP |
-| `SERVER_PORT` | 8080 | TextReader server WebSocket port |
-| `ZONE_ID` | `"pico"` | Zone identifier sent in messages |
+| `SERVER_PORT` | 8080 | WebSocket port |
+| `ZONE_ID` | `"pico"` | Zone identifier in WebSocket path |
 | `NUM_DEVICES` | 4 | Number of chained MAX7219 modules |
 | `RECONNECT_INTERVAL_MS` | 5000 | WebSocket reconnect interval (ms) |
 | `FLASH_CRED_OFFSET` | 256 KB | Flash offset for stored credentials |
 
+## Display Drivers
+
+Select at configure time with `-DDISPLAY_DRIVER=<NAME>`:
+
+| Name | Interface | Notes |
+|------|-----------|-------|
+| `MAX7219` | SPI | Default |
+| `SSD1306` | I2C | 128×64 OLED |
+| `SSD1309` | I2C | 128×64 OLED |
+| `SSD1327` | I2C | 128×128 grayscale OLED |
+| `SH1106` | SPI | 132×64 OLED |
+| `HT16K33` | I2C | 8×8 LED matrix |
+| `ST7735` | SPI | 160×128 TFT |
+| `ST7789` | SPI | 240×240 TFT |
+| `ILI9225` | SPI | 220×176 TFT |
+| `PCD8544` | SPI | Nokia 5110 LCD |
+| `SSD1680` | SPI | E-ink |
+
 ## Effects
 
-| Effect name | Description |
-|-------------|-------------|
-| `SCROLL` | Columns shift left; `speed` controls shift interval in ms |
-| `BLINK` | Display toggles on/off; `blinkPeriod` controls half-period in ms |
-| `REVERSE` | Text rendered right-to-left; `speed` controls interval in ms |
-| `FADE` | Intensity ramps up then down; `fadeSteps` controls ramp step count |
+| Effect | Description |
+|--------|-------------|
+| `SCROLL` | Columns shift left; `speed` = ms per column |
+| `BLINK` | Toggles on/off; `blinkPeriod` = half-period ms |
+| `REVERSE` | Scrolls right-to-left; `speed` = ms per column |
+| `FADE` | Intensity ramps up then down; `fadeSteps` = ramp steps |

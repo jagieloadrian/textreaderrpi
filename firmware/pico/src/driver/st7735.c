@@ -108,7 +108,7 @@ void display_clear(void) {
     fill_rect(0, 0, ST7735_WIDTH, ST7735_HEIGHT, 0x0000);
 }
 
-void display_text(const char *text, const char *effect, int speed_ms) {
+void display_text(const char *text, const char *effect, int speed_ms, int blink_period_ms, int fade_steps) {
     int sp = clamp_speed(speed_ms);
     int text_px = (int)strlen(text) * (FONT_CHAR_WIDTH + FONT_CHAR_GAP);
 
