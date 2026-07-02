@@ -6,7 +6,7 @@ metadata:
     {{- include "textreaderrpi.labels" . | nindent 4 }}
 data:
   # JVM Heap cap (must be within 256 MB limit for Pi)
-  JAVA_TOOL_OPTIONS: "-Xmx220m"
+  JAVA_TOOL_OPTIONS: {{ .Values.JAVA_TOOL_OPTIONS | quote }}
 
   # Application basics
   PORT: "8080"
