@@ -6,14 +6,14 @@ current_phase: 18
 current_phase_name: kubernetes-helm
 status: executing
 stopped_at: Phase 18 context gathered
-last_updated: "2026-07-02T18:37:27.113Z"
+last_updated: "2026-07-02T18:40:20.993Z"
 last_activity: 2026-07-02
 last_activity_desc: Phase 18 execution started
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 28
-  completed_plans: 20
+  completed_plans: 21
   percent: 57
 ---
 
@@ -25,7 +25,7 @@ progress:
 ## Current Position
 
 Phase: 18 (kubernetes-helm) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 Status: Ready to execute
 Last activity: 2026-07-02 — Phase 18 execution started
 
@@ -240,10 +240,11 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 16 P03 | 18min | 2 tasks | 8 files |
 | Phase 16 P04 | 3min | 1 tasks | 1 files |
 | Phase 18 P01 | 5min | 3 tasks | 2 files |
+| Phase 18 P02 | 3min | 3 tasks | 2 files |
 
 ## Session
 
-**Last session:** 2026-07-02T18:37:27.104Z
+**Last session:** 2026-07-02T18:39:52.817Z
 **Stopped at:** Phase 18 context gathered
 **Resume file:** .planning/phases/18-kubernetes-helm/18-CONTEXT.md
 
@@ -259,3 +260,6 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - [Phase 16-03]: UDP discovery reply parsed with kotlinx.json JsonObject; FIRMWARE type from UDP rejected — prevents type confusion from rogue LAN devices
 - [Phase 16-04]: addZone() form.reset() on 201 + showToast() for all non-201 paths (422, 409, else) — eliminates resultDiv writes
 - [Phase 17]: Use @EncodeDefault(Mode.NEVER) per-field for null omission in FirmwareMessage — Scoped to FirmwareMessage only; does not affect other kotlinx.serialization paths in the project
+- [Phase ?]: test summary
+- [Phase ?]: [Phase 18-02]: replicas:1 hardcoded in Deployment template — Pi SPI/I2C + H2 DB cannot be shared across replicas
+- [Phase ?]: [Phase 18-02]: DISPLAY_TYPE=OFFLINE injected as direct env (not envFrom) so it supersedes ConfigMap when hardwareAccess disabled

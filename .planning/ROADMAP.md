@@ -180,10 +180,10 @@ Plans:
   3. The JVM heap in the Deployment spec is capped at `-Xmx220m`, keeping memory within the 256 MB project constraint
   4. `helm lint` passes with no errors or warnings on the chart directory
 
-**Plans**: 1/9 plans executed
+**Plans**: 2/9 plans executed
 
 - [x] 18-01-PLAN.md
-- [ ] 18-02-PLAN.md
+- [x] 18-02-PLAN.md
 - [ ] 18-03-PLAN.md
 - [ ] 18-04-PLAN.md
 - [ ] 18-05-PLAN.md
