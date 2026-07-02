@@ -30,7 +30,7 @@
 
 ## Kubernetes + Helm
 
-- [ ] **OPS-01**: TextReaderRpi is deployable to Kubernetes via Helm chart in `.devops/helm/textreaderrpi/` with `hardwareAccess.enabled` toggle, `-Xmx220m`, and health probes mapped to `/health` + `/health/ready`
+- [x] **OPS-01**: TextReaderRpi is deployable to Kubernetes via Helm chart in `.devops/helm/textreaderrpi/` with `hardwareAccess.enabled` toggle, `-Xmx220m`, and health probes mapped to `/health` + `/health/ready`
 
 ## Refactoring
 
@@ -77,7 +77,7 @@
 | ZONE-10 | Phase 16 | Planned | 16-01, 16-02 |
 | FW-01 | Phase 17 | Planned | 17-01, 17-02, 17-03, 17-05, 17-06 |
 | FW-02 | Phase 17 | Planned | 17-02, 17-04, 17-05, 17-06 |
-| OPS-01 | Phase 18 | Pending | — |
+| OPS-01 | Phase 18 | Complete | — |
 | REF-05 | Phase 19 | Pending | — |
 | CLEAN-01 | Phase 20 | Pending | — |
 | DOCS-01 | Phase 20 | Pending | — |
