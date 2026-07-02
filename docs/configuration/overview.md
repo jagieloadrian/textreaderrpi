@@ -19,7 +19,7 @@ All variables are optional unless noted otherwise. Omitting any variable applies
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `DISPLAY_TYPE` | No | `MAX7219` | Active display driver: `MAX7219`, `LCD`, or `OLED` |
+| `DISPLAY_TYPE` | No | `MAX7219` | Active display driver: `MAX7219`, `LCD`, `OLED`, or `FIRMWARE` |
 | `MAX7219_NUM_DEVICES` | No | `2` | Number of chained MAX7219 modules |
 | `GPIO_SPI_CE` | No | `24` | SPI chip-enable GPIO pin (application.yaml default; ConfigLoader code default is `8`) |
 | `GPIO_SPI_MOSI` | No | `19` | SPI MOSI GPIO pin (application.yaml default; ConfigLoader code default is `10`) |
@@ -175,12 +175,12 @@ Key defaults as resolved by `ConfigLoader`:
 
 There are no `.env.development` / `.env.production` / `.env.test` files in the repository. Override strategy by environment:
 
-**Development (host)** — Copy `.env.example` to a local `.env` file (not committed) and source it before starting:
+**Development (host)** — Copy `.env.example` to a local `.env.local` file (not committed) and source it before starting:
 
 ```bash
-cp .env.example .env
-# edit .env as needed
-source .env && ./gradlew run
+cp .env.example .env.local
+# edit .env.local as needed
+source .env.local && ./gradlew run
 ```
 
 **Test** — The Gradle `test` task sets `-Ddiscovery.enabled=false` as a JVM system property and points at `src/test/resources/application.yaml`, which uses an in-memory H2 database and faster retry settings. No extra environment setup is needed.
@@ -196,7 +196,7 @@ Zones are configured under the `display.zones` key as a zero-indexed map. Each z
 | Key | Type | Description |
 |---|---|---|
 | `id` | String | Unique zone identifier used in API calls |
-| `type` | String | Driver type: `MAX7219`, `LCD`, or `OLED` |
+| `type` | String | Driver type: `MAX7219`, `LCD`, `OLED`, or `FIRMWARE` |
 | `numDevices` | Int | Number of chained devices (MAX7219 only) |
 | `bus` | Int | SPI bus number |
 | `chipSelect` | Int | SPI chip-select index |

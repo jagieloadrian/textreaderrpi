@@ -131,10 +131,10 @@ Key variables:
 | `PORT` | `8080` | HTTP port |
 | `DISPLAY_TYPE` | `MAX7219` | `MAX7219`, `LCD`, `OLED` |
 | `MAX7219_NUM_DEVICES` | `2` | Number of chained MAX7219 modules |
-| `GPIO_SPI_CE` | `24` | SPI chip-enable GPIO pin |
-| `GPIO_SPI_MOSI` | `19` | SPI MOSI GPIO pin |
+| `GPIO_SPI_CE` | `8` | SPI chip-enable GPIO pin |
+| `GPIO_SPI_MOSI` | `10` | SPI MOSI GPIO pin |
 | `GPIO_SPI_MISO` | `9` | SPI MISO GPIO pin |
-| `GPIO_SPI_SCK` | `23` | SPI clock GPIO pin |
+| `GPIO_SPI_SCK` | `11` | SPI clock GPIO pin |
 | `I2C_BUS` | `1` | I2C bus number (LCD/OLED) |
 | `DATABASE_URL` | H2 file | Switch to PostgreSQL by changing this + driver |
 | `DATABASE_DRIVER` | `org.h2.Driver` | `org.postgresql.Driver` for Postgres |
@@ -192,7 +192,7 @@ Image configuration in `build.gradle.kts`:
 ktor {
     docker {
         localImageName.set("textreaderrpi")
-        imageTag.set("latest")
+        imageTag.set("${project.version}")
         jreVersion.set(JavaVersion.VERSION_25)
     }
     jib {
@@ -234,6 +234,23 @@ The Compose file mounts `/dev/spidev0.0` and `/dev/i2c-1` and persists data in a
 docker run --rm -p 8080:8080 --env-file .env.local textreaderrpi:latest
 ```
 
+### Helm (Kubernetes / K3s)
+
+A Helm chart is provided for cluster deployments:
+
+```bash
+# Install with default values (ClusterIP, no hardware access, H2 persistence)
+helm install textreaderrpi .devops/helm/textreaderrpi
+
+# Override image and enable hardware device access
+helm install textreaderrpi .devops/helm/textreaderrpi \
+  --set image.repository=myregistry/textreaderrpi \
+  --set image.tag=0.0.1 \
+  --set hardwareAccess.enabled=true
+```
+
+Key chart defaults (`values.yaml`): `service.type: ClusterIP`, `persistence.data.size: 1Gi`, `replicas: 1` (fixed — not horizontally scalable due to hardware access).
+
 ### Systemd (host install)
 
 ```bash
@@ -269,7 +286,8 @@ src/main/kotlin/com/anjo/
 │   ├── RateLimiting.kt
 │   └── Serialization.kt
 ├── driver/
-│   ├── DisplayDriver.kt       # interface
+│   ├── DisplayDriver.kt           # interface
+│   ├── AbstractDisplayDriver.kt   # shared driver base
 │   ├── Max7219Matrix.kt
 │   ├── LcdDisplay.kt
 │   ├── OledDisplay.kt
@@ -278,16 +296,19 @@ src/main/kotlin/com/anjo/
 │   ├── Routing.kt
 │   ├── TextRoutes.kt
 │   ├── DisplayRoutes.kt
+│   ├── FirmwareZoneRoutes.kt
 │   ├── HealthRoutes.kt
 │   ├── HistoryRoutes.kt
+│   ├── LiveRoutes.kt
 │   ├── MetricsRoutes.kt
 │   ├── ScheduleRoutes.kt
 │   ├── ZoneRoutes.kt
-│   └── ui/                    # HTML UI routes (Web, Schedule, History, Zones)
+│   └── ui/                        # HTML UI routes (Web, Schedule, History, Zones)
 ├── service/
+│   ├── DisplayEventBus.kt
+│   ├── DisplaySelectionService.kt
 │   ├── ScreenDriverService.kt
 │   ├── SchedulerService.kt
-│   ├── DisplaySelectionService.kt
 │   ├── EffectRendererFactory.kt
 │   ├── HistoryService.kt
 │   ├── MetricsCollector.kt
@@ -295,13 +316,14 @@ src/main/kotlin/com/anjo/
 │   ├── RetryPolicy.kt
 │   ├── WebhookService.kt
 │   ├── ZoneRegistry.kt
-│   └── effect/                # ScrollEffect, BlinkEffect, FadeEffect, ReverseEffect
+│   └── effect/                    # EffectRenderer
 ├── zone/
-│   ├── ZoneDriver.kt          # interface (suspend send, status, stop)
-│   ├── LocalZoneDriver.kt     # wraps a DisplayDriver for local hardware zones
-│   └── NetworkZoneDriver.kt   # WebSocket client for remote display nodes
+│   ├── ZoneDriver.kt              # interface (suspend send, status, stop)
+│   ├── LocalZoneDriver.kt         # wraps a DisplayDriver for local hardware zones
+│   ├── FirmwareZoneDriver.kt      # zone backed by firmware (e.g. Pi Pico)
+│   └── NetworkZoneDriver.kt       # WebSocket client for remote display nodes
 ├── web/
-│   └── templates/             # kotlinx.html page templates
+│   └── templates/                 # kotlinx.html page templates
 ├── model/
 ├── validation/
 └── utils/
@@ -309,8 +331,9 @@ src/main/kotlin/com/anjo/
 .devops/
 ├── containers/
 │   ├── docker-compose.yml     # Full env var mapping + SPI/I2C device mounts
-│   ├── build-image.sh
-│   └── .env.example
+│   └── build-image.sh
+├── helm/
+│   └── textreaderrpi/         # Helm chart (Chart.yaml, values.yaml, templates/)
 └── host/
     ├── textreaderrpi.service  # systemd unit
     └── install-systemd.sh
@@ -324,7 +347,7 @@ src/main/kotlin/com/anjo/
 
 - Built with **Ktor 3.5** + **Kotlin 2.3** + **Exposed 1.3** + **JVM 25**.
 - Hardware integration via **Pi4J 4.x** (JitPack). Falls back to `OfflineDisplayDriver` when hardware is unavailable.
-- Multi-zone output: each zone is a `ZoneDriver` — either a `LocalZoneDriver` (direct hardware) or a `NetworkZoneDriver` (WebSocket to a remote node). Zones auto-reconnect.
+- Multi-zone output: each zone is a `ZoneDriver` — either a `LocalZoneDriver` (direct hardware), `FirmwareZoneDriver` (Pi Pico / firmware node), or a `NetworkZoneDriver` (WebSocket to a remote node). Zones auto-reconnect.
 - Network discovery via mDNS (`_textreaderrpi._tcp.local.`) and UDP broadcast on port 54321. Zones are persisted in the database and reloaded on restart.
 - Scheduler supports `ONESHOT`, `RECURRING`, and `CRON` triggers — persisted in H2 or PostgreSQL.
 - Switching databases: change `DATABASE_URL` + `DATABASE_DRIVER` env vars only — no code change required.

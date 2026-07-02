@@ -93,6 +93,7 @@ ktor {
     docker {
         localImageName.set("textreaderrpi")
         imageTag.set("latest")
+        imageTag.set("${project.version}")  // effective tag; overrides "latest"
     }
 }
 ```
