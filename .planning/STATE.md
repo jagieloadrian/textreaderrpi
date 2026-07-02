@@ -6,14 +6,14 @@ current_phase: 18
 current_phase_name: kubernetes-helm
 status: executing
 stopped_at: Phase 18 context gathered
-last_updated: "2026-07-02T18:43:01.097Z"
+last_updated: "2026-07-02T18:45:25.365Z"
 last_activity: 2026-07-02
 last_activity_desc: Phase 18 execution started
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 28
-  completed_plans: 22
+  completed_plans: 23
   percent: 57
 ---
 
@@ -25,7 +25,7 @@ progress:
 ## Current Position
 
 Phase: 18 (kubernetes-helm) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 Status: Ready to execute
 Last activity: 2026-07-02 — Phase 18 execution started
 
@@ -241,10 +241,11 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 16 P04 | 3min | 1 tasks | 1 files |
 | Phase 18 P01 | 5min | 3 tasks | 2 files |
 | Phase 18 P02 | 3min | 3 tasks | 2 files |
+| Phase 18 P04 | 2 minutes | 4 tasks | 2 files |
 
 ## Session
 
-**Last session:** 2026-07-02T18:43:01.087Z
+**Last session:** 2026-07-02T18:45:22.459Z
 **Stopped at:** Phase 18 context gathered
 **Resume file:** .planning/phases/18-kubernetes-helm/18-CONTEXT.md
 
@@ -263,3 +264,4 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - [Phase ?]: test summary
 - [Phase ?]: [Phase 18-02]: replicas:1 hardcoded in Deployment template — Pi SPI/I2C + H2 DB cannot be shared across replicas
 - [Phase ?]: [Phase 18-02]: DISPLAY_TYPE=OFFLINE injected as direct env (not envFrom) so it supersedes ConfigMap when hardwareAccess disabled
+- [Phase ?]: [Phase 18-04]: storageClassName conditionally rendered — empty string uses cluster default
