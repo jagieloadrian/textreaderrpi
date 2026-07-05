@@ -35,7 +35,7 @@ spec:
 
         envFrom:
         - configMapRef:
-            name: textreaderrpi-config
+            name: {{ include "textreaderrpi.fullname" . }}-config
 
         env:
         {{- if not .Values.hardwareAccess.enabled }}
@@ -45,12 +45,12 @@ spec:
         - name: DATABASE_USER
           valueFrom:
             secretKeyRef:
-              name: textreaderrpi-secret
+              name: {{ include "textreaderrpi.fullname" . }}-secret
               key: DATABASE_USER
         - name: DATABASE_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: textreaderrpi-secret
+              name: {{ include "textreaderrpi.fullname" . }}-secret
               key: DATABASE_PASSWORD
 
         livenessProbe:
