@@ -1,242 +1,209 @@
 ---
 phase: 18-kubernetes-helm
-reviewed: 2026-07-02T00:00:00Z
+reviewed: 2026-07-06T00:00:00Z
 depth: standard
 files_reviewed: 15
 files_reviewed_list:
   - .devops/helm/textreaderrpi/Chart.yaml
-  - .devops/helm/textreaderrpi/values.yaml
+  - .devops/helm/textreaderrpi/README.md
+  - .devops/helm/textreaderrpi/templates/configmap.yaml
   - .devops/helm/textreaderrpi/templates/deployment.yaml
   - .devops/helm/textreaderrpi/templates/_helpers.tpl
-  - .devops/helm/textreaderrpi/templates/configmap.yaml
-  - .devops/helm/textreaderrpi/templates/secret.yaml
+  - .devops/helm/textreaderrpi/templates/ingress.yaml
   - .devops/helm/textreaderrpi/templates/pvc-data.yaml
   - .devops/helm/textreaderrpi/templates/pvc-logs.yaml
-  - .devops/helm/textreaderrpi/templates/service.yaml
-  - .devops/helm/textreaderrpi/templates/serviceaccount.yaml
-  - .devops/helm/textreaderrpi/templates/role.yaml
   - .devops/helm/textreaderrpi/templates/rolebinding.yaml
-  - .devops/helm/textreaderrpi/templates/ingress.yaml
-  - .devops/helm/textreaderrpi/README.md
+  - .devops/helm/textreaderrpi/templates/role.yaml
+  - .devops/helm/textreaderrpi/templates/secret.yaml
+  - .devops/helm/textreaderrpi/templates/serviceaccount.yaml
+  - .devops/helm/textreaderrpi/templates/service.yaml
+  - .devops/helm/textreaderrpi/values.yaml
   - .github/workflows/helm-lint.yml
 findings:
-  critical: 3
-  warning: 4
-  info: 3
-  total: 10
+  critical: 2
+  warning: 5
+  info: 6
+  total: 13
 status: issues_found
 ---
 
-# Phase 18: Code Review Report
+# Phase 18: Code Review Report (Re-Review After Gap Closure)
 
-**Reviewed:** 2026-07-02T00:00:00Z
+**Reviewed:** 2026-07-06
 **Depth:** standard
 **Files Reviewed:** 15
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the complete Helm chart for TextReaderRpi. Three blockers were found: a hardcoded default database password committed in plain text, a `privileged: true` field placed at the wrong Kubernetes API level (pod vs. container securityContext) making hardware access non-functional, and a ServiceAccount name mismatch that causes the deployment to reference a ServiceAccount that does not exist. Four warnings cover dead configuration, persistence `enabled` flags that are never checked, unconditional pod-annotation rendering, and a non-pinned CI action. Three info items cover placeholder repo URLs, a dead `replicas` value in values.yaml, and a misleading PVC name in the uninstall docs.
+Re-review after gap closure. Verified status of prior findings:
+
+**Fixed (verified in current code):**
+- **JAVA_TOOL_OPTIONS wiring** — `templates/configmap.yaml:9` now renders `JAVA_TOOL_OPTIONS: {{ .Values.JAVA_TOOL_OPTIONS | quote }}` from `values.yaml:12`. Fixed.
+- **Privileged securityContext at pod level** — `templates/deployment.yaml:25-28` now places `securityContext.privileged: true` at the container level, gated on `hardwareAccess.enabled`. Fixed.
+- **ServiceAccount name mismatch** — `deployment.yaml:19`, `serviceaccount.yaml:5`, and `rolebinding.yaml:14` all use the `textreaderrpi.serviceAccountName` helper. Fixed.
+
+**Still open from prior review (carried over below):** default database password in values.yaml (WR-02), dead `persistence.*.enabled` flags (WR-04), unpinned CI actions/Helm version (WR-05), dead `replicas` value (IN-01), placeholder repo URLs (IN-02), unguarded `podAnnotations` rendering (IN-03), `image.tag: latest` default (IN-06).
+
+**New findings this pass:** Two blockers, both confirmed by rendering with `helm template`:
+1. The ServiceAccount template is gated on `rbac.create` while the naming helper branches on `serviceAccount.create` — both non-default toggle permutations produce a broken install, including the `rbac.create=false` permutation that the CI workflow itself templates.
+2. The Deployment uses the default `RollingUpdate` strategy, which deterministically wedges every `helm upgrade`: the surge pod cannot acquire the H2 file lock on the shared RWO data PVC.
+
+Per phase context, `replicas: 1` hardcoding and privileged hardware access via `hardwareAccess.enabled` are deliberate design decisions and are not reported as defects.
 
 ---
 
 ## Critical Issues
 
-### CR-01: Hardcoded Default Database Password in Plain Text
+### CR-01: ServiceAccount template gated on `rbac.create`, but naming helper branches on `serviceAccount.create`
 
-**File:** `.devops/helm/textreaderrpi/values.yaml:60`
-**Issue:** `database.password: "password"` is committed as the default in `values.yaml`. This file is part of the repository and will be used as-is by anyone who runs `helm install textreaderrpi .` without an explicit override. The credential is also rendered verbatim into the Secret via `stringData`, which base64-encodes but does not encrypt it. A real password should never appear as a default in VCS.
-**Fix:** Remove the plaintext default and force the user to supply it at install time, or document that it must always be overridden:
+**File:** `.devops/helm/textreaderrpi/templates/serviceaccount.yaml:1` (interacts with `templates/_helpers.tpl:54-60`, `templates/deployment.yaml:19`)
+**Issue:** The template condition (`{{- if .Values.rbac.create }}`) and the `textreaderrpi.serviceAccountName` helper (`if .Values.serviceAccount.create`) use two different toggles. Both non-default permutations are broken — verified by rendering:
 
+- `--set rbac.create=false` (default `serviceAccount.create=true`): no ServiceAccount is rendered, but the Deployment still sets `serviceAccountName: <fullname>` (rendered output: `serviceAccountName: t-textreaderrpi`). The ReplicaSet fails with `error looking up service account ... not found` and **zero pods are ever created**. The CI workflow (`helm-lint.yml:37-39`) templates exactly this permutation — it passes templating but is undeployable.
+- `--set serviceAccount.create=false` (default `rbac.create=true`): the template still renders a ServiceAccount **named `default`** (helper falls through to `default "default"`), so Helm attempts to create and take ownership of the namespace's built-in `default` ServiceAccount; `helm install` fails with a resource-ownership conflict.
+
+**Fix:** Gate the ServiceAccount template on the same value the helper uses:
 ```yaml
-# values.yaml
-database:
-  user: "sa"
-  password: ""   # REQUIRED — set via --set database.password=... or -f secrets.yaml
-```
-
-Then guard the Secret template:
-```yaml
-# templates/secret.yaml
-{{- if not .Values.database.password }}
-{{ fail "database.password must be set — run helm install with --set database.password=<value>" }}
-{{- end }}
-```
-
----
-
-### CR-02: `privileged: true` Placed in PodSecurityContext — Wrong API Level, Hardware Access Is Broken
-
-**File:** `.devops/helm/textreaderrpi/templates/deployment.yaml:21-23`
-**Issue:** When `hardwareAccess.enabled=true`, the template renders:
-
-```yaml
-spec:
-  securityContext:
-    privileged: true
-```
-
-`privileged` is **not** a valid field of `PodSecurityContext` (`spec.securityContext`). It belongs to `SecurityContext` (`spec.containers[*].securityContext`). Kubernetes either silently drops unknown fields or rejects the pod spec at admission. Either way, the container does not actually get privileged access, so `/dev/spidev0.0` and `/dev/i2c-1` will be inaccessible and hardware mode silently fails.
-
-**Fix:** Move the securityContext block to the container level:
-
-```yaml
-# deployment.yaml
-containers:
-- name: textreaderrpi
-  {{- if .Values.hardwareAccess.enabled }}
-  securityContext:
-    privileged: true
-  {{- end }}
-  image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-```
-
-Remove the pod-level `securityContext` block entirely when it only contained `privileged`.
-
----
-
-### CR-03: ServiceAccount Name Mismatch — Deployment References a Non-Existent ServiceAccount
-
-**File:** `.devops/helm/textreaderrpi/templates/serviceaccount.yaml:5` and `.devops/helm/textreaderrpi/templates/_helpers.tpl:54-59`
-**Issue:** There is a name divergence between what is created and what the deployment references:
-
-- `serviceaccount.yaml` creates: `{{ include "textreaderrpi.fullname" . }}-sa`  (e.g., `textreaderrpi-textreaderrpi-sa`)
-- `_helpers.tpl` `serviceAccountName` helper returns: `{{ include "textreaderrpi.fullname" . }}`  (no `-sa` suffix)
-- `deployment.yaml` uses the helper, so it references the name **without** `-sa`
-
-The ServiceAccount referenced by the deployment does not exist. The Kubernetes ServiceAccount admission controller blocks pod creation when the named ServiceAccount is absent. The `rolebinding.yaml` correctly references `<fullname>-sa`, but the pod never receives those permissions because it cannot start.
-
-**Fix:** Either remove the `-sa` suffix from `serviceaccount.yaml` so the name matches the helper:
-
-```yaml
-# templates/serviceaccount.yaml
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
 metadata:
   name: {{ include "textreaderrpi.serviceAccountName" . }}
+  labels:
+    {{- include "textreaderrpi.labels" . | nindent 4 }}
+{{- end }}
 ```
+Keep `rbac.create` gating only Role and RoleBinding. Add a CI template step for `--set serviceAccount.create=false` after fixing.
 
-And update `rolebinding.yaml` to use the same helper:
+### CR-02: Default RollingUpdate strategy deadlocks every `helm upgrade` against the H2 file lock
 
+**File:** `.devops/helm/textreaderrpi/templates/deployment.yaml:7-8` (interacts with `templates/configmap.yaml:49`)
+**Issue:** No `strategy` is set, so the Deployment defaults to `RollingUpdate` (for 1 replica: maxSurge → 1, maxUnavailable → 0). On upgrade, Kubernetes starts the new pod **while the old pod is still running**. On the single-node target, both pods mount the same ReadWriteOnce `data` PVC (RWO is node-scoped, so co-located pods both attach), and the new pod's H2 instance (`jdbc:h2:file:/data/schedules;DB_CLOSE_DELAY=-1;AUTO_SERVER=FALSE`, `configmap.yaml:49`) cannot acquire the database file lock while the old pod holds it. The new pod never passes readiness, the rollout stalls until `progressDeadlineSeconds` expires, and every upgrade requires manual pod deletion. The README's own "Database locked" troubleshooting section (`README.md:242-250`) documents this exact symptom — and recommends force-deleting the data PVC, i.e. destroying all history data, as the workaround for a defect the chart itself causes.
+**Fix:**
 ```yaml
-# templates/rolebinding.yaml
-subjects:
-  - kind: ServiceAccount
-    name: {{ include "textreaderrpi.serviceAccountName" . }}
-    namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
 ```
+`Recreate` terminates the old pod before starting the new one, releasing the H2 lock. Also update `README.md` troubleshooting to stop recommending PVC deletion as the first resort.
 
 ---
 
 ## Warnings
 
-### WR-01: `persistence.data.enabled` / `persistence.logs.enabled` Flags Are Never Checked in PVC Templates
+### WR-01: ConfigMap and Secret names hardcoded, bypassing the fullname helper
 
-**File:** `.devops/helm/textreaderrpi/templates/pvc-data.yaml:1` and `.devops/helm/textreaderrpi/templates/pvc-logs.yaml:1`
-**Issue:** `values.yaml` exposes `persistence.data.enabled: true` and `persistence.logs.enabled: true`. A user who sets either to `false` expects the corresponding PVC not to be created. Both PVC templates are unconditional — they always render regardless of the flag. The deployment's volumeMounts are equally unconditional, so disabling persistence via the flag leaves a broken deployment (volumes defined without PVCs).
-**Fix:** Wrap each PVC template in a conditional and add a matching guard in the deployment's volume/volumeMount sections:
-
+**File:** `.devops/helm/textreaderrpi/templates/configmap.yaml:4`, `.devops/helm/textreaderrpi/templates/secret.yaml:4` (referenced from `deployment.yaml:36,46,51`)
+**Issue:** Every other resource is named via `textreaderrpi.fullname` (honoring `nameOverride`/`fullnameOverride` and release-name prefixing), but the ConfigMap is hardcoded to `textreaderrpi-config` and the Secret to `textreaderrpi-secret`. A second release in the same namespace fails at install with a Helm ownership conflict on these two resources, and `fullnameOverride` silently does not apply to them.
+**Fix:** Use the helper in both templates and in the Deployment's `envFrom`/`secretKeyRef` references:
 ```yaml
-# templates/pvc-data.yaml
-{{- if .Values.persistence.data.enabled }}
-apiVersion: v1
-kind: PersistentVolumeClaim
-...
-{{- end }}
+name: {{ include "textreaderrpi.fullname" . }}-config
+```
+```yaml
+name: {{ include "textreaderrpi.fullname" . }}-secret
 ```
 
-In `deployment.yaml`, wrap the data volumeMount and volume similarly:
+### WR-02: Default database credentials (`sa`/`password`) shipped in values.yaml — carryover, still open
+
+**File:** `.devops/helm/textreaderrpi/values.yaml:58-60`, rendered into `templates/secret.yaml:9-10`
+**Issue:** Flagged as a blocker in the previous review and not addressed. The chart ships a working default password (`password`) rendered into a Secret on every install; anyone deploying without an override gets known credentials. Exposure is bounded (embedded H2 file DB, `AUTO_SERVER=FALSE`, ClusterIP-only service), but a published default password in VCS remains a credential-hygiene defect with no warning to the operator.
+**Fix:** Fail fast when unset:
 ```yaml
-{{- if .Values.persistence.data.enabled }}
-- name: data
-  mountPath: /data
-{{- end }}
+# templates/secret.yaml
+DATABASE_PASSWORD: {{ required "database.password must be set (--set database.password=...)" .Values.database.password | quote }}
 ```
+with `password: ""` in values.yaml. At minimum, document that the default must be overridden.
 
----
+### WR-03: ConfigMap/Secret changes do not restart the pod on upgrade
 
-### WR-02: `replicas` Value in values.yaml Is Dead Configuration
-
-**File:** `.devops/helm/textreaderrpi/values.yaml:15` and `.devops/helm/textreaderrpi/templates/deployment.yaml:8`
-**Issue:** `values.yaml` declares `replicas: 1` with a comment "(hardcoded to 1 — not configurable)", yet `deployment.yaml` hardcodes `replicas: 1` and never references `{{ .Values.replicas }}`. The value in `values.yaml` is never consumed. This misleads users into thinking setting `--set replicas=2` would change behavior.
-**Fix:** Either remove `replicas` from `values.yaml` entirely (since single-replica is intentional), or use it in the deployment:
-
+**File:** `.devops/helm/textreaderrpi/templates/deployment.yaml:13-15`
+**Issue:** All configuration is consumed as environment variables (`envFrom` / `secretKeyRef`), which are only read at container start. A `helm upgrade` that changes `JAVA_TOOL_OPTIONS`, `database.password`, or any ConfigMap key updates the ConfigMap/Secret but leaves the running pod on stale values — silently, with no rollout. The operator believes the new configuration is live when it is not.
+**Fix:** Add checksum annotations to the pod template so config changes trigger a rollout:
 ```yaml
-# templates/deployment.yaml
-replicas: {{ .Values.replicas }}
-```
-
-Removing it is the correct YAGNI choice given the chart explicitly documents single-replica as a constraint.
-
----
-
-### WR-03: `podAnnotations` Rendered Without `with` Guard — Produces Spurious Empty Block
-
-**File:** `.devops/helm/textreaderrpi/templates/deployment.yaml:14-15`
-**Issue:** `{{- toYaml .Values.podAnnotations | nindent 8 }}` is rendered unconditionally. When `podAnnotations: {}` (the default), this renders as `annotations:\n        {}\n` — a non-empty annotations object containing an empty mapping. Some admission controllers and tools that parse pod specs treat `annotations: {}` differently from an absent `annotations` key, and `helm lint --strict` may warn about it.
-**Fix:** Use the standard `with` guard:
-
-```yaml
-{{- with .Values.podAnnotations }}
 annotations:
+  checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+  checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+  {{- with .Values.podAnnotations }}
   {{- toYaml . | nindent 8 }}
-{{- end }}
+  {{- end }}
 ```
 
----
+### WR-04: `persistence.data.enabled` / `persistence.logs.enabled` flags are dead — carryover, still open
 
-### WR-04: CI Uses Unpinned `actions/checkout@v3` and Non-Deterministic Helm Version
+**File:** `.devops/helm/textreaderrpi/values.yaml:20,24` vs `templates/pvc-data.yaml`, `templates/pvc-logs.yaml`, `templates/deployment.yaml:92-98`
+**Issue:** Flagged in the previous review and not addressed. Both `enabled` flags exist in values.yaml, but neither PVC template nor the Deployment's volumes/volumeMounts check them. Setting `--set persistence.logs.enabled=false` silently does nothing — the knob violates user intent.
+**Fix:** Either honor the flags (wrap the PVC templates and the corresponding volume/volumeMount pairs in `{{- if .Values.persistence.<x>.enabled }}` with an `emptyDir` fallback), or delete the `enabled` keys from values.yaml since persistence is mandatory for this app. Deleting is the simpler correct option.
 
-**File:** `.github/workflows/helm-lint.yml:18` and `.github/workflows/helm-lint.yml:22`
-**Issue:** `actions/checkout@v3` is an old major version (v4 is current) and references a floating major tag that can receive breaking patches without notice. `azure/setup-helm@v3` with `version: 'latest'` is non-deterministic — a future Helm release with breaking changes will silently alter CI behavior. For a lint gate, non-determinism means a passing job today may fail tomorrow with no code change.
+### WR-05: CI uses unpinned actions, non-deterministic Helm version, and no permissions block — carryover, still open
+
+**File:** `.github/workflows/helm-lint.yml:18-23`
+**Issue:** Flagged in the previous review and not addressed. `actions/checkout@v3` and `azure/setup-helm@v3` are superseded (v3 runs on a deprecated Node runtime), and `version: 'latest'` makes lint results non-reproducible — a future Helm release can silently flip the gate from pass to fail with no code change. Additionally, the workflow declares no `permissions:` block, so the GITHUB_TOKEN receives the repository default instead of least privilege.
 **Fix:**
-
 ```yaml
-- uses: actions/checkout@v4
-- name: Set up Helm
-  uses: azure/setup-helm@v4
-  with:
-    version: 'v3.16.3'   # pin to a known-good release
+permissions:
+  contents: read
+...
+      - uses: actions/checkout@v4
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.16.3'
 ```
 
 ---
 
 ## Info
 
-### IN-01: Placeholder Repository URLs in Chart.yaml
+### IN-01: `replicas` value in values.yaml is never referenced — carryover, still open
 
-**File:** `.devops/helm/textreaderrpi/Chart.yaml:7-9`
-**Issue:** Both `home` and `sources` reference `https://github.com/yourusername/textreaderrpi` — a placeholder that was never replaced with the real repository URL. The README has the same placeholder. These will appear in `helm show chart` output and in any chart repository index.
-**Fix:** Replace with the actual repository URL or remove the fields if the repo is private.
+**File:** `.devops/helm/textreaderrpi/values.yaml:14-15`
+**Issue:** `replicas: 1` exists in values.yaml but `deployment.yaml:8` hardcodes `replicas: 1`. Hardcoding is the documented design decision; the values entry is dead config implying `--set replicas=3` would work (it silently does nothing).
+**Fix:** Delete the `replicas` key from values.yaml; keep the rationale as a comment in the Deployment template or README.
 
----
+### IN-02: Placeholder repository URLs in Chart.yaml and README — carryover, still open
 
-### IN-02: README Uninstall Section Uses Wrong PVC Names
+**File:** `.devops/helm/textreaderrpi/Chart.yaml:7-9`, `.devops/helm/textreaderrpi/README.md:262`
+**Issue:** `home` and `sources` point to `https://github.com/yourusername/textreaderrpi` — a template placeholder, not the real repository. Appears in `helm show chart` output.
+**Fix:** Replace with the actual repository URL or remove the fields.
 
-**File:** `.devops/helm/textreaderrpi/README.md:118-119`
-**Issue:** The uninstall section shows:
-```bash
-kubectl delete pvc textreaderrpi-data textreaderrpi-logs
+### IN-03: `podAnnotations` rendered without a `with` guard — carryover, downgraded from prior WR-03
+
+**File:** `.devops/helm/textreaderrpi/templates/deployment.yaml:14-15`
+**Issue:** `{{- toYaml .Values.podAnnotations | nindent 8 }}` renders `annotations: {}` when the default empty map is used. This is valid YAML and accepted by the Kubernetes API (downgraded from the prior review's Warning — the claimed admission-controller impact does not hold), but it is non-idiomatic template hygiene and combines naturally with the WR-03 checksum fix.
+**Fix:** Use the standard `{{- with .Values.podAnnotations }}` guard (see WR-03 fix snippet, which subsumes this).
+
+### IN-04: Ingress template duplicates the entire paths/backend block
+
+**File:** `.devops/helm/textreaderrpi/templates/ingress.yaml:17-38`
+**Issue:** The `if .Values.ingress.host` / `else` branches contain identical 9-line `http.paths` blocks differing only by the `host:` line. Future edits must be made twice; drift risk.
+**Fix:** Emit the host line conditionally inside a single rule:
+```yaml
+rules:
+  - {{- if .Values.ingress.host }}
+    host: {{ .Values.ingress.host | quote }}
+    {{- end }}
+    http:
+      paths:
+        - path: {{ .Values.ingress.path | default "/" }}
+          ...
 ```
-But the actual PVC names are `{{ fullname }}-data` and `{{ fullname }}-logs`, which depend on the release name (e.g., `helm install myapp .` creates `myapp-textreaderrpi-data`). Users following these docs will delete the wrong PVC or get a "not found" error.
-**Fix:** Update the example to make the release-name dependency explicit:
-```bash
-# Replace RELEASE_NAME with your actual release name (helm list)
-kubectl delete pvc RELEASE_NAME-textreaderrpi-data RELEASE_NAME-textreaderrpi-logs
-```
 
----
+### IN-05: `service.targetPort` is a configurable trap — container port fixed at 8080 in three places
 
-### IN-03: `image.tag: latest` Default Is Non-Deterministic
+**File:** `.devops/helm/textreaderrpi/values.yaml:32`, `templates/service.yaml:11`, `templates/deployment.yaml:31`, `templates/configmap.yaml:12`
+**Issue:** `service.targetPort` is exposed as a value, but `containerPort: 8080` and `PORT: "8080"` are hardcoded. Setting `targetPort` to anything else breaks traffic routing with no error.
+**Fix:** Use the named port so it can never diverge — `targetPort: http` in service.yaml — and drop `service.targetPort` from values.yaml.
+
+### IN-06: `image.tag: latest` default is non-deterministic — carryover, still open
 
 **File:** `.devops/helm/textreaderrpi/values.yaml:4`
-**Issue:** Using `latest` as the default tag means two installs from the same chart version can deploy different images. Combined with `imagePullPolicy: Never`, this is less risky in practice (the image must be pre-loaded), but it is still an imprecise default.
-**Fix:** Default to a specific version string that matches `Chart.yaml`'s `appVersion`:
-```yaml
-image:
-  tag: "1.2"   # matches appVersion in Chart.yaml
-```
+**Issue:** Flagged in the previous review and not addressed. Two installs from the same chart version can deploy different images. Risk is reduced by `pullPolicy: Never` (image must be pre-loaded), but the default remains imprecise.
+**Fix:** Default the tag to match `Chart.yaml` `appVersion`, e.g. `tag: "1.2"`, or use `{{ .Values.image.tag | default .Chart.AppVersion }}` in the Deployment.
 
 ---
 
-_Reviewed: 2026-07-02T00:00:00Z_
+_Reviewed: 2026-07-06_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
