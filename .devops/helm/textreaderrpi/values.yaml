@@ -57,5 +57,5 @@ podAnnotations: {}
 # Database credentials
 database:
   user: "sa"
-  password: "password"
+  password: ""  # REQUIRED — no default; set via --set database.password=... or a values file
 

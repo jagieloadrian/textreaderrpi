@@ -11,12 +11,14 @@ A Kubernetes Helm chart for deploying **TextReaderRpi** — a multi-zone display
 
 ## Installation
 
+**Required:** `database.password` has no default — every `helm install`/`helm upgrade` must set it (`--set database.password=<password>` or a values file). The examples below assume you add this flag.
+
 ### Default Installation (Software-Only, OfflineDisplayDriver)
 
 Deploy with no hardware access (application runs in OfflineDisplayDriver mode):
 
 ```bash
-helm install textreaderrpi .
+helm install textreaderrpi . --set database.password=<password>
 ```
 
 Wait for the pod to be ready:
@@ -104,6 +106,8 @@ Key configuration options in `values.yaml`:
 | `ingress.enabled` | bool | `false` | Enable Ingress |
 | `ingress.host` | string | `""` | Ingress hostname |
 | `rbac.create` | bool | `true` | Create ServiceAccount and RBAC resources |
+| `database.user` | string | `sa` | H2 database user |
+| `database.password` | string | _(none)_ | H2 database password — **required**, install fails if unset |
 
 For all parameters, see `values.yaml`.
 

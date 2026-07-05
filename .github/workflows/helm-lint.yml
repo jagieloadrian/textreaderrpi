@@ -22,27 +22,28 @@ jobs:
         with:
           version: 'latest'
 
+      # database.password is required by the chart (no default); a throwaway value is used for lint/template only
       - name: Helm Lint (default)
         run: |
-          helm lint .devops/helm/textreaderrpi/
+          helm lint .devops/helm/textreaderrpi/ --set database.password=ci-lint-only
 
       - name: Helm Template (default)
         run: |
-          helm template textreaderrpi .devops/helm/textreaderrpi/
+          helm template textreaderrpi .devops/helm/textreaderrpi/ --set database.password=ci-lint-only
 
       - name: Helm Template (hardwareAccess=true)
         run: |
-          helm template textreaderrpi .devops/helm/textreaderrpi/ --set hardwareAccess.enabled=true
+          helm template textreaderrpi .devops/helm/textreaderrpi/ --set database.password=ci-lint-only --set hardwareAccess.enabled=true
 
       - name: Helm Template (rbac.create=false)
         run: |
-          helm template textreaderrpi .devops/helm/textreaderrpi/ --set rbac.create=false
+          helm template textreaderrpi .devops/helm/textreaderrpi/ --set database.password=ci-lint-only --set rbac.create=false
 
       - name: Helm Template (serviceAccount.create=false)
         run: |
-          helm template textreaderrpi .devops/helm/textreaderrpi/ --set serviceAccount.create=false
+          helm template textreaderrpi .devops/helm/textreaderrpi/ --set database.password=ci-lint-only --set serviceAccount.create=false
 
       - name: Helm Template (ingress.enabled=true)
         run: |
-          helm template textreaderrpi .devops/helm/textreaderrpi/ --set ingress.enabled=true
+          helm template textreaderrpi .devops/helm/textreaderrpi/ --set database.password=ci-lint-only --set ingress.enabled=true
 
