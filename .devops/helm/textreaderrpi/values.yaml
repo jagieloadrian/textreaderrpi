@@ -14,14 +14,12 @@ JAVA_TOOL_OPTIONS: "-Xmx220m"
 # Deployment replicas (hardcoded to 1 — not configurable)
 replicas: 1
 
-# Persistence volumes
+# Persistence volumes (always created — the app requires its H2 file DB and log storage)
 persistence:
   data:
-    enabled: true
     storageClass: ""  # Uses default storage class (e.g., "local-path" on K3s)
     size: 1Gi
   logs:
-    enabled: true
     storageClass: ""
     size: 500Mi
 
