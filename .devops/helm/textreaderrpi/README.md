@@ -241,13 +241,17 @@ kubectl describe pod <pod-name>
 
 ### Database locked or connection refused
 
-If upgrading or restarting pods frequently, H2 database may have stale locks. Delete the PVC and PV:
+The Deployment uses the `Recreate` strategy, so normal `helm upgrade` runs terminate the old pod (releasing the H2 file lock) before starting the new one. If a pod was killed uncleanly and a stale lock remains, delete the pod so it restarts cleanly:
 
 ```bash
-kubectl delete pvc textreaderrpi-data --grace-period=0 --force
+kubectl delete pod -l app.kubernetes.io/name=textreaderrpi
 ```
 
-The pod will recreate the PVC and initialize a fresh database. **Note:** this deletes all history data.
+As a **last resort only**, if the database file itself is corrupted, delete the data PVC — **this destroys all history data**:
+
+```bash
+kubectl delete pvc textreaderrpi-data
+```
 
 ## Helm Chart Details
 
