@@ -5,16 +5,16 @@ milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 18
 current_phase_name: kubernetes-helm
 status: executing
-stopped_at: Completed 18-08-PLAN.md
-last_updated: "2026-07-02T18:57:38.414Z"
-last_activity: 2026-07-02
-last_activity_desc: Phase 18 execution started
+stopped_at: Completed 18-09-PLAN.md (gap closure)
+last_updated: "2026-07-05T22:05:22.219Z"
+last_activity: 2026-07-06
+last_activity_desc: Completed 18-09-PLAN.md (gap closure)
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 28
-  completed_plans: 27
-  percent: 57
+  completed_plans: 28
+  percent: 71
 ---
 
 # Project State & Memory
@@ -24,10 +24,10 @@ progress:
 
 ## Current Position
 
-Phase: 18 (kubernetes-helm) — EXECUTING
+Phase: 18 (kubernetes-helm) — EXECUTING (all plans complete, awaiting phase verification)
 Plan: 9 of 9
-Status: Ready to execute
-Last activity: 2026-07-02 — Phase 18 execution started
+Status: All plans executed — pending final phase verification
+Last activity: 2026-07-06 — Completed 18-09-PLAN.md (gap closure)
 
 ## Project Context
 
@@ -245,10 +245,11 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 18 P06 | 2min | 3 tasks | 1 files |
 | Phase 18 P07 | 2 | 3 tasks | 2 files |
 | Phase 18 P08 | 3min | 7 tasks | 0 files |
+| Phase 18 P09 | 5min | 3 tasks | 3 files |
 
 ## Session
 
-**Last session:** 2026-07-02T18:57:38.404Z
+**Last session:** 2026-07-05T22:03:49.651Z
 **Stopped at:** Completed 18-08-PLAN.md
 **Resume file:** None
 
@@ -271,3 +272,5 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - [Phase ?]: [Phase 18-06]: ingress.yaml pre-implemented in chart skeleton (1506f48) — verified disabled by default, renders correctly when enabled
 - [Phase ?]: [Phase 18-07]: JAVA_TOOL_OPTIONS templated in configmap via values.yaml — --set override now works as README documents
 - [Phase ?]: [Phase 18-08]: helm lint + all conditional template paths verified; phase-18-complete tag applied
+- [Phase 18-09]: privileged: true belongs under containers[0].securityContext, not pod-level spec.securityContext (Kubernetes silently ignores privileged at pod level)
+- [Phase 18-09]: ServiceAccount and RoleBinding subject converge on pre-existing textreaderrpi.serviceAccountName helper (matches Deployment); _helpers.tpl untouched

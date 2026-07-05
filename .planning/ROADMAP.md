@@ -46,7 +46,7 @@
 - [x] **Phase 15: SSE Live Feed** - Real-time display events streamed to the browser status page (completed 2026-06-22)
 - [x] **Phase 16: Zone Management** - Zone creation form + inbound firmware WebSocket endpoint (completed 2026-06-23)
 - [x] **Phase 17: Firmware Skeletons** - RPi Pico (C/pico-sdk) and ESP32 (C++/Arduino) firmware (completed 2026-06-24)
-- [ ] **Phase 18: Kubernetes + Helm** - Helm chart in `.devops/helm/textreaderrpi/` for K8s deployment
+- [ ] **Phase 18: Kubernetes + Helm** - Helm chart in `.devops/helm/textreaderrpi/` for K8s deployment (9/9 plans complete, pending final phase verification)
 - [ ] **Phase 19: DRY/YAGNI Refactoring** - Deduplication pass across main code and tests
 - [ ] **Phase 20: Cleanup + Docs** - .planning/ compression, delete docs/, update README
 
@@ -180,7 +180,7 @@ Plans:
   3. The JVM heap in the Deployment spec is capped at `-Xmx220m`, keeping memory within the 256 MB project constraint
   4. `helm lint` passes with no errors or warnings on the chart directory
 
-**Plans**: 8/9 plans executed
+**Plans**: 9/9 plans complete
 
 - [x] 18-01-PLAN.md
 - [x] 18-02-PLAN.md
@@ -190,7 +190,7 @@ Plans:
 - [x] 18-06-PLAN.md
 - [x] 18-07-PLAN.md
 - [x] 18-08-PLAN.md
-- [ ] 18-09-PLAN.md
+- [x] 18-09-PLAN.md
 
 ### Phase 19: DRY/YAGNI Refactoring
 
