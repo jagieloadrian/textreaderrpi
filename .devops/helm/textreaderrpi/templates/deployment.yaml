@@ -17,15 +17,15 @@ spec:
         {{- include "textreaderrpi.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "textreaderrpi.serviceAccountName" . }}
-      {{- if .Values.hardwareAccess.enabled }}
-      securityContext:
-        privileged: true
-      {{- end }}
 
       containers:
       - name: textreaderrpi
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.hardwareAccess.enabled }}
+        securityContext:
+          privileged: true
+        {{- end }}
 
         ports:
         - containerPort: 8080
