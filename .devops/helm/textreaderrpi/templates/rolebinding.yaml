@@ -11,7 +11,7 @@ roleRef:
   name: {{ include "textreaderrpi.fullname" . }}-role
 subjects:
   - kind: ServiceAccount
-    name: {{ include "textreaderrpi.fullname" . }}-sa
+    name: {{ include "textreaderrpi.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
 {{- end }}
 
