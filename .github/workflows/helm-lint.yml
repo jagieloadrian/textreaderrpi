@@ -38,6 +38,10 @@ jobs:
         run: |
           helm template textreaderrpi .devops/helm/textreaderrpi/ --set rbac.create=false
 
+      - name: Helm Template (serviceAccount.create=false)
+        run: |
+          helm template textreaderrpi .devops/helm/textreaderrpi/ --set serviceAccount.create=false
+
       - name: Helm Template (ingress.enabled=true)
         run: |
           helm template textreaderrpi .devops/helm/textreaderrpi/ --set ingress.enabled=true
