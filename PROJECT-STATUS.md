@@ -4,20 +4,22 @@
 
 ## Completed work
 
-- Phase 18 (Kubernetes + Helm) gap closure executed: plan 18-09 fixed both verification blockers
-  - `privileged: true` moved from pod-level to container-level securityContext (`2d29d59`)
-  - ServiceAccount name unified via `textreaderrpi.serviceAccountName` helper across serviceaccount.yaml, rolebinding.yaml, deployment.yaml (`66e69fb`)
-- Re-verification: 23/23 must-haves verified, status `human_needed` (was `gaps_found` at 21/23)
-- Fresh code review committed (18-REVIEW.md): 2 critical, 5 warning, 6 info — advisory, not blocking
-- `18-PLAN.md` renamed to `18-PHASE-OVERVIEW.md` so the plan index stops counting the overview doc as an incomplete plan; ROADMAP checklist updated (9/9 plans)
+- Phase 18 code-review fixes applied via `/gsd-code-review 18 --fix`: CR-01, CR-02, WR-01..WR-05 committed (report in 18-REVIEW-FIX.md)
+- Re-verification after fixes: status `gaps_found`, 22/23 must-haves (was `human_needed` 23/23 before the fixes)
+  - Both original blockers still hold; WR-01, WR-03, WR-04, WR-05 re-verified clean
+  - New regression: WR-02 (`database.password` now `required`, no shipped default — commit `49b3536`) breaks Success Criterion 1's literal command `helm install textreaderrpi .devops/helm/textreaderrpi/`, which fails at template render with no `--set` flags
+- `/gsd-execute-phase 18 --gaps` ran: no-op — no gap-closure plans exist yet (`/gsd-plan-phase 18 --gaps` was never run after re-verification)
 
 ## Important decisions
 
-- New review criticals CR-01 (`rbac.create` vs `serviceAccount.create` toggle mismatch) and CR-02 (missing `strategy: Recreate` → `helm upgrade` wedges on RWO PVC + H2 lock) were judged follow-up work, not phase blockers: neither affects the default `helm install` path that OPS-01 describes. Documented in 18-VERIFICATION.md and 18-REVIEW.md.
-- Gradle test suite deliberately skipped for this run: diff was Helm YAML only; `helm lint` + dual-mode `helm template` were the relevant checks (both pass).
+- WR-02 itself is a correct security fix (removes hardcoded default credential from VCS); the open question is how to reconcile it with SC1 — decision pending in gap planning:
+  - (a) generate a random default at install time (`randAlphaNum`, optionally `lookup`-based for upgrade stability) so the bare install works, or
+  - (b) update ROADMAP SC1 + README to require `--set database.password=...` and accept the deviation via override
+- Gradle test suite deliberately skipped for Helm-only diffs; `helm lint` + dual-mode `helm template` are the relevant checks
 
 ## Next steps
 
-1. `/gsd-verify-work 18` — run the one human UAT item (deploy chart to a real cluster, e.g. k3s with `--set hardwareAccess.enabled=false`, confirm `/health` and `/health/ready` return 200). Phase 18 completes when this passes.
-2. Optionally `/gsd-code-review 18 --fix` — address CR-01/CR-02 and the 5 warnings before shipping the chart.
-3. Then Phase 19 (DRY/YAGNI Refactoring).
+1. `/gsd-plan-phase 18 --gaps` — create the gap-closure plan for the WR-02/SC1 regression (choose (a) or (b) above)
+2. `/gsd-execute-phase 18 --gaps-only` — execute it; verifier re-runs automatically
+3. `/gsd-verify-work 18` — the one human UAT item still pending (deploy chart to a real cluster, confirm `/health` and `/health/ready` return 200)
+4. Then Phase 19 (DRY/YAGNI Refactoring)
