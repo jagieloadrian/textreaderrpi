@@ -180,7 +180,7 @@ Plans:
   3. The JVM heap in the Deployment spec is capped at `-Xmx220m`, keeping memory within the 256 MB project constraint
   4. `helm lint` passes with no errors or warnings on the chart directory
 
-**Plans**: 9/9 plans complete
+**Plans**: 9/10 plans complete (18-10 gap closure pending)
 
 - [x] 18-01-PLAN.md
 - [x] 18-02-PLAN.md
@@ -191,6 +191,7 @@ Plans:
 - [x] 18-07-PLAN.md
 - [x] 18-08-PLAN.md
 - [x] 18-09-PLAN.md
+- [ ] 18-10-PLAN.md — Gap closure (SC1): restore zero-config install via upgrade-stable random default password; reconcile values.yaml/README (OPS-01)
 
 ### Phase 19: DRY/YAGNI Refactoring
 
