@@ -4,22 +4,17 @@
 
 ## Completed work
 
-- Phase 18 code-review fixes applied via `/gsd-code-review 18 --fix`: CR-01, CR-02, WR-01..WR-05 committed (report in 18-REVIEW-FIX.md)
-- Re-verification after fixes: status `gaps_found`, 22/23 must-haves (was `human_needed` 23/23 before the fixes)
-  - Both original blockers still hold; WR-01, WR-03, WR-04, WR-05 re-verified clean
-  - New regression: WR-02 (`database.password` now `required`, no shipped default — commit `49b3536`) breaks Success Criterion 1's literal command `helm install textreaderrpi .devops/helm/textreaderrpi/`, which fails at template render with no `--set` flags
-- `/gsd-execute-phase 18 --gaps` ran: no-op — no gap-closure plans exist yet (`/gsd-plan-phase 18 --gaps` was never run after re-verification)
+- Phase 18 gap-closure plan created and verified (`18-10-PLAN.md`, gap_closure, commit `4e7eef7`): fixes the WR-02/SC1 regression via a three-level password default chain (explicit `--set` → `lookup` of existing release Secret → `randAlphaNum 16`), plus README reconciliation. Plan-checker: VERIFICATION PASSED, 0 issues.
+- Phase 19 (DRY/YAGNI Refactoring) context captured (`19-CONTEXT.md`, commit `2c65fb3`): parseFilter lives in HistoryValidators; test-utils helper file (appTest wrapper + DI accessor + fixture builders); audit-and-fix-clear-wins dedup scope; warning baseline diff for SC4.
 
 ## Important decisions
 
-- WR-02 itself is a correct security fix (removes hardcoded default credential from VCS); the open question is how to reconcile it with SC1 — decision pending in gap planning:
-  - (a) generate a random default at install time (`randAlphaNum`, optionally `lookup`-based for upgrade stability) so the bare install works, or
-  - (b) update ROADMAP SC1 + README to require `--set database.password=...` and accept the deviation via override
-- Gradle test suite deliberately skipped for Helm-only diffs; `helm lint` + dual-mode `helm template` are the relevant checks
+- WR-02/SC1 fix approach (user-locked): generate random default password at install time, upgrade-stable via `lookup`; `values.yaml` keeps `password: ""` (no credential in VCS). Alternative (roadmap wording change + override) rejected.
+- Phase 18 decision-coverage gate overridden ("Proceed anyway"): 14 CONTEXT decisions uncited in plans because plans 18-01..18-09 predate the gate — all 14 are shipped and re-verified in the chart. The advisory plan:post gap table shows the same false positive; ignore it for this phase.
+- Phase 19: SSE/WS tests stay on embeddedServer (locked Phase 15 pattern); JaCoCo 70% gate already enforced in build.gradle.kts — SC3 needs no new work.
 
 ## Next steps
 
-1. `/gsd-plan-phase 18 --gaps` — create the gap-closure plan for the WR-02/SC1 regression (choose (a) or (b) above)
-2. `/gsd-execute-phase 18 --gaps-only` — execute it; verifier re-runs automatically
-3. `/gsd-verify-work 18` — the one human UAT item still pending (deploy chart to a real cluster, confirm `/health` and `/health/ready` return 200)
-4. Then Phase 19 (DRY/YAGNI Refactoring)
+1. `/gsd-execute-phase 18 --gaps-only` — run gap plan 18-10, verifier re-runs automatically
+2. `/gsd-verify-work 18` — the one human UAT item still pending (real-cluster deploy, /health + /health/ready return 200)
+3. `/gsd-plan-phase 19` — CONTEXT.md ready; research skippable (pure refactor, targets already scouted)
