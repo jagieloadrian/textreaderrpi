@@ -11,15 +11,17 @@ A Kubernetes Helm chart for deploying **TextReaderRpi** — a multi-zone display
 
 ## Installation
 
-**Required:** `database.password` has no default — every `helm install`/`helm upgrade` must set it (`--set database.password=<password>` or a values file). The examples below assume you add this flag.
+A default install auto-generates a random 16-character `database.password`, stored only in the cluster Secret (never committed to VCS). The generated password is reused across `helm upgrade` runs (via a `lookup` of the existing release Secret) so the embedded H2 database stays accessible. To pin an explicit/production credential, pass `--set database.password=<password>` (or a values file).
 
 ### Default Installation (Software-Only, OfflineDisplayDriver)
 
 Deploy with no hardware access (application runs in OfflineDisplayDriver mode):
 
 ```bash
-helm install textreaderrpi . --set database.password=<password>
+helm install textreaderrpi .
 ```
+
+Add `--set database.password=<password>` to pin an explicit credential instead of the auto-generated one.
 
 Wait for the pod to be ready:
 ```bash
@@ -107,7 +109,7 @@ Key configuration options in `values.yaml`:
 | `ingress.host` | string | `""` | Ingress hostname |
 | `rbac.create` | bool | `true` | Create ServiceAccount and RBAC resources |
 | `database.user` | string | `sa` | H2 database user |
-| `database.password` | string | _(none)_ | H2 database password — **required**, install fails if unset |
+| `database.password` | string | _(auto-generated)_ | H2 database password — auto-generated (16 chars) if unset, reused across upgrades; set explicitly for production |
 
 For all parameters, see `values.yaml`.
 
