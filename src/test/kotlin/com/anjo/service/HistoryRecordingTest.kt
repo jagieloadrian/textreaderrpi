@@ -6,6 +6,7 @@ import com.anjo.db.HistoryRepository
 import com.anjo.dep
 import com.anjo.model.ConflictPolicy
 import com.anjo.model.HistoryFilter
+import com.anjo.model.HistoryRecord
 import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
 import com.anjo.zone.ZoneDriver
@@ -15,6 +16,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 
 class HistoryRecordingTest : FunSpec({
@@ -50,16 +52,34 @@ class HistoryRecordingTest : FunSpec({
     }
 
     test("dropped SKIP_NEW request produces no extra history record") {
-        appTest {
-            val screenService = dep<ScreenDriverService>()
-            val historyRepo = dep<HistoryRepository>()
-            val (_, beforeTotal) = historyRepo.findPaginated(HistoryFilter(null, null, null, null), 1, 50)
-            val result = screenService.displayImmediate("rendered", Effect.SCROLL, ConflictPolicy.INTERRUPT)
-            result.shouldBeInstanceOf<DisplayResult.Broadcast>()
-            screenService.awaitCurrentJob()
-            val (_, afterTotal) = historyRepo.findPaginated(HistoryFilter(null, null, null, null), 1, 50)
-            (afterTotal >= beforeTotal) shouldBe true
+        val insertedTexts = mutableListOf<String>()
+        val historyRepo = mockk<HistoryRepository>()
+        coEvery { historyRepo.insert(any()) } answers {
+            val record = firstArg<HistoryRecord>()
+            insertedTexts += record.text
+            record
         }
+        val gate = CompletableDeferred<Unit>()
+        val mockZoneDriver = mockk<ZoneDriver>(relaxed = true)
+        coEvery { mockZoneDriver.send(any(), any(), any(), any(), any()) } coAnswers {
+            gate.await()
+            true
+        }
+        val registry = ZoneRegistry()
+        registry.register("main", mockZoneDriver)
+        val svc = ScreenDriverService(
+            zoneRegistry = registry,
+            ioDispatcher = Dispatchers.Unconfined,
+            retryConfig = RetryConfig(maxAttempts = 1, initialDelayMs = 1L),
+            metrics = ScreenDriverMetrics.DISABLED,
+            historyRepository = historyRepo,
+            displayEventBus = mockk(relaxed = true),
+        )
+        svc.displayImmediate("kept", Effect.SCROLL, ConflictPolicy.INTERRUPT, zoneId = "main") shouldBe DisplayResult.Accepted(true)
+        svc.displayImmediate("dropped", Effect.SCROLL, ConflictPolicy.SKIP_NEW, zoneId = "main") shouldBe DisplayResult.Accepted(false)
+        gate.complete(Unit)
+        svc.awaitCurrentJob()
+        insertedTexts shouldBe listOf("kept")
     }
 
     test("insert failure does not prevent displayImmediate from returning a result") {
