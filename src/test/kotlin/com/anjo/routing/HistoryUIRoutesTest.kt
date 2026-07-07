@@ -1,26 +1,21 @@
 package com.anjo.routing
 
+import com.anjo.appTest
 import com.anjo.db.HistoryRepository
+import com.anjo.dep
 import com.anjo.model.HistoryRecord
-import com.anjo.module
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.plugins.di.DependencyKey
-import io.ktor.server.plugins.di.dependencies
-import io.ktor.server.plugins.di.getBlocking
-import io.ktor.server.testing.testApplication
 
 class HistoryUIRoutesTest : FunSpec({
 
     test("GET /history returns 200 with Display History heading") {
-        testApplication {
-            application { module() }
-            client.get("/health")
-            val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
+        appTest {
+            val historyRepository = dep<HistoryRepository>()
             historyRepository.insert(HistoryRecord(text = "hello world", effect = "SCROLL", source = "IMMEDIATE"))
             val response = client.get("/history")
             response.status shouldBe HttpStatusCode.OK
@@ -29,9 +24,7 @@ class HistoryUIRoutesTest : FunSpec({
     }
 
     test("GET /history contains effect and source filter dropdowns") {
-        testApplication {
-            application { module() }
-            client.get("/health")
+        appTest {
             val response = client.get("/history")
             response.status shouldBe HttpStatusCode.OK
             val body = response.bodyAsText()
@@ -41,10 +34,8 @@ class HistoryUIRoutesTest : FunSpec({
     }
 
     test("GET /history?expand=all renders details with open attribute") {
-        testApplication {
-            application { module() }
-            client.get("/health")
-            val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
+        appTest {
+            val historyRepository = dep<HistoryRepository>()
             historyRepository.insert(HistoryRecord(text = "expand test", effect = "BLINK", source = "IMMEDIATE"))
             val body = client.get("/history?expand=all").bodyAsText()
             body shouldContain "<details open"
@@ -52,27 +43,21 @@ class HistoryUIRoutesTest : FunSpec({
     }
 
     test("GET /history nav contains href for /history") {
-        testApplication {
-            application { module() }
-            client.get("/health")
+        appTest {
             val body = client.get("/history").bodyAsText()
             body shouldContain "href=\"/history\""
         }
     }
 
     test("GET /history page contains search input field") {
-        testApplication {
-            application { module() }
-            client.get("/health")
+        appTest {
             val body = client.get("/history").bodyAsText()
             body shouldContain "name=\"search\""
         }
     }
 
     test("GET /history page contains Export CSV link pointing to export endpoint") {
-        testApplication {
-            application { module() }
-            client.get("/health")
+        appTest {
             val body = client.get("/history").bodyAsText()
             body shouldContain "Export CSV"
             body shouldContain "/api/v1/history/export"
@@ -80,10 +65,8 @@ class HistoryUIRoutesTest : FunSpec({
     }
 
     test("GET /history with search param highlights matching term with mark element") {
-        testApplication {
-            application { module() }
-            client.get("/health")
-            val historyRepository = application.dependencies.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
+        appTest {
+            val historyRepository = dep<HistoryRepository>()
             historyRepository.insert(HistoryRecord(text = "hello world", effect = "SCROLL", source = "IMMEDIATE"))
             val body = client.get("/history?search=hello").bodyAsText()
             body shouldContain "<mark>hello</mark>"

@@ -25,9 +25,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.plugins.di.DependencyKey
-import io.ktor.server.plugins.di.dependencies
-import io.ktor.server.plugins.di.getBlocking
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -99,35 +96,30 @@ class ApplicationTest : FunSpec({
     }
 
     test("should read discoveryEnabled as false from system property in test JVM") {
-        testApplication {
-            application { module() }
-            client.get("/health")
-            val appConfig = application.dependencies.getBlocking<ApplicationConfig>(DependencyKey<ApplicationConfig>())
+        appTest {
+            val appConfig = dep<ApplicationConfig>()
             appConfig.discoveryEnabled shouldBe false
         }
     }
 
     test("should resolve all configureDI bindings without error") {
-        testApplication {
-            application { module() }
-            client.get("/health")
-            val deps = application.dependencies
-            deps.getBlocking<ApplicationConfig>(DependencyKey<ApplicationConfig>()) shouldNotBeNull {}
-            deps.getBlocking<ApiConfig>(DependencyKey<ApiConfig>()) shouldNotBeNull {}
-            deps.getBlocking<CoroutineDispatcher>(DependencyKey<CoroutineDispatcher>()) shouldNotBeNull {}
-            deps.getBlocking<MetricRegistry>(DependencyKey<MetricRegistry>()) shouldNotBeNull {}
-            deps.getBlocking<HardwareMetrics>(DependencyKey<HardwareMetrics>()) shouldNotBeNull {}
-            deps.getBlocking<ZoneRegistry>(DependencyKey<ZoneRegistry>()) shouldNotBeNull {}
-            deps.getBlocking<ZoneRepository>(DependencyKey<ZoneRepository>()) shouldNotBeNull {}
-            deps.getBlocking<NetworkDiscoveryService>(DependencyKey<NetworkDiscoveryService>()) shouldNotBeNull {}
-            deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>()) shouldNotBeNull {}
-            deps.getBlocking<MetricsCollector>(DependencyKey<MetricsCollector>()) shouldNotBeNull {}
-            deps.getBlocking<ScheduleRepository>(DependencyKey<ScheduleRepository>()) shouldNotBeNull {}
-            deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>()) shouldNotBeNull {}
-            deps.getBlocking<HistoryService>(DependencyKey<HistoryService>()) shouldNotBeNull {}
-            deps.getBlocking<EffectRendererFactory>(DependencyKey<EffectRendererFactory>()) shouldNotBeNull {}
-            deps.getBlocking<SchedulerService>(DependencyKey<SchedulerService>()) shouldNotBeNull {}
-            deps.getBlocking<WebhookService>(DependencyKey<WebhookService>()) shouldNotBeNull {}
+        appTest {
+            dep<ApplicationConfig>() shouldNotBeNull {}
+            dep<ApiConfig>() shouldNotBeNull {}
+            dep<CoroutineDispatcher>() shouldNotBeNull {}
+            dep<MetricRegistry>() shouldNotBeNull {}
+            dep<HardwareMetrics>() shouldNotBeNull {}
+            dep<ZoneRegistry>() shouldNotBeNull {}
+            dep<ZoneRepository>() shouldNotBeNull {}
+            dep<NetworkDiscoveryService>() shouldNotBeNull {}
+            dep<ScreenDriverService>() shouldNotBeNull {}
+            dep<MetricsCollector>() shouldNotBeNull {}
+            dep<ScheduleRepository>() shouldNotBeNull {}
+            dep<HistoryRepository>() shouldNotBeNull {}
+            dep<HistoryService>() shouldNotBeNull {}
+            dep<EffectRendererFactory>() shouldNotBeNull {}
+            dep<SchedulerService>() shouldNotBeNull {}
+            dep<WebhookService>() shouldNotBeNull {}
         }
     }
 })
