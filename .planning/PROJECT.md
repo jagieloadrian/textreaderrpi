@@ -113,6 +113,7 @@ Simple, reliable one-way display control from any browser on the home network.
 **Network:** JmDNS + ktor-client-cio/websockets for zone discovery
 **Test suite:** 4,325 LOC main + 3,379 LOC test | JaCoCo LINE ≥ 70% (actual: 80.7%)
 **Deferred:** 4 on-device hardware verification checkpoints (human_needed)
+**v1.2 progress:** Phase 18 complete (2026-07-07) — Helm chart for Kubernetes deployment with hardware-access and resource controls (`.devops/helm/textreaderrpi/`). Validated in Phase 18: OPS-01.
 
 **New in v1.1:**
 - `GET /health/detail` — HealthDetailResponse (uptime, memory, display status, error counts)
@@ -201,4 +202,4 @@ This document evolves at phase transitions and milestone boundaries.
 - Kompresja .planning/, usunięcie docs/, update README
 
 ---
-*Last updated: 2026-06-23 — After Phase 16 (Zone Management).*
+*Last updated: 2026-07-07 — After Phase 18 (Kubernetes Helm).*
