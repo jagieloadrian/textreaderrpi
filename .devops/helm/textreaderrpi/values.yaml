@@ -55,5 +55,5 @@ podAnnotations: {}
 # Database credentials
 database:
   user: "sa"
-  password: ""  # REQUIRED — no default; set via --set database.password=... or a values file
+  password: ""  # Auto-generated (randAlphaNum 16) at install when unset; set --set database.password=... to pin an explicit value
 
