@@ -202,4 +202,4 @@ This document evolves at phase transitions and milestone boundaries.
 - Kompresja .planning/, usunięcie docs/, update README
 
 ---
-*Last updated: 2026-07-07 — After Phase 18 (Kubernetes Helm).*
+*Last updated: 2026-07-07 — After Phase 19 (DRY/YAGNI Refactoring).*
