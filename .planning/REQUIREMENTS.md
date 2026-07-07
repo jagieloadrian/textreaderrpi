@@ -34,7 +34,7 @@
 
 ## Refactoring
 
-- [ ] **REF-05**: Main code and tests have no significant duplication (DRY/YAGNI pass: HistoryFilter data class, shared test base helpers, deduplication of repeated patterns)
+- [x] **REF-05**: Main code and tests have no significant duplication (DRY/YAGNI pass: HistoryFilter data class, shared test base helpers, deduplication of repeated patterns)
 
 ## Cleanup + Docs
 
@@ -78,6 +78,6 @@
 | FW-01 | Phase 17 | Planned | 17-01, 17-02, 17-03, 17-05, 17-06 |
 | FW-02 | Phase 17 | Planned | 17-02, 17-04, 17-05, 17-06 |
 | OPS-01 | Phase 18 | Complete | — |
-| REF-05 | Phase 19 | Pending | — |
+| REF-05 | Phase 19 | Complete | — |
 | CLEAN-01 | Phase 20 | Pending | — |
 | DOCS-01 | Phase 20 | Pending | — |

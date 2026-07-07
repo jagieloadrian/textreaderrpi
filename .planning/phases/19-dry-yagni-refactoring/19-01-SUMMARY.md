@@ -132,3 +132,7 @@ None - no external service configuration required.
 ---
 *Phase: 19-dry-yagni-refactoring*
 *Completed: 2026-07-07*
+
+## Self-Check: PASSED
+
+All 4 modified/created source files and the SUMMARY.md itself found on disk; all 3 commits (8d88a5f, 02cc165, 91d743a) found in git log.

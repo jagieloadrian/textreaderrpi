@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 19
-current_phase_name: DRY/YAGNI Refactoring
+current_phase_name: dry-yagni-refactoring
 status: executing
-stopped_at: Phase 19 context gathered
-last_updated: "2026-07-07T14:08:38.281Z"
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-07-07T14:22:19.177Z"
 last_activity: 2026-07-07
-last_activity_desc: Phase 18 complete, transitioned to Phase 19
+last_activity_desc: Phase 19 execution started
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 31
-  completed_plans: 29
+  completed_plans: 30
   percent: 71
 ---
 
@@ -24,10 +24,10 @@ progress:
 
 ## Current Position
 
-Phase: 19 — DRY/YAGNI Refactoring
-Plan: Not started
-Status: All plans executed (gap closure 18-10 closed the sole verification gap)
-Last activity: 2026-07-07 — Phase 18 complete, transitioned to Phase 19
+Phase: 19 (dry-yagni-refactoring) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-07-07 — Phase 19 execution started
 
 ## Project Context
 
@@ -247,12 +247,13 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 18 P08 | 3min | 7 tasks | 0 files |
 | Phase 18 P09 | 5min | 3 tasks | 3 files |
 | Phase 18 P10 | 3min | 2 tasks | 3 files |
+| Phase 19-dry-yagni-refactoring P01 | 15min | 2 tasks | 4 files |
 
 ## Session
 
-**Last session:** 2026-07-07T08:46:56.042Z
-**Stopped at:** Phase 19 context gathered
-**Resume file:** .planning/phases/19-dry-yagni-refactoring/19-CONTEXT.md
+**Last session:** 2026-07-07T14:22:19.165Z
+**Stopped at:** Completed 19-01-PLAN.md
+**Resume file:** None
 
 ## Decisions
 
@@ -276,3 +277,5 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - [Phase 18-09]: privileged: true belongs under containers[0].securityContext, not pod-level spec.securityContext (Kubernetes silently ignores privileged at pod level)
 - [Phase 18-09]: ServiceAccount and RoleBinding subject converge on pre-existing textreaderrpi.serviceAccountName helper (matches Deployment); _helpers.tpl untouched
 - [Phase ?]: [Phase 18-10]: Nested if guards (not 'and') for helm lookup fallback avoid Go-template short-circuit version dependency
+- [Phase ?]: [Phase 19-01]: HistoryPage.kt's 3x-repeated query-string builder listed, not fixed (would need ~7 params for 3 call sites) — Over the D-07 borderline threshold; avoids churning a working v1.2 codebase for a marginal win
+- [Phase ?]: [Phase 19-01]: parseFilter uppercases effect/source consistently across HistoryRoutes and HistoryUIRoutes — No-op for real dropdown values (already uppercase enum names); HistoryUIRoutesTest confirms no regression

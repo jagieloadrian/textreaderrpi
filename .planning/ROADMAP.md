@@ -214,7 +214,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 19-01-PLAN.md — HistoryValidators.parseFilter consolidation (SC1) + bounded main-code dedup/dead-code audit + warning baseline (REF-05)
+- [x] 19-01-PLAN.md — HistoryValidators.parseFilter consolidation (SC1) + bounded main-code dedup/dead-code audit + warning baseline (REF-05)
 
 **Wave 2** *(blocked on Wave 1)*
 
