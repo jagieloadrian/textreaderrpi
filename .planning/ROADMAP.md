@@ -47,7 +47,7 @@
 - [x] **Phase 16: Zone Management** - Zone creation form + inbound firmware WebSocket endpoint (completed 2026-06-23)
 - [x] **Phase 17: Firmware Skeletons** - RPi Pico (C/pico-sdk) and ESP32 (C++/Arduino) firmware (completed 2026-06-24)
 - [x] **Phase 18: Kubernetes + Helm** - Helm chart in `.devops/helm/textreaderrpi/` for K8s deployment (10/10 plans complete) (completed 2026-07-07)
-- [ ] **Phase 19: DRY/YAGNI Refactoring** - Deduplication pass across main code and tests
+- [x] **Phase 19: DRY/YAGNI Refactoring** - Deduplication pass across main code and tests (completed 2026-07-07)
 - [ ] **Phase 20: Cleanup + Docs** - .planning/ compression, delete docs/, update README
 
 ---
