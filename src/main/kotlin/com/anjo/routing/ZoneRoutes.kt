@@ -19,6 +19,17 @@ import java.time.Instant
 
 private val log = LoggerFactory.getLogger("ZoneRoutes")
 
+private fun buildZone(req: AddZoneRequest, ip: String?) = NetworkZone(
+    id = req.name,
+    name = req.name,
+    ip = ip,
+    type = req.type,
+    discoveryMethod = "MANUAL",
+    createdAt = Instant.now().toString(),
+    lastSeenAt = null,
+    displaySubtype = req.displaySubtype
+)
+
 fun Route.zoneRoutes(
     zoneRegistry: ZoneRegistry,
     discoveryService: NetworkDiscoveryService,
@@ -55,16 +66,7 @@ fun Route.zoneRoutes(
             }
 
             if (req.type == DisplayType.FIRMWARE.name) {
-                val zone = NetworkZone(
-                    id = req.name,
-                    name = req.name,
-                    ip = null,
-                    type = req.type,
-                    discoveryMethod = "MANUAL",
-                    createdAt = Instant.now().toString(),
-                    lastSeenAt = null,
-                    displaySubtype = req.displaySubtype
-                )
+                val zone = buildZone(req, null)
                 zoneRepository.upsert(zone)
                 zoneRegistry.registerFirmwareZone(req.name)
                 log.info("Firmware zone registered: name=${req.name}")
@@ -75,16 +77,7 @@ fun Route.zoneRoutes(
                 if (zoneRegistry.containsIp(ip)) {
                     return@post call.respond(HttpStatusCode.Conflict, "Zone with IP $ip is already registered")
                 }
-                val zone = NetworkZone(
-                    id = req.name,
-                    name = req.name,
-                    ip = ip,
-                    type = req.type,
-                    discoveryMethod = "MANUAL",
-                    createdAt = Instant.now().toString(),
-                    lastSeenAt = null,
-                    displaySubtype = req.displaySubtype
-                )
+                val zone = buildZone(req, ip)
                 zoneRepository.upsert(zone)
                 zoneRegistry.addNetworkZone(zone)
                 log.info("Network zone added: name=${req.name} ip=$ip")
