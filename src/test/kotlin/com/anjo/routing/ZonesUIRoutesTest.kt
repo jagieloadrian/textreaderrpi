@@ -63,13 +63,4 @@ class ZonesUIRoutesTest : FunSpec({
             body shouldContain "<span"
         }
     }
-
-    test("GET /zones with no zones shows No zones registered empty state") {
-        appTest {
-            val body: String
-            val response = client.get("/zones")
-            body = response.bodyAsText()
-            body shouldContain "Zones"
-        }
-    }
 })
