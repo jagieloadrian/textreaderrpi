@@ -7,6 +7,7 @@ import com.anjo.model.HistoryRecord
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -61,6 +62,26 @@ class HistoryUIRoutesTest : FunSpec({
             val body = client.get("/history").bodyAsText()
             body shouldContain "Export CSV"
             body shouldContain "/api/v1/history/export"
+        }
+    }
+
+    test("GET /history with lowercase effect param filters same as uppercase") {
+        appTest {
+            val historyRepository = dep<HistoryRepository>()
+            historyRepository.insert(HistoryRecord(text = "lowercase-scroll-row", effect = "SCROLL", source = "IMMEDIATE"))
+            historyRepository.insert(HistoryRecord(text = "lowercase-blink-row", effect = "BLINK", source = "IMMEDIATE"))
+            val body = client.get("/history?effect=scroll").bodyAsText()
+            body shouldContain "lowercase-scroll-row"
+            body shouldNotContain "lowercase-blink-row"
+        }
+    }
+
+    test("GET /history with lowercase effect all disables the effect filter") {
+        appTest {
+            val historyRepository = dep<HistoryRepository>()
+            historyRepository.insert(HistoryRecord(text = "effect-all-blink-row", effect = "BLINK", source = "IMMEDIATE"))
+            val body = client.get("/history?effect=all").bodyAsText()
+            body shouldContain "effect-all-blink-row"
         }
     }
 

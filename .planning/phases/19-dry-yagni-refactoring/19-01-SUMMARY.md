@@ -32,7 +32,7 @@ key-files:
     - src/main/kotlin/com/anjo/routing/ZoneRoutes.kt
 
 key-decisions:
-  - "parseFilter uppercases effect/source (matching HistoryRoutes' prior behavior) even though HistoryUIRoutes previously didn't uppercase — no-op for real dropdown values since they're already uppercase enum names; HistoryUIRoutesTest confirms no regression"
+  - "parseFilter uppercases effect/source (matching HistoryRoutes' prior behavior) even though HistoryUIRoutes previously didn't uppercase — intentional behavior change on GET /history for hand-typed URLs: ?effect=scroll now matches SCROLL records (previously matched nothing) and lowercase ?effect=all / ?source=all now disable the filter (previously filtered on literal 'all'); no-op for the UI dropdowns which already emit uppercase values; pinned by HistoryUIRoutesTest case-normalization tests (code review WR-01)"
   - "HistoryPage.kt's 3x-repeated query-string construction line was listed, not fixed — extraction would require ~7 params for a 3-call-site helper, over the borderline threshold set by D-07"
 
 requirements-completed: [REF-05]
