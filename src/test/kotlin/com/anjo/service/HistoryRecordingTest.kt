@@ -1,12 +1,13 @@
 package com.anjo.service
 
+import com.anjo.appTest
 import com.anjo.config.model.RetryConfig
 import com.anjo.db.HistoryRepository
+import com.anjo.dep
 import com.anjo.model.ConflictPolicy
 import com.anjo.model.HistoryFilter
 import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
-import com.anjo.module
 import com.anjo.zone.ZoneDriver
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -14,22 +15,14 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockk
-import io.ktor.client.request.get
-import io.ktor.server.plugins.di.DependencyKey
-import io.ktor.server.plugins.di.dependencies
-import io.ktor.server.plugins.di.getBlocking
-import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.Dispatchers
 
 class HistoryRecordingTest : FunSpec({
 
     test("displayImmediate writes IMMEDIATE record to history via real wired app") {
-        testApplication {
-            application { module() }
-            client.get("/health")
-            val deps = application.dependencies
-            val screenService = deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>())
-            val historyRepo = deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
+        appTest {
+            val screenService = dep<ScreenDriverService>()
+            val historyRepo = dep<HistoryRepository>()
             screenService.displayImmediate("rec-test", Effect.SCROLL, ConflictPolicy.INTERRUPT)
             screenService.awaitCurrentJob()
             val (items, total) = historyRepo.findPaginated(HistoryFilter(null, null, null, null), 1, 50)
@@ -43,12 +36,9 @@ class HistoryRecordingTest : FunSpec({
     }
 
     test("displayScheduled writes SCHEDULED record to history via real wired app") {
-        testApplication {
-            application { module() }
-            client.get("/health")
-            val deps = application.dependencies
-            val screenService = deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>())
-            val historyRepo = deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
+        appTest {
+            val screenService = dep<ScreenDriverService>()
+            val historyRepo = dep<HistoryRepository>()
             screenService.displayScheduled("sched-test", "sched-id-1", Effect.SCROLL, ConflictPolicy.INTERRUPT, "sent")
             val (items, _) = historyRepo.findPaginated(HistoryFilter(null, null, null, null), 1, 50)
             val record = items.find { it.scheduleId == "sched-id-1" }
@@ -60,12 +50,9 @@ class HistoryRecordingTest : FunSpec({
     }
 
     test("dropped SKIP_NEW request produces no extra history record") {
-        testApplication {
-            application { module() }
-            client.get("/health")
-            val deps = application.dependencies
-            val screenService = deps.getBlocking<ScreenDriverService>(DependencyKey<ScreenDriverService>())
-            val historyRepo = deps.getBlocking<HistoryRepository>(DependencyKey<HistoryRepository>())
+        appTest {
+            val screenService = dep<ScreenDriverService>()
+            val historyRepo = dep<HistoryRepository>()
             val (_, beforeTotal) = historyRepo.findPaginated(HistoryFilter(null, null, null, null), 1, 50)
             val result = screenService.displayImmediate("rendered", Effect.SCROLL, ConflictPolicy.INTERRUPT)
             result.shouldBeInstanceOf<DisplayResult.Broadcast>()
