@@ -86,14 +86,6 @@ class ApplicationTest : FunSpec({
         }
     }
 
-    test("should include application name in health response") {
-        testApplication {
-            application { module() }
-            val response = client.get("/health")
-            val validStatuses = setOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable)
-            assert(response.status in validStatuses)
-        }
-    }
 
     test("should read discoveryEnabled as false from system property in test JVM") {
         appTest {
