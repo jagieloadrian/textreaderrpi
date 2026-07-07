@@ -1,6 +1,5 @@
 package com.anjo.routing.ui
 
-import com.anjo.model.HistoryFilter
 import com.anjo.service.HistoryService
 import com.anjo.service.ZoneRegistry
 import com.anjo.validation.HistoryValidators
@@ -25,11 +24,7 @@ fun Route.historyUIRoutes(historyService: HistoryService, zoneRegistry: ZoneRegi
         val zone = call.request.queryParameters["zone"].orEmpty()
         val expandAll = call.request.queryParameters["expand"] == "all"
         val rawSearch = call.request.queryParameters["search"].orEmpty()
-        val effectFilter = effect.takeIf { it.isNotEmpty() && it != "ALL" }
-        val sourceFilter = source.takeIf { it.isNotEmpty() && it != "ALL" }
-        val zoneFilter = zone.takeIf { it.isNotEmpty() && it != "ALL" }
-        val searchFilter = HistoryValidators.sanitizeSearchTerm(rawSearch).takeIf { it.isNotBlank() }
-        val filter = HistoryFilter(effect = effectFilter, source = sourceFilter, zone = zoneFilter, search = searchFilter)
+        val filter = HistoryValidators.parseFilter(call.request.queryParameters)
         val (items, total) = historyService.findPaginated(filter, page, size)
         val sanitizedSearch = HistoryValidators.sanitizeSearchTerm(rawSearch)
         val exportHref = "/api/v1/history/export?effect=${effect.urlEncode()}&source=${source.urlEncode()}&zone=${zone.urlEncode()}&search=${sanitizedSearch.urlEncode()}"
