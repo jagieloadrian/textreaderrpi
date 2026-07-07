@@ -4,29 +4,29 @@ milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 19
 current_phase_name: dry-yagni-refactoring
-status: executing
-stopped_at: Completed 19-01-PLAN.md
-last_updated: "2026-07-07T14:22:19.177Z"
+status: verifying
+stopped_at: Completed 19-02-PLAN.md
+last_updated: "2026-07-07T14:34:41.534Z"
 last_activity: 2026-07-07
 last_activity_desc: Phase 19 execution started
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 31
-  completed_plans: 30
-  percent: 71
+  completed_plans: 31
+  percent: 86
 ---
 
 # Project State & Memory
 
 **Last Updated:** 2026-06-24  
-**Status:** Ready to execute
+**Status:** Phase complete — ready for verification
 
 ## Current Position
 
 Phase: 19 (dry-yagni-refactoring) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-07 — Phase 19 execution started
 
 ## Project Context
@@ -248,11 +248,12 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 18 P09 | 5min | 3 tasks | 3 files |
 | Phase 18 P10 | 3min | 2 tasks | 3 files |
 | Phase 19-dry-yagni-refactoring P01 | 15min | 2 tasks | 4 files |
+| Phase 19-dry-yagni-refactoring P02 | 8min | 3 tasks | 7 files |
 
 ## Session
 
-**Last session:** 2026-07-07T14:22:19.165Z
-**Stopped at:** Completed 19-01-PLAN.md
+**Last session:** 2026-07-07T14:34:41.524Z
+**Stopped at:** Completed 19-02-PLAN.md
 **Resume file:** None
 
 ## Decisions
@@ -279,3 +280,5 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - [Phase ?]: [Phase 18-10]: Nested if guards (not 'and') for helm lookup fallback avoid Go-template short-circuit version dependency
 - [Phase ?]: [Phase 19-01]: HistoryPage.kt's 3x-repeated query-string builder listed, not fixed (would need ~7 params for 3 call sites) — Over the D-07 borderline threshold; avoids churning a working v1.2 codebase for a marginal win
 - [Phase ?]: [Phase 19-01]: parseFilter uppercases effect/source consistently across HistoryRoutes and HistoryUIRoutes — No-op for real dropdown values (already uppercase enum names); HistoryUIRoutesTest confirms no regression
+- [Phase 19-02]: HistoryRoutesTest's second repeat(25) loop uses historyRecord()'s text = "text $i" default (was pagination-text-$i) per explicit acceptance criteria — Test only asserts page1Body != page2Body, never literal text content, so behavior is unaffected
+- [Phase 19-02]: Mechanical test migration scoped to literal testApplication{application{module()};client.get(/health)} pattern only — Blocks without that exact warm-up were left on raw testApplication rather than force-fit into appTest{}, which would silently add an extra HTTP call and change observable request counts

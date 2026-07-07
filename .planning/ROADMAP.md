@@ -218,7 +218,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 19-02-PLAN.md — TestSupport.kt (appTest/dep/historyRecord) + migrate 6 getBlocking test files (SC2) + full phase gate (coverage + warning diff) (REF-05)
+- [x] 19-02-PLAN.md — TestSupport.kt (appTest/dep/historyRecord) + migrate 6 getBlocking test files (SC2) + full phase gate (coverage + warning diff) (REF-05)
 
 ### Phase 20: Cleanup + Docs
 
