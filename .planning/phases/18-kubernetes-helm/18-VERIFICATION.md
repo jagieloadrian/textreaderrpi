@@ -1,72 +1,73 @@
 ---
 phase: 18-kubernetes-helm
-verified: 2026-07-06T01:00:00Z
-status: gaps_found
-score: 22/23 must-haves verified
+verified: 2026-07-07T12:00:00Z
+status: passed
+score: 23/23 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 re_verification: true
 re_verification_data:
-  previous_status: human_needed
-  previous_score: 23/23
-  gaps_closed: []
+  previous_status: gaps_found
+  previous_score: 22/23
+  gaps_closed:
+    - "Running `helm install textreaderrpi .devops/helm/textreaderrpi/` on a K8s cluster starts a pod that passes both /health and /health/ready liveness/readiness probes (ROADMAP Success Criterion 1, literal command) — render no longer fails"
+    - "helm lint passes with no errors or warnings on the bare chart directory (SC4) — no more level=WARN lines"
   gaps_remaining: []
-  regressions:
-    - "Success Criterion 1's literal command (`helm install textreaderrpi .devops/helm/textreaderrpi/`, no --set flags) now fails deterministically because WR-02 (commit 49b3536) made `database.password` a `required` value with no default. Confirmed via `helm install --dry-run` and `helm template` with zero overrides: both exit 1 with 'database.password must be set'. This is a NEW regression introduced by the WR-02 code-review fix, not present in the prior verification (which ran before WR-02)."
-gaps:
-  - truth: "Running `helm install textreaderrpi .devops/helm/textreaderrpi/` on a K8s cluster starts a pod that passes both /health and /health/ready liveness/readiness probes (ROADMAP Success Criterion 1, literal command)"
-    status: failed
-    reason: "The exact command from the roadmap's success criterion, with no --set overrides, fails at the client-side template-render stage before a pod is ever scheduled. WR-02 (fix(18): WR-02 require database.password, drop shipped default credential, commit 49b3536) replaced the shipped default `database.password: \"password\"` with an empty string wrapped in Helm's `required` function. This is a correct security fix in isolation (no more hardcoded default credential in VCS) but it silently broke the literal SC1 install command, which the roadmap and README's own 'default install' example do not show as requiring `--set database.password=...`."
-    artifacts:
-      - path: ".devops/helm/textreaderrpi/templates/secret.yaml"
-        issue: "Line 10: `{{ required \"database.password must be set (--set database.password=...)\" .Values.database.password | quote }}` — hard-fails template rendering when `database.password` is unset."
-      - path: ".devops/helm/textreaderrpi/values.yaml"
-        issue: "Line 58: `password: \"\"` — no default value is shipped, so the `required` guard always fires unless the operator supplies `--set database.password=...` or a values override."
-    missing:
-      - "Either: (a) restore a zero-config default install path by generating a random password at install time (e.g. `{{ .Values.database.password | default (randAlphaNum 16) }}`, optionally paired with a `lookup`-based upgrade-stable pattern), so the bare `helm install textreaderrpi .devops/helm/textreaderrpi/` command in SC1 succeeds without extra flags, or (b) update ROADMAP.md's Phase 18 Success Criterion 1 (and README's 'Default Installation' example, which already documents the required flag) to include the mandatory `--set database.password=...` flag, making the documented contract match the enforced one, then request an explicit override acceptance for this deviation."
+  regressions: []
+human_verification_accepted: # Accepted by user ("accept") on 2026-07-07 — items resolved without live-cluster run
+  - test: "Deploy chart to a real Kubernetes cluster (`helm install textreaderrpi .devops/helm/textreaderrpi/`) and verify the pod starts and `/health` + `/health/ready` return 200 OK"
+    expected: "Pod reaches Running/Ready state; both probe endpoints respond 200"
+    why_human: "Requires a live cluster (k3s/k3d/kind); helm template/lint/dry-run cannot schedule or run a pod. Pre-existing item, tracked in 18-UAT.md test #1 (status: pending), not duplicated as a new gap here."
+  - test: "Run `helm upgrade` against an existing release on a real cluster and confirm DATABASE_PASSWORD in the re-rendered Secret is identical to the original release's password (lookup-hit path), and that the H2-backed app stays reachable across the upgrade"
+    expected: "The `lookup \"v1\" \"Secret\" .Release.Namespace $secretName` call finds the prior release's Secret and reuses its DATABASE_PASSWORD verbatim (via b64dec) rather than generating a new one; checksum/secret annotation does not force an unnecessary rollout from a changed password; app's H2 file DB remains accessible with the same credential"
+    why_human: "`helm template`/`helm lint`/`--dry-run` have no cluster API access, so `lookup` always returns empty/falsy in those contexts — the randAlphaNum fallback path is the only branch exercisable statically. The lookup-hit branch (the actual upgrade-stability guarantee this gap-closure plan exists to deliver) can only be exercised against a real cluster with a pre-existing release. New item introduced by plan 18-10 (SUMMARY.md flags this explicitly as coverage item D6, human_judgment: true)."
 ---
 
 # Phase 18: Kubernetes Helm Verification Report
 
 **Phase Goal:** TextReaderRpi can be deployed to a Kubernetes cluster using a Helm chart with hardware-access and resource controls.
-**Verified:** 2026-07-06T01:00:00Z
-**Status:** gaps_found
-**Re-verification:** Yes — after 7 code-review fix commits (CR-01, CR-02, WR-01..WR-05) applied on top of the prior `human_needed` (23/23) verification at `ebf5b7e`.
+**Verified:** 2026-07-07T12:00:00Z
+**Status:** passed (human verification items accepted by user on 2026-07-07)
+**Re-verification:** Yes — after gap-closure plan 18-10 (commits `f105de5`, `d8f62b3`) executed on top of the prior `gaps_found` (22/23) verification.
 
 ---
 
 ## Re-Verification Summary
 
-The prior VERIFICATION.md (committed at `ebf5b7e`, status `human_needed`, score 23/23) was verified **before** 7 subsequent code-review fix commits touched `templates/serviceaccount.yaml`, `templates/deployment.yaml`, `templates/configmap.yaml`, `templates/secret.yaml`, `templates/rolebinding.yaml`, `values.yaml`, and `.github/workflows/helm-lint.yml`. This re-verification re-renders the chart at current HEAD (`c749b4c`) with `helm v4.2.2` and checks both (a) that the two previously-closed blockers still hold, and (b) whether any of the 7 new fixes introduced a regression.
+The prior VERIFICATION.md (status `gaps_found`, score 22/23) identified one blocking regression: WR-02's `required` guard on `database.password` (commit `49b3536`) made the literal ROADMAP SC1 command (`helm install textreaderrpi .devops/helm/textreaderrpi/`, no flags) fail deterministically at template-render time, with a secondary `level=WARN` symptom on bare `helm lint` (SC4).
 
-**Previously-closed gaps — re-confirmed still closed:**
+Plan 18-10 replaced the `required` guard in `templates/secret.yaml` with a three-step default chain: explicit `.Values.database.password` -> `lookup` of the existing release Secret (upgrade-stable reuse) -> `randAlphaNum 16` fallback. This was independently re-rendered and spot-checked against the actual codebase at current HEAD (not taken from SUMMARY.md claims):
 
-1. **Container-level `privileged: true`, gated on `hardwareAccess.enabled`:** `helm template ... --set hardwareAccess.enabled=true` renders exactly one `securityContext:` block at `deployment.yaml:233-234`, nested inside `containers[0]` immediately after `imagePullPolicy` — not at pod level. `hardwareAccess.enabled=false` (default) renders zero occurrences of `privileged`. **Holds.**
-2. **ServiceAccount name consistency across `serviceAccount.create` / `rbac.create` permutations:** Re-tested all four requested permutations directly against rendered output (not narrative):
-   - Default (`serviceAccount.create=true`, `rbac.create=true`): ServiceAccount `metadata.name`, Deployment `serviceAccountName`, and RoleBinding `subjects[0].name` all render `textreaderrpi`. Matches.
-   - `serviceAccount.create=false`: No `ServiceAccount` kind rendered (fixed — CR-01 previously gated this on `rbac.create`, now correctly on `serviceAccount.create`); Deployment `serviceAccountName: default`; no RoleBinding rendered issue since it also resolves to `default` via the same helper. Kubernetes' built-in `default` ServiceAccount always exists, so this is deployable.
-   - `rbac.create=false`: ServiceAccount **is** still rendered (gate is now independent of `rbac.create`); Deployment references `serviceAccountName: textreaderrpi`, matching the still-created SA. Role/RoleBinding correctly absent. **CR-01 fix holds across permutations.**
-
-**New regression found (not present in the prior human_needed verification):**
-
-3. **WR-02 (`require database.password, drop shipped default credential`, commit 49b3536)** made `database.password` mandatory via Helm's `required` function with no fallback default. This is a legitimate security improvement (no more hardcoded `password` string shipped in VCS) but it breaks Success Criterion 1's **literal** command: `helm install textreaderrpi .devops/helm/textreaderrpi/` — with no `--set` flags — now fails at template-render time, before any pod is scheduled:
-   ```
-   $ helm install textreaderrpi .devops/helm/textreaderrpi/ --dry-run
-   Error: INSTALLATION FAILED: execution error at (textreaderrpi/templates/secret.yaml:10:24): database.password must be set (--set database.password=...)
-   ```
-   `helm template textreaderrpi .devops/helm/textreaderrpi/` (zero overrides) reproduces the identical failure, exit code 1. This is 100% deterministic and does not require a real cluster to observe — it fails client-side. The README.md was updated in the same fix to document the required flag, but ROADMAP.md's Phase 18 Success Criterion 1 text was not, so the literal roadmap contract (as re-verified against, per this workflow's rules) is unmet by the current chart's default values.
-
-   A secondary, related symptom: bare `helm lint .devops/helm/textreaderrpi/` (no `--set`) now prints two `level=WARN msg="missing required values"` lines to stderr (though it still reports `0 chart(s) failed`, exit 0) — a partial regression against Success Criterion 4 ("`helm lint` passes with no errors **or warnings**"). The CI workflow (`helm-lint.yml`) always passes `--set database.password=ci-lint-only`, so this warning is invisible in CI, but the roadmap's literal criterion text does not mention any required flag either.
-
-**This looks like an intentional security trade-off that was made without updating its contract.** To accept this deviation instead of treating it as a gap, add to this file's frontmatter:
-
-```yaml
-overrides:
-  - must_have: "Running `helm install textreaderrpi .devops/helm/textreaderrpi/` on a K8s cluster starts a pod that passes both /health and /health/ready liveness/readiness probes"
-    reason: "WR-02 intentionally removed the shipped default database.password to avoid a hardcoded credential in VCS; operators are expected to supply --set database.password=... (documented in README.md). ROADMAP.md SC1 should be updated to reflect the required flag, or a random-password default (randAlphaNum) should be added if a zero-config install is required."
-    accepted_by: "{name}"
-    accepted_at: "{ISO timestamp}"
 ```
+$ helm template textreaderrpi .devops/helm/textreaderrpi/
+DATABASE_PASSWORD: "JSfSR7r9nf5b5nD0"        # exit 0 — no error
+
+$ helm template textreaderrpi .devops/helm/textreaderrpi/ --set database.password=explicitpw12345
+DATABASE_PASSWORD: "explicitpw12345"          # explicit override honored verbatim
+
+$ helm lint .devops/helm/textreaderrpi/
+==> Linting .devops/helm/textreaderrpi/
+[INFO] Chart.yaml: icon is recommended
+1 chart(s) linted, 0 chart(s) failed          # exit 0, no level=WARN lines
+
+$ helm install textreaderrpi .devops/helm/textreaderrpi/ --dry-run
+STATUS: pending-install
+REVISION: 1
+DESCRIPTION: Dry run complete                 # renders and would install cleanly
+```
+
+**Both previously-identified gaps are now closed:**
+
+1. **SC1 literal command** — `helm template`/`helm install --dry-run` with zero overrides now exit 0 and render a non-empty, randomly-generated 16-char `DATABASE_PASSWORD` (`randAlphaNum 16`). Confirmed independently, not from SUMMARY.md.
+2. **SC4 literal command** — bare `helm lint` no longer emits any `level=WARN` line; only the pre-existing `[INFO] Chart.yaml: icon is recommended` (cosmetic, not a warning-level finding).
+
+**Security intent (WR-02) preserved:** `values.yaml` line 58 still ships `password: ""` — no credential is committed to VCS. The generated/looked-up value only ever exists inside the rendered Secret at render/install time.
+
+**Upgrade-stability path (`lookup`) partially verifiable statically:** The nested-if guard structure (`{{- if not $password }}` / `{{- if $existing }}`) is correctly written to avoid Go-template `and` short-circuit version-dependency, and the empty-lookup fallback (`randAlphaNum 16`) is exercised and confirmed by every `helm template`/`lint`/`--dry-run` command above (none of these have cluster access, so `lookup` always returns empty in this environment — this is expected and correctly falls through). However, the actual **lookup-hit** branch — where a real `helm upgrade` finds and reuses a prior release's password — cannot be exercised without a live cluster with an existing release. This is a genuinely new human-verification item (not a regression, not a gap — the SUMMARY.md itself flags this as `D6, human_judgment: true`), and is added below alongside the pre-existing, still-pending real-cluster deploy check from `18-UAT.md`.
+
+**No regressions found from the 18-10 changes:** `templates/deployment.yaml` is untouched (confirmed via `git log`); checksum annotations react correctly to secret-content changes (`checksum/secret` differs between `--set database.password=x1` and `=y2`); all previously-verified truths (container-level `privileged` gating, ServiceAccount/RoleBinding name consistency across all four permutations, JVM `-Xmx220m`, `strategy: Recreate`, Ingress toggle) were re-confirmed by direct re-render, not assumed from the prior report.
+
+---
 
 ## Goal Achievement
 
@@ -76,74 +77,69 @@ overrides:
 | --- | ------- | ---------- | -------------- |
 | 1 | Chart.yaml exists with apiVersion, name, version, appVersion, metadata | ✓ VERIFIED | Unchanged; regression check only |
 | 2 | values.yaml exposes `hardwareAccess.enabled` toggle, default false | ✓ VERIFIED | `values.yaml:9` `enabled: false` |
-| 3 | **helm install (literal, no overrides) starts a pod passing /health + /health/ready probes (SC1)** | ✗ FAILED (new regression) | `helm install textreaderrpi .devops/helm/textreaderrpi/ --dry-run` → exit 1, `database.password must be set`. Template never renders; no pod is ever created. Probes themselves (`deployment.yaml:60-76`, paths `/health` and `/health/ready`, 20s/30s/5s) are correctly configured but unreachable because the release cannot install with default values. |
-| 4 | When `hardwareAccess.enabled=false`: pod starts without GPIO/SPI mounts, falls back to OfflineDisplayDriver, no crash (SC2) | ✓ VERIFIED | `--set hardwareAccess.enabled=false --set database.password=x`: 0 occurrences of `privileged`, `DISPLAY_TYPE: "OFFLINE"` injected, no `spidev`/`i2c` volumes or mounts rendered |
-| 5 | When `hardwareAccess.enabled=true`: container-level `privileged: true` + hostPath device mounts for `/dev/spidev0.0`, `/dev/i2c-1` (SC2 flip side) | ✓ VERIFIED | `deployment.yaml:233-234` `securityContext:\n  privileged: true` nested in `containers[0]`; hostPath volumes render for both devices |
-| 6 | JVM heap capped at `-Xmx220m` in Deployment spec (SC3) | ✓ VERIFIED | `configmap.yaml:47` `JAVA_TOOL_OPTIONS: "-Xmx220m"`, wired into container via `envFrom.configMapRef` |
-| 7 | `helm lint` passes with no errors or warnings on the chart directory (SC4, literal — no `--set`) | ⚠️ PARTIAL (new regression, non-blocking) | Bare `helm lint .devops/helm/textreaderrpi/` still reports `1 chart(s) linted, 0 chart(s) failed` (exit 0), but now also emits 2 `level=WARN msg="missing required values"` lines caused by WR-02's `required` guard on an unset `database.password`. `helm lint --set database.password=x` is fully clean (only the pre-existing `[INFO] Chart.yaml: icon is recommended`). Grouped with gap #3 above (same root cause); not separately listed as a blocking gap since it doesn't hard-fail, but flagged here for completeness. |
+| 3 | `helm install` (literal, no overrides) renders/installs cleanly; pod configured to pass /health + /health/ready probes (SC1) | ✓ VERIFIED (render/config); pod-running check is human item | `helm install --dry-run` exits 0, `STATUS: pending-install`. Probes correctly configured (`deployment.yaml:60-76`, paths `/health` and `/health/ready`, 20s/30s/5s). Actual live-pod probe-pass check requires a real cluster — tracked in `18-UAT.md` test #1 (pre-existing, unchanged by this re-verification) |
+| 4 | When `hardwareAccess.enabled=false`: pod starts without GPIO/SPI mounts, falls back to OfflineDisplayDriver, no crash (SC2) | ✓ VERIFIED | `--set hardwareAccess.enabled=false`: 0 occurrences of `privileged: true`; no spidev/i2c mounts |
+| 5 | When `hardwareAccess.enabled=true`: container-level `privileged: true` + hostPath device mounts (SC2 flip side) | ✓ VERIFIED | `--set hardwareAccess.enabled=true \| grep -c "privileged: true"` → `1`, nested in container spec |
+| 6 | JVM heap capped at `-Xmx220m` in Deployment spec (SC3) | ✓ VERIFIED | `JAVA_TOOL_OPTIONS: "-Xmx220m"` present in rendered ConfigMap, wired via `envFrom` |
+| 7 | `helm lint` passes with no errors or warnings on the chart directory (SC4, literal — no `--set`) | ✓ VERIFIED (gap closed) | Bare `helm lint .devops/helm/textreaderrpi/` → `0 chart(s) failed`, exit 0, zero `level=WARN` lines (previously 2 WARN lines — regression fixed) |
 | 8 | Liveness probe: GET /health (20/30/5) | ✓ VERIFIED | `deployment.yaml:60-67` |
 | 9 | Readiness probe: GET /health/ready (20/30/5) | ✓ VERIFIED | `deployment.yaml:69-76` |
-| 10 | ConfigMap named via `fullname` helper (`{{ include "textreaderrpi.fullname" . }}-config`), not hardcoded (WR-01) | ✓ VERIFIED | `configmap.yaml:4`; Deployment `envFrom.configMapRef.name` uses the same helper (`deployment.yaml:42`) |
-| 11 | Secret named via `fullname` helper (`-secret` suffix), DATABASE_USER/PASSWORD via `secretKeyRef` (WR-01) | ✓ VERIFIED | `secret.yaml:4`; Deployment `secretKeyRef.name` at lines 52/57 uses the same helper |
-| 12 | PVC for /data: default 1Gi, release-scoped name, unconditional (WR-04 removed dead `enabled` flag) | ✓ VERIFIED | `pvc-data.yaml` renders unconditionally; `values.yaml` no longer has `persistence.data.enabled` |
-| 13 | PVC for /app/logs: default 500Mi, release-scoped name, unconditional (WR-04) | ✓ VERIFIED | `pvc-logs.yaml` renders unconditionally; `values.yaml` no longer has `persistence.logs.enabled` |
+| 10 | ConfigMap named via `fullname` helper, not hardcoded | ✓ VERIFIED | Unchanged regression check |
+| 11 | Secret named via `fullname` helper, DATABASE_USER/PASSWORD via `secretKeyRef` | ✓ VERIFIED | `secret.yaml` `$secretName := printf "%s-secret" (include "textreaderrpi.fullname" .)`; Deployment `secretKeyRef.name` uses same helper |
+| 12 | PVC for /data: default 1Gi, release-scoped name, unconditional | ✓ VERIFIED | Unchanged |
+| 13 | PVC for /app/logs: default 500Mi, release-scoped name, unconditional | ✓ VERIFIED | Unchanged |
 | 14 | Service ClusterIP exposes port 8080 | ✓ VERIFIED | Unchanged |
-| 15 | ServiceAccount created, gated on `serviceAccount.create` (not `rbac.create`) (CR-01 fix) | ✓ VERIFIED | `serviceaccount.yaml:1` now `{{- if .Values.serviceAccount.create }}` |
-| 16 | Deployment references the correct ServiceAccount name across `serviceAccount.create`/`rbac.create` permutations | ✓ VERIFIED | Re-tested default, `serviceAccount.create=false`, `rbac.create=false` — SA name always consistent between creator and consumer (see Re-Verification Summary above) |
+| 15 | ServiceAccount created, gated on `serviceAccount.create` | ✓ VERIFIED | `--set serviceAccount.create=false` → no ServiceAccount resource rendered, Deployment falls back to `serviceAccountName: default` |
+| 16 | Deployment references correct ServiceAccount name across permutations | ✓ VERIFIED | Re-tested `serviceAccount.create=false` and `rbac.create=false` directly — both consistent |
 | 17 | Role with get/list on pods, gated by `rbac.create` | ✓ VERIFIED | Unchanged |
-| 18 | RoleBinding binds Role to the same ServiceAccount name the Deployment uses, gated by `rbac.create` | ✓ VERIFIED | `rolebinding.yaml:14` uses `textreaderrpi.serviceAccountName` helper — same as Deployment |
-| 19 | Ingress gated by `ingress.enabled` (default false) | ✓ VERIFIED | `--set ingress.enabled=true --set database.password=x` renders `kind: Ingress` |
-| 20 | Deployment uses `strategy: Recreate` to avoid H2 file-lock deadlock on upgrade (CR-02 fix) | ✓ VERIFIED | `deployment.yaml:9-10` `strategy:\n  type: Recreate` |
-| 21 | ConfigMap/Secret content changes trigger pod restart via checksum annotations (WR-03 fix) | ✓ VERIFIED | `deployment.yaml:17-18` `checksum/config`/`checksum/secret` `sha256sum` of the rendered templates; empirically confirmed the secret checksum changes when `database.password` changes (`9ceff3...` vs `d73d21...`) |
-| 22 | `database.password` required, no shipped default credential (WR-02) | ✓ VERIFIED (as a security fix) — see gap #3 for its side effect on SC1 | `values.yaml:58` `password: ""`; `secret.yaml:10` wraps it in `required` |
-| 23 | CI workflow pins Helm version and Actions, adds least-privilege `permissions:` block, tests `serviceAccount.create=false` permutation (WR-05) | ✓ VERIFIED | `.github/workflows/helm-lint.yml`: `permissions: contents: read`, `actions/checkout@v4`, `azure/setup-helm@v4` pinned to `version: 'v3.16.3'`, dedicated `serviceAccount.create=false` template step present |
-| 24 | README.md documents helm install/uninstall, hardwareAccess toggle, and the now-required `database.password` flag | ✓ VERIFIED | README.md:14 states the required flag prominently; all install examples include `--set database.password=<password>` |
+| 18 | RoleBinding binds Role to the same ServiceAccount name the Deployment uses | ✓ VERIFIED | `--set rbac.create=false` → ServiceAccount still rendered `textreaderrpi`, Deployment references it |
+| 19 | Ingress gated by `ingress.enabled` (default false) | ✓ VERIFIED | `--set ingress.enabled=true` renders `kind: Ingress` |
+| 20 | Deployment uses `strategy: Recreate` | ✓ VERIFIED | `strategy:\n  type: Recreate` present |
+| 21 | ConfigMap/Secret content changes trigger pod restart via checksum annotations | ✓ VERIFIED | `checksum/secret` differs between `--set database.password=x1` vs `=y2` renders |
+| 22 | No default database credential shipped in VCS, but zero-config install still succeeds | ✓ VERIFIED (gap closed) | `values.yaml:58` `password: ""`; `secret.yaml` generates `randAlphaNum 16` at render when unset and no prior release exists — no VCS credential, no render failure |
+| 23 | CI workflow pins Helm version/Actions, least-privilege `permissions:`, tests `serviceAccount.create=false` | ✓ VERIFIED | `.github/workflows/helm-lint.yml` unchanged by 18-10, previously confirmed |
+| 24 | README.md documents helm install/uninstall, hardwareAccess toggle, and the (now-restored) zero-config default password behavior | ✓ VERIFIED | README preamble documents auto-generation + upgrade stability; "Default Installation" example is bare `helm install textreaderrpi .`; config table row reflects `_(auto-generated)_` |
 
-**Score:** 22/23 truths verified (1 failed — SC1 literal command; the related SC4 warning-level regression is grouped under the same root cause and not double-counted as a separate truth)
-
----
+**Score:** 23/23 truths verified (0 failed). No behavior-dependent truths were marked PRESENT_BEHAVIOR_UNVERIFIED as a distinct status — the two remaining live-cluster checks (real pod scheduling + probe response, and the `lookup`-hit upgrade path) were already present as human-verification needs before and after this fix, and are listed under Human Verification below rather than blocking the score.
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 | -------- | ----------- | ------ | ------- |
-| `.devops/helm/textreaderrpi/templates/deployment.yaml` | Deployment spec, container-level privileged gating, Recreate strategy, checksum annotations | ✓ VERIFIED | All present and correctly wired |
-| `.devops/helm/textreaderrpi/templates/serviceaccount.yaml` | Gated on `serviceAccount.create` | ✓ VERIFIED | Fixed per CR-01 |
-| `.devops/helm/textreaderrpi/templates/rolebinding.yaml` | Subject name matches Deployment's SA | ✓ VERIFIED | Uses same helper |
-| `.devops/helm/textreaderrpi/templates/secret.yaml` | DATABASE_PASSWORD required, no default | ⚠️ WIRED BUT BREAKS DEFAULT INSTALL | `required` guard fires on empty `values.yaml` default — see gap |
-| `.devops/helm/textreaderrpi/templates/configmap.yaml` | Named via fullname helper | ✓ VERIFIED | Fixed per WR-01 |
-| `.devops/helm/textreaderrpi/values.yaml` | hardwareAccess toggle, no dead persistence flags, no shipped DB credential | ✓ VERIFIED | WR-04 dead flags removed; WR-02 credential removed (side effect noted above) |
-| `.github/workflows/helm-lint.yml` | Pinned actions/Helm version, least-privilege permissions, covers key permutations | ✓ VERIFIED | WR-05 applied |
-| (All other artifacts) | — | ✓ VERIFIED | No regressions found in Chart.yaml, pvc-data.yaml, pvc-logs.yaml, service.yaml, role.yaml, ingress.yaml, _helpers.tpl, README.md |
+| `.devops/helm/textreaderrpi/templates/secret.yaml` | Default chain: explicit -> lookup -> randAlphaNum, no hard `required` fail | ✓ VERIFIED | Rewritten per plan 18-10; renders non-empty password with zero overrides, honors explicit override verbatim |
+| `.devops/helm/textreaderrpi/values.yaml` | `password: ""` retained (no VCS credential), comment describes auto-generation | ✓ VERIFIED | Line 58 comment now reads "Auto-generated (randAlphaNum 16) at install when unset..." |
+| `.devops/helm/textreaderrpi/README.md` | Zero-config default install documented, explicit override retained as production option | ✓ VERIFIED | Preamble + "Default Installation" example + config table row all reconciled |
+| `.devops/helm/textreaderrpi/templates/deployment.yaml` | Unchanged by this gap-closure (checksum/secret still wired) | ✓ VERIFIED | `git log` confirms no commit in 18-10 touched this file; checksum reacts to secret content changes |
+| (All other artifacts) | — | ✓ VERIFIED | No regressions in Chart.yaml, configmap.yaml, serviceaccount.yaml, rolebinding.yaml, role.yaml, pvc-data.yaml, pvc-logs.yaml, service.yaml, ingress.yaml, _helpers.tpl, helm-lint.yml |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 | ---- | --- | --- | ------ | ------- |
-| deployment.yaml | serviceaccount.yaml | `serviceAccountName: {{ include "textreaderrpi.serviceAccountName" . }}` | ✓ WIRED | Consistent across all tested permutations |
-| rolebinding.yaml | serviceaccount.yaml | `subjects[0].name` via same helper | ✓ WIRED | Consistent |
-| deployment.yaml (container) | hardwareAccess.enabled | `securityContext.privileged` at container scope | ✓ WIRED | Confirmed by rendering |
-| deployment.yaml | configmap.yaml / secret.yaml | envFrom / secretKeyRef, checksum annotations | ✓ WIRED | Checksum reacts to real content changes (empirically tested) |
-| **`helm install` (default values)** | **secret.yaml `required` guard** | template render | ✗ **NOT_WIRED — fails before pod creation** | Zero-override install cannot render `secret.yaml`, so no manifest ever reaches the API server |
-| service.yaml | deployment.yaml | selector via `textreaderrpi.selectorLabels` | ✓ WIRED | Unchanged |
+| `helm install`/`helm template` (default values) | `secret.yaml` render | template render, zero overrides | ✓ WIRED (regression fixed) | Renders exit 0; no more hard-fail |
+| `secret.yaml` `$secretName` | Deployment `secretKeyRef.name` / `checksum/secret` | `textreaderrpi.fullname`-derived name, computed once and reused | ✓ WIRED | Same helper-derived name across both files |
+| `secret.yaml` `lookup` | existing release Secret (on real `helm upgrade`) | `lookup "v1" "Secret" .Release.Namespace $secretName` | ⚠️ WIRED, lookup-hit path unexercised statically | Correctly falls through to `randAlphaNum` when `lookup` returns empty (the only branch `helm template`/`lint`/`--dry-run` can exercise); the reuse branch requires a live cluster — see Human Verification |
+| deployment.yaml | serviceaccount.yaml / rolebinding.yaml | `serviceAccountName` helper | ✓ WIRED | Consistent across all tested permutations |
+| deployment.yaml (container) | hardwareAccess.enabled | `securityContext.privileged` at container scope | ✓ WIRED | Confirmed by direct re-render |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 | -------- | ------- | ------ | ------ |
-| Bare `helm install` (SC1 literal) | `helm install textreaderrpi .devops/helm/textreaderrpi/ --dry-run` | `Error: INSTALLATION FAILED: execution error ... database.password must be set` | ✗ FAIL |
-| Bare `helm template` (SC1 literal, alternate proof) | `helm template textreaderrpi .devops/helm/textreaderrpi/` | Exit 1, same error | ✗ FAIL |
-| `helm lint` with password set | `helm lint .devops/helm/textreaderrpi/ --set database.password=x` | `1 chart(s) linted, 0 chart(s) failed`, only icon INFO | ✓ PASS |
-| `helm lint` bare (SC4 literal) | `helm lint .devops/helm/textreaderrpi/` | `0 chart(s) failed` (exit 0) but 2 `level=WARN` lines emitted | ⚠️ PARTIAL |
-| `hardwareAccess.enabled=true` privileged at container level | `helm template ... --set hardwareAccess.enabled=true --set database.password=x \| grep -n securityContext` | Single match, line 233-234, inside `containers[0]` | ✓ PASS |
-| `hardwareAccess.enabled=false` no privileged | `helm template ... --set database.password=x \| grep -c privileged` | `0` | ✓ PASS |
-| SA name consistency, default permutation | `helm template ... --set database.password=x \| grep -E "kind: ServiceAccount|serviceAccountName:|subjects:" -A1` | All render `textreaderrpi` | ✓ PASS |
-| SA name consistency, `serviceAccount.create=false` | `helm template ... --set database.password=x --set serviceAccount.create=false` | No SA rendered; Deployment + RoleBinding both use `default` | ✓ PASS |
-| SA name consistency, `rbac.create=false` | `helm template ... --set database.password=x --set rbac.create=false` | SA still rendered `textreaderrpi`; Deployment references it | ✓ PASS |
-| Ingress renders when enabled | `helm template ... --set database.password=x --set ingress.enabled=true \| grep "kind: Ingress"` | Present | ✓ PASS |
-| Checksum reacts to secret content | Rendered with `database.password=x` vs `=y` | Different sha256sum values | ✓ PASS |
-| -Xmx220m present | `helm template ... --set database.password=x \| grep Xmx220m` | `JAVA_TOOL_OPTIONS: "-Xmx220m"` | ✓ PASS |
-| No debt markers (TBD/FIXME/XXX/TODO/HACK/PLACEHOLDER) | `grep -rnE "TBD|FIXME|XXX|TODO|HACK|PLACEHOLDER" .devops/helm/textreaderrpi/` | No matches | ✓ PASS |
+| Bare `helm template` (SC1 literal) | `helm template textreaderrpi .devops/helm/textreaderrpi/` | Exit 0, `DATABASE_PASSWORD: "JSfSR7r9nf5b5nD0"` (16-char alphanumeric) | ✓ PASS |
+| Bare `helm install --dry-run` (SC1 literal, alternate proof) | `helm install textreaderrpi .devops/helm/textreaderrpi/ --dry-run` | `STATUS: pending-install`, `DESCRIPTION: Dry run complete` | ✓ PASS |
+| Explicit override wins | `helm template ... --set database.password=explicitpw12345` | `DATABASE_PASSWORD: "explicitpw12345"` | ✓ PASS |
+| Bare `helm lint` (SC4 literal) | `helm lint .devops/helm/textreaderrpi/` | `0 chart(s) failed`, exit 0, no `level=WARN` | ✓ PASS |
+| `hardwareAccess.enabled=true` privileged, container-level | `helm template ... --set hardwareAccess.enabled=true \| grep -c "privileged: true"` | `1` | ✓ PASS |
+| `hardwareAccess.enabled=false` no privileged | `helm template ... \| grep -c "privileged: true"` | `0` | ✓ PASS |
+| SA gating, `serviceAccount.create=false` | `helm template ... --set serviceAccount.create=false` | No ServiceAccount resource; `serviceAccountName: default`; RoleBinding subject also `default` | ✓ PASS |
+| SA gating, `rbac.create=false` | `helm template ... --set rbac.create=false` | ServiceAccount still `textreaderrpi`; Role/RoleBinding absent | ✓ PASS |
+| Ingress toggle | `helm template ... --set ingress.enabled=true \| grep "kind: Ingress"` | Present | ✓ PASS |
+| Checksum reacts to secret content | `--set database.password=x1` vs `=y2` | Different `checksum/secret` sha256 values | ✓ PASS |
+| -Xmx220m present | `helm template ... \| grep Xmx220m` | `JAVA_TOOL_OPTIONS: "-Xmx220m"` | ✓ PASS |
+| Recreate strategy | `helm template ... \| grep -A1 strategy:` | `type: Recreate` | ✓ PASS |
+| deployment.yaml untouched by 18-10 | `git log --oneline -- .../deployment.yaml` | Last touch predates 18-10 (WR-03 commit `95eec81`) | ✓ PASS |
+| No debt markers | `grep -rnE "TBD|FIXME|XXX|TODO|HACK|PLACEHOLDER" .devops/helm/textreaderrpi/` | No matches | ✓ PASS |
 
 ### Probe Execution
 
@@ -153,35 +149,47 @@ No conventional `scripts/*/tests/probe-*.sh` probes exist for this phase, and no
 
 | Requirement | Source Plans | Description | Status | Evidence |
 | ----------- | ---------- | ----------- | ------ | -------- |
-| OPS-01 | 18-01 through 18-09 | TextReaderRpi deployable to Kubernetes via Helm chart with hardwareAccess toggle, -Xmx220m, health probes at /health + /health/ready | ⚠️ AT RISK | `hardwareAccess.enabled` toggle, `-Xmx220m`, and health probe wiring are all correctly implemented and re-verified after the code-review fixes. However, the literal SC1 install command this requirement traces to (per ROADMAP.md) fails by default due to WR-02's `required` password guard. The requirement's *capability* exists but its zero-config default-install path is currently broken; REQUIREMENTS.md marks OPS-01 "Complete" but that status pre-dates this regression. |
+| OPS-01 | 18-01 through 18-10 | TextReaderRpi deployable to Kubernetes via Helm chart with hardwareAccess toggle, -Xmx220m, health probes at /health + /health/ready | ✓ SATISFIED | All literal ROADMAP success criteria (SC1-SC4) now independently confirmed via re-render/re-lint against current HEAD. `hardwareAccess` toggle, `-Xmx220m`, health probes, and zero-config install are all correctly implemented and wired. REQUIREMENTS.md's "Complete" status is now accurate. |
 
-No orphaned requirements — REQUIREMENTS.md's Phase 18 mapping (OPS-01) matches the union of `requirements:` fields across all 9 plans exactly.
+No orphaned requirements — REQUIREMENTS.md's Phase 18 mapping (OPS-01) matches the union of `requirements:` fields across all 10 plans (18-01 through 18-10) exactly.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 | ---- | ---- | ------- | -------- | ------ |
-| `templates/secret.yaml` | 10 | `required` guard on `database.password` with no default, empty string in `values.yaml` | 🛑 BLOCKER (new regression) | Breaks the literal SC1 install command; see gap above |
-| `values.yaml` | 15 | `replicas: 1` dead config, never read by deployment.yaml (`spec.replicas: 1` is hardcoded literally in deployment.yaml:8, not `.Values.replicas`) | ℹ️ INFO (carryover) | Documented design decision (Pi hardware cannot be shared across pods); misleads users who try `--set replicas=2` |
+| `values.yaml` | 15 | `replicas: 1` dead config, never read by deployment.yaml (hardcoded literally) | ℹ️ INFO (carryover) | Documented design decision (Pi hardware cannot be shared across pods); misleads users who try `--set replicas=2` |
 | `Chart.yaml` | 7-9 | Placeholder URLs `https://github.com/yourusername/textreaderrpi` | ℹ️ INFO (carryover) | Cosmetic; appears in `helm show chart` and README references |
 
-No other blockers found. All previously-flagged WARNING items from the prior verification (CR-01 toggle mismatch, CR-02 missing `strategy: Recreate`, WR-01 hardcoded ConfigMap/Secret names, WR-02 default credential, WR-03 no checksum, WR-04 dead persistence flags, WR-05 unpinned CI) have been fixed by the 7 review-fix commits and are re-confirmed above — except that the WR-02 fix itself introduced the new SC1 regression documented as the sole gap in this report.
+No blockers found. The prior sole blocker (WR-02's `required` guard breaking SC1) is resolved with no new anti-patterns introduced by plan 18-10.
 
-### Human Verification Required
+### Human Verification Required (ACCEPTED by user, 2026-07-07)
 
-None newly identified in this pass beyond the pre-existing item tracked in `18-UAT.md` (real-cluster deploy + health probe check), which is unchanged by this re-verification and is not duplicated here per the task instructions. That UAT item remains `pending` and separately tracked.
+### 1. Real-cluster deploy and health-probe check (pre-existing, unchanged)
+
+**Test:** Deploy the chart to a real Kubernetes cluster: `helm install textreaderrpi .devops/helm/textreaderrpi/` (e.g. k3s/k3d/kind, `--set hardwareAccess.enabled=false` off-Pi), then `kubectl port-forward` + `curl http://127.0.0.1:8080/health` and `/health/ready`.
+**Expected:** Pod reaches Running/Ready; both endpoints return 200 OK.
+**Why human:** `helm template`/`lint`/`--dry-run` cannot schedule or run a pod against a real kubelet/container runtime. Tracked in `18-UAT.md` test #1 (status: pending) — not duplicated as a new gap.
+
+### 2. Upgrade-stability: password reuse via `lookup` on a real `helm upgrade`
+
+**Test:** Install the chart once (recording the generated `DATABASE_PASSWORD`), then run `helm upgrade textreaderrpi .devops/helm/textreaderrpi/` on the same release without `--set database.password`, and check that the re-rendered Secret's `DATABASE_PASSWORD` is byte-for-byte identical to the original, and the app's H2-backed functionality still works post-upgrade.
+**Expected:** `lookup` finds the existing release's Secret and reuses its password; no unexpected rollout is forced purely by password churn; the H2 file DB remains accessible with the same credential across the upgrade.
+**Why human:** `lookup` requires live cluster API access (`.Release.Namespace` + Secret read) which `helm template`/`lint`/`--dry-run` do not provide — every static check in this verification exercises only the empty-lookup (`randAlphaNum`) fallback branch, never the reuse branch. This is a new item surfaced by plan 18-10 itself (SUMMARY.md coverage ID `D6`, `human_judgment: true`).
 
 ---
 
 ## Gaps Summary
 
-One regression blocks the phase goal as literally stated in ROADMAP.md: **Success Criterion 1's exact command (`helm install textreaderrpi .devops/helm/textreaderrpi/`, no flags) now fails deterministically** because WR-02 (commit 49b3536) made `database.password` a `required` value with no shipped default. This was a correct, deliberate security fix (removing a hardcoded default credential from VCS) but its side effect — breaking the bare-command install path the roadmap's SC1 describes — was not reconciled against the roadmap text or given an explicit override. A secondary, same-root-cause symptom is that bare `helm lint` (SC4, also written without flags in the roadmap) now emits `level=WARN` messages, though it does not hard-fail.
+No gaps remain. Both truths that failed in the prior `gaps_found` (22/23) verification are now independently confirmed fixed by direct re-render/re-lint against the current codebase (not from SUMMARY.md claims):
 
-Everything else re-verified clean: both previously-closed blockers (container-level `privileged`, ServiceAccount name consistency) hold across all four requested permutations (default, `hardwareAccess.enabled=true`, `serviceAccount.create=false`, `rbac.create=false`, `ingress.enabled=true`), and all 5 other WR-fixes (WR-01 fullname-helper naming, WR-03 checksum-triggered rollout — empirically confirmed reactive to content changes, WR-04 dead flag removal, WR-05 CI pinning) are correctly implemented with no new defects.
+- **SC1** (`helm install textreaderrpi .devops/helm/textreaderrpi/`, literal, zero overrides) now renders and dry-run-installs successfully with an auto-generated, non-empty `DATABASE_PASSWORD`.
+- **SC4** (`helm lint` bare) now passes with zero `level=WARN` lines.
 
-This is exactly the kind of task-completion-without-goal-achievement gap this verification exists to catch: the WR-02 code-review fix task was completed and is itself good practice, but it silently broke the literal, previously-passing acceptance criterion for the phase. Recommend either (a) a follow-up plan to generate a random default password (`randAlphaNum`) so the bare install command succeeds unassisted, or (b) accept the deviation via the override block above and update ROADMAP.md's SC1 wording to match the now-required flag.
+Neither WR-02's security intent (no VCS-committed credential) nor the CR-02/WR-03 upgrade-stability requirement (stable H2 credential across releases) was regressed: `values.yaml` still ships `password: ""`, and the `lookup` chain is correctly structured to reuse an existing release's password when one exists.
+
+**Update 2026-07-07:** The user accepted both human-verification items ("accept"), resolving the phase to `passed`. The original rationale for `human_needed` follows for the record: two items require a live Kubernetes cluster to exercise directly: (1) the pre-existing real-pod-deploy + health-probe check (already pending in `18-UAT.md`, unaffected by this fix), and (2) a new item — the `lookup`-hit branch of the upgrade-stability chain, which no static `helm` command can exercise (every static tool in this environment necessarily takes the empty-lookup fallback path). Both are legitimate human-verification items, not gaps: the code implementing both is present, correctly structured, and passes every check that doesn't require a live cluster.
 
 ---
 
-_Verified: 2026-07-06T01:00:00Z_
+_Verified: 2026-07-07T12:00:00Z_
 _Verifier: Claude (gsd-verifier)_
