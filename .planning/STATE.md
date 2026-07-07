@@ -6,15 +6,15 @@ current_phase: 18
 current_phase_name: kubernetes-helm
 status: executing
 stopped_at: Phase 19 context gathered
-last_updated: "2026-07-06T15:55:59.238Z"
-last_activity: 2026-07-06
-last_activity_desc: Completed 18-09-PLAN.md (gap closure)
+last_updated: "2026-07-07T08:47:45.727Z"
+last_activity: 2026-07-07
+last_activity_desc: Completed 18-10-PLAN.md (gap closure: zero-config Helm install restored)
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 29
-  completed_plans: 28
-  percent: 57
+  completed_plans: 29
+  percent: 71
 ---
 
 # Project State & Memory
@@ -24,10 +24,10 @@ progress:
 
 ## Current Position
 
-Phase: 18 (kubernetes-helm) — EXECUTING (all plans complete, awaiting phase verification)
-Plan: 9 of 9
-Status: All plans executed — pending final phase verification
-Last activity: 2026-07-06 — Completed 18-09-PLAN.md (gap closure)
+Phase: 18 (kubernetes-helm) — COMPLETE
+Plan: 10 of 10
+Status: All plans executed (gap closure 18-10 closed the sole verification gap)
+Last activity: 2026-07-07 — Completed 18-10-PLAN.md (gap closure: zero-config Helm install restored)
 
 ## Project Context
 
@@ -246,10 +246,11 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 18 P07 | 2 | 3 tasks | 2 files |
 | Phase 18 P08 | 3min | 7 tasks | 0 files |
 | Phase 18 P09 | 5min | 3 tasks | 3 files |
+| Phase 18 P10 | 3min | 2 tasks | 3 files |
 
 ## Session
 
-**Last session:** 2026-07-06T15:55:59.228Z
+**Last session:** 2026-07-07T08:46:56.042Z
 **Stopped at:** Phase 19 context gathered
 **Resume file:** .planning/phases/19-dry-yagni-refactoring/19-CONTEXT.md
 
@@ -274,3 +275,4 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - [Phase ?]: [Phase 18-08]: helm lint + all conditional template paths verified; phase-18-complete tag applied
 - [Phase 18-09]: privileged: true belongs under containers[0].securityContext, not pod-level spec.securityContext (Kubernetes silently ignores privileged at pod level)
 - [Phase 18-09]: ServiceAccount and RoleBinding subject converge on pre-existing textreaderrpi.serviceAccountName helper (matches Deployment); _helpers.tpl untouched
+- [Phase ?]: [Phase 18-10]: Nested if guards (not 'and') for helm lookup fallback avoid Go-template short-circuit version dependency

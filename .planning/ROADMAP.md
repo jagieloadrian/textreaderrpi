@@ -46,7 +46,7 @@
 - [x] **Phase 15: SSE Live Feed** - Real-time display events streamed to the browser status page (completed 2026-06-22)
 - [x] **Phase 16: Zone Management** - Zone creation form + inbound firmware WebSocket endpoint (completed 2026-06-23)
 - [x] **Phase 17: Firmware Skeletons** - RPi Pico (C/pico-sdk) and ESP32 (C++/Arduino) firmware (completed 2026-06-24)
-- [ ] **Phase 18: Kubernetes + Helm** - Helm chart in `.devops/helm/textreaderrpi/` for K8s deployment (9/9 plans complete, pending final phase verification)
+- [x] **Phase 18: Kubernetes + Helm** - Helm chart in `.devops/helm/textreaderrpi/` for K8s deployment (10/10 plans complete) (completed 2026-07-07)
 - [ ] **Phase 19: DRY/YAGNI Refactoring** - Deduplication pass across main code and tests
 - [ ] **Phase 20: Cleanup + Docs** - .planning/ compression, delete docs/, update README
 
@@ -180,7 +180,7 @@ Plans:
   3. The JVM heap in the Deployment spec is capped at `-Xmx220m`, keeping memory within the 256 MB project constraint
   4. `helm lint` passes with no errors or warnings on the chart directory
 
-**Plans**: 9/10 plans complete (18-10 gap closure pending)
+**Plans**: 10/10 plans complete
 **Wave 1**
 
 - [x] 18-01-PLAN.md
@@ -188,7 +188,7 @@ Plans:
 - [x] 18-03-PLAN.md
 - [x] 18-04-PLAN.md
 - [x] 18-09-PLAN.md
-- [ ] 18-10-PLAN.md — Gap closure (SC1): restore zero-config install via upgrade-stable random default password; reconcile values.yaml/README (OPS-01)
+- [x] 18-10-PLAN.md — Gap closure (SC1): restore zero-config install via upgrade-stable random default password; reconcile values.yaml/README (OPS-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
