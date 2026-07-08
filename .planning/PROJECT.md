@@ -2,11 +2,11 @@
 
 **Project Name:** TextReaderRpi
 **Created:** 2025-01-25
-**Status:** v1.1 — Shipped 2026-06-21 | Planning v1.2
+**Status:** v1.2 — Shipped 2026-07-08
 
 ## What This Is
 
-A production-ready Raspberry Pi text display system with Material 3 UI. Text submitted through a responsive multi-zone web interface is routed to named hardware or network displays, processed via an effect pipeline (SCROLL/BLINK/REVERSE/FADE), and rendered on pluggable hardware drivers (MAX7219, LCD, OLED). The system is fully observable (health/detail, metrics hardware group, HTML error pages), schedules with webhook callbacks, records full display history, and supports multi-zone discovery and routing. Configurable via environment variables, Docker-ready.
+A production-ready Raspberry Pi text display system with Material 3 UI. Text submitted through a responsive multi-zone web interface is routed to named hardware or network displays (including RPi Pico and ESP32 firmware clients over WebSocket), processed via an effect pipeline (SCROLL/BLINK/REVERSE/FADE), and rendered on pluggable hardware drivers (MAX7219, LCD, OLED). The system is fully observable (health/detail, metrics hardware group, HTML error pages, real-time SSE live feed), schedules with webhook callbacks, records full-text-searchable display history with CSV export, and supports multi-zone discovery, routing, and dynamic zone creation via API. Configurable via environment variables, deployable via Docker or a Kubernetes Helm chart.
 
 ## Vision
 
@@ -29,64 +29,26 @@ Simple, reliable one-way display control from any browser on the home network.
 
 ## Requirements
 
-### Validated (v1.0)
+### Validated (v1.0 + v1.1)
 
-- ✓ HTTP API for text submission (`POST /api/v1/text`) — v1.0
-- ✓ MAX7219 LED rendering with scrolling — v1.0
-- ✓ Request validation (length, charset) — v1.0
-- ✓ Centralized error handling (400/422/500) — v1.0
-- ✓ DisplayDriver abstraction (MAX7219, LCD, OLED, Offline) — v1.0
-- ✓ Configuration-driven display selection — v1.0
-- ✓ Responsive HTML UI (Ktor HTML DSL) — v1.0
-- ✓ Health endpoints `/health` + `/health/ready` — v1.0
-- ✓ Rate limiting 60 req/min — v1.0
-- ✓ Hardware error recovery (RecoveryPolicy + retry) — v1.0
-- ✓ `/metrics` JSON endpoint (runtime/API/hardware) — v1.0
-- ✓ Scheduling engine (ONESHOT/RECURRING/CRON) — v1.0
-- ✓ Effect pipeline (SCROLL/BLINK/REVERSE/FADE) — v1.0
-- ✓ Cancel endpoint for running schedules — v1.0
-- ✓ Full env var config (25 settings) — v1.0
-- ✓ Docker image build via Gradle — v1.0
+See `.planning/milestones/v1.0-REQUIREMENTS.md` and `v1.1-REQUIREMENTS.md` for full requirement lists and traceability. Summary: 25 v1.0 requirements + 8 v1.1 requirements delivered across 14 phases with 80.7% test coverage.
 
-### Validated (v1.1)
+### Validated (v1.2)
 
-- ✓ MAX7219 chain order fix (SPI packet direction corrected) — Phase 6
-- ✓ AbstractDisplayDriver base class (DRY driver hierarchy) — Phase 6
-- ✓ SKIP_NEW ConflictPolicy enum — Phase 7
-- ✓ ONESHOT firedAt atomic update (crash-safe restart) — Phase 7
-- ✓ CRON ERROR persistence (invalid expression → stored, not looped) — Phase 7
-- ✓ Flyway 9.22.3 migration layer (baselineOnMigrate) — Phase 7
-- ✓ DI smoke test (all 11 configureDI() bindings verified) — Phase 8
-- ✓ Dead code removed (HardwareConfig/TimingConfig/LoggingConfig, readInput) — Phase 8
-- ✓ Display history persisted (1000-row cap, all paths instrumented) — Phase 9
-- ✓ GET /api/v1/history — paginated + filterable API — Phase 9
-- ✓ GET /history — filterable HTML page (zone + effect) — Phase 9
-- ✓ Webhooks — fire-and-forget HTTP POST on schedule fire (5s timeout) — Phase 10
-- ✓ Webhook fallback via WEBHOOK_DEFAULT_URL env var — Phase 10
-- ✓ webhookStatus in history records (sent/skipped) — Phase 10
-- ✓ Multi-zone local displays (ZoneRegistry, SPI named zones) — Phase 11
-- ✓ Network zone autodiscovery (UDP broadcast + mDNS/JmDNS) — Phase 11
-- ✓ NetworkZoneDriver (WebSocket client + reconnect + heartbeat) — Phase 11
-- ✓ POST /api/v1/text?zone=X routing — Phase 11
-- ✓ DELETE /api/v1/zones/{id} — network zone removal — Phase 11
-- ✓ DisplayType enum enforcement + HistoryService layer — Phase 11.2
-- ✓ GET /health/detail — uptime, memory, display status, error counts — Phase 12
-- ✓ /metrics hardware group (4 Dropwizard counters) — Phase 12
-- ✓ HTML 404/500 pages (SwaggerUI ordering fixed) — Phase 12
-- ✓ Material 3 CSS + side navigation + dark mode (prefers-color-scheme) — Phase 13
-- ✓ Zone selector + effect preview on send-text form — Phase 13
-- ✓ Schedule page with zone + webhookUrl columns — Phase 13
-- ✓ History page with zone/effect filter + pagination — Phase 13
-- ✓ Status page polling /health/detail + /metrics — Phase 13
+- ✓ Full-text search in display history — `GET /api/v1/history?search=` with `<mark>`-highlighted matches — Phase 14
+- ✓ Export history to CSV — RFC 4180 format, `Content-Disposition: attachment` — Phase 14
+- ✓ SSE live feed (`GET /api/v1/live`) — real-time event stream of displayed text; status page widget via EventSource — Phase 15
+- ✓ Dynamic zone creation via API (without restart) — `POST /api/v1/zones` + Zones UI page with Add Zone form, type toggle, toast feedback — Phase 16
+- ✓ Firmware submodule: RPi Pico (PicoW/Pico2/Pico2W) — pico-sdk/CMake WebSocket receiver + local display rendering; CI-verified, 7 physical-hardware UAT checks deferred (see MILESTONES.md Known Gaps) — Phase 17
+- ✓ Firmware submodule: ESP32 series — ESP-IDF/CMake WebSocket receiver + local display rendering; CI-verified, physical-hardware UAT deferred — Phase 17
+- ✓ Kubernetes manifests + Helm chart in .devops/ — `.devops/helm/textreaderrpi/` with hardware-access and resource controls — Phase 18
+- ✓ DRY/YAGNI refactoring — main code and tests (simplification, deduplication); code-review found and fixed 4 warnings — Phase 19
+- ✓ Compress .planning/ files — STATE.md/MILESTONES.md trimmed to decisions only, phase dirs 14-19 deleted (history preserved in git) — Phase 20
+- ✓ Delete docs/ folder — 8 files removed, zero salvageable content beyond what README already covers — Phase 20
+- ✓ Update README.md — v1.2 reference sections (API/Configuration/Deployment), new Firmware flash-walkthrough section, repo-wide accuracy sweep — Phase 20
 
-### Active (v1.2 candidates)
-
-- [ ] Full-text search in display history
-- [ ] Export history to CSV
-- [ ] WebSocket live feed — real-time view of currently displayed text in browser
-- [ ] Dynamic zone creation via API (without restart)
-- [ ] On-device hardware smoke test for multi-SPI dual-zone Pi setup
-- [ ] External microcontroller firmware reference (ESP32/Arduino)
+### Active (v1.3)
+(none yet — run `/gsd-new-milestone` to define)
 
 ### Out of Scope
 
@@ -97,15 +59,25 @@ Simple, reliable one-way display control from any browser on the home network.
 - Custom font support / multilingual text rendering
 - JS framework (React, Vue, HTMX) — Ktor HTML DSL sufficient
 
-## Current State (v1.1 — Shipped 2026-06-21)
+## Current State (v1.2 — Shipped 2026-07-08)
 
 **Framework:** Ktor 3.5.0 + Kotlin 2.3.21 (JDK 25 toolchain)
 **ORM:** Exposed 1.3.0 (H2 default / PostgreSQL via env vars)
-**Hardware:** Pi4J 4.0.0 (MAX7219 SPI, LCD/OLED I2C)
-**Migrations:** Flyway 9.22.3 (V1–V5 + future via baselineOnMigrate)
-**Network:** JmDNS + ktor-client-cio/websockets for zone discovery
-**Test suite:** 4,325 LOC main + 3,379 LOC test | JaCoCo LINE ≥ 70% (actual: 80.7%)
-**Deferred:** 4 on-device hardware verification checkpoints (human_needed)
+**Hardware:** Pi4J 4.0.0 (MAX7219 SPI, LCD/OLED I2C) + RPi Pico (pico-sdk) and ESP32 (ESP-IDF) firmware WebSocket clients
+**Migrations:** Flyway 9.22.3 (V1–V6 + future via baselineOnMigrate)
+**Network:** JmDNS + ktor-client-cio/websockets for zone discovery; SSE for live feed
+**Deployment:** Docker (Gradle build) + Kubernetes Helm chart (`.devops/helm/textreaderrpi/`)
+**Test suite:** 4,775 LOC main + 4,168 LOC test (8,943 total)
+**Deferred:** 7 physical-hardware firmware UAT checks (Phase 17, human_needed) — see MILESTONES.md Known Gaps
+
+**New in v1.2:**
+- `GET /api/v1/live` — SSE real-time event stream of displayed text, status page EventSource widget
+- `GET /api/v1/history?search=` — full-text search with `<mark>`-highlighted matches; CSV export (RFC 4180)
+- `POST /api/v1/zones` — dynamic zone creation via API without restart; Zones UI page
+- RPi Pico and ESP32 firmware skeletons — WebSocket display clients with reconnect/heartbeat, CI-verified
+- Kubernetes Helm chart with hardware-access and resource controls
+- DRY/YAGNI refactoring pass across main code and tests
+- Repository cleanup: `docs/` deleted, `.planning/` compressed, README rewritten and accuracy-swept
 
 **New in v1.1:**
 - `GET /health/detail` — HealthDetailResponse (uptime, memory, display status, error counts)
@@ -142,6 +114,24 @@ Simple, reliable one-way display control from any browser on the home network.
 | HistoryService layer between routes and repository | ✓ Good — prevents direct repository calls from route handlers | 11.2 |
 | Material 3 CSS custom properties (no data-theme) | ✓ Good — OS dark/light mode via prefers-color-scheme, no JS toggle | 13 |
 | SSR zone selectors (not client-fetched) | ✓ Good — zones available on page load without extra round-trip | 13 |
+| `id: String` in DisplayEvent (not Long) | ✓ Good — matches HistoryRecord.id UUID String exactly; avoids lossy conversion | 15 |
+| `displayEventBus: DisplayEventBus? = null` as last ScreenDriverService param | ✓ Good — all existing tests compile unchanged; nullable default avoids forced migration | 15 |
+| heartbeat declared before `collect` in `sse {}` block | ✓ Good — collect suspends forever; heartbeat after collect would never execute (Pitfall 4) | 15 |
+| liveRoutes in SEPARATE `route("/api/v1")` outside `installApiRateLimiting` | ✓ Good — long-lived SSE connections + 30s heartbeats don't count against 60 req/min limit | 15 |
+| `textContent` for live-feed.js DOM updates (never innerHTML) | ✓ Good — SSE-delivered data treated as untrusted at DOM boundary; XSS-safe | 15 |
+| live-feed.js loaded via `headExtra` in StatusPage only | ✓ Good — limits always-open SSE connection to /status page; doesn't affect other routes | 15 |
+| Zone name validated with `[a-zA-Z0-9._-]{1,64}` regex in ZoneValidators | ✓ Good — prevents XSS via kotlinx.html `attributes[key]=value` (unescaped) + enforces DB varchar(64) bound | 16 |
+| req.ip null guard via early 400 return (no !! operator) | ✓ Good — eliminates NPE risk if validator ever bypassed; explicit error message | 16 |
+| FirmwareZoneDriver drain job tracked via AtomicReference<Job?>, cancelled on re-attach | ✓ Good — prevents double-drain race on rapid firmware reconnect | 16 |
+| UDP discovery reply parsed with kotlinx.json; FIRMWARE type from UDP rejected | ✓ Good — prevents type confusion from rogue LAN devices; consistent with parseDiscoveryReply SSRF guard | 16 |
+| addZone() form.reset() on 201 + showToast() for all error paths | ✓ Good — UX gap closure: blank fields after success + styled error toasts for 422/409 | 16 |
+| V6 migration: ip column nullable + display_subtype added to network_zones | ✓ Good — FIRMWARE zones have no IP; display_subtype holds hardware type for non-Network zones | 16 |
+| Content-Disposition set before respondText for CSV export | ✓ Good — Ktor builder produces unquoted filename=history.csv (valid RFC) | 14 |
+| sanitizeSearchTerm called in both list and export handlers | ✓ Good — single validation point, no bypass via export path | 14 |
+| @EncodeDefault(Mode.NEVER) per-field, not global explicitNulls=false | ✓ Good — scoped to FirmwareMessage, doesn't affect other serialization paths | 17 |
+| embeddedServer(Netty)+CIO client for firmware WS tests, not testApplication | ✓ Good — testApplication's test dispatcher blocks on session.launch drain job; real Netty avoids it | 17 |
+| Helm secret.yaml: nested {{- if not $password }}/{{- if $existing }} guards, not `and` | ✓ Good — avoids Go-template short-circuit version dependency | 18 |
+| Compress .planning/ files — STATE.md/MILESTONES.md trimmed, phase dirs 14-19 deleted (history preserved) | ✓ Good — but disk-scan tooling (phases.list, init.manager) now false-negatives on deleted phases; milestone close required --force + git-history reconstruction | 20 |
 
 ## Constraints
 
@@ -150,42 +140,19 @@ Simple, reliable one-way display control from any browser on the home network.
 - **Network:** Home network only (no auth, no TLS required)
 - **Memory:** <256MB JVM heap target
 
-## Evolution
+## Document Evolution
 
-This document evolves at phase transitions and milestone boundaries.
+This document is updated after each milestone (v1.2 last updated 2026-07-08). Sections are maintained in priority order: Vision/Core Value rarely change; Current State and Key Decisions evolve with each phase; Requirements are archived per milestone to keep this document bounded.
 
-**After each phase transition** (via `/gsd-transition`):
-1. Requirements invalidated? → Move to Out of Scope with reason
-2. Requirements validated? → Move to Validated with phase reference
-3. New requirements emerged? → Add to Active
-4. Decisions to log? → Add to Key Decisions
-5. "What This Is" still accurate? → Update if drifted
+## Milestone History
 
-**After each milestone** (via `/gsd-complete-milestone`):
-1. Full review of all sections
-2. Core Value check — still the right priority?
-3. Audit Out of Scope — reasons still valid?
-4. Update Context with current state
+- **v1.2 Firmware + Features + Refactor + Ops** — Shipped 2026-07-08 (7 phases, 35 plans). See `.planning/MILESTONES.md` for full accomplishments and `.planning/milestones/v1.2-*` for archived roadmap/requirements/audit.
+- **v1.1 Refactor + Fixes + UI + New Features** — Shipped 2026-06-21
+- **v1.0 MVP** — Shipped 2026-05-28
 
-## Next Steps
+## Next Milestone
 
-- `/gsd-new-milestone` — start planning v1.2
-
-<details>
-<summary>v1.1 Milestone Context (archived)</summary>
-
-**Goal:** Spłacić dług techniczny z v1.0, przeprowadzić pełny refactor aplikacji, naprawić bugi hardware (MAX7219), odświeżyć UI/UX oraz dodać nowe funkcjonalności (historia, multi-zone, scheduler rewrite, webhooks).
-
-**Target features:**
-- MAX7219 chain order fix + pełny refactor warstwy driverów
-- GET /health/detail, HTML error pages, /metrics hardware group, SKIP_NEW policy (gap closures)
-- Pełny refactor aplikacji (uproszczenie, czytelność, usunięcie workaroundów)
-- UI/UX refresh (layout, stylizacja, user experience)
-- Historia wyświetlanych tekstów
-- Multi-zone (wiele wyświetlaczy jednocześnie)
-- Webhooks / push notifications on schedule fire
-
-</details>
+Not yet defined. Run `/gsd-new-milestone` to start questioning → research → requirements → roadmap for v1.3.
 
 ---
-*Last updated: 2026-06-21 after v1.1 milestone close. 9 phases, 32 plans shipped. All requirements validated.*
+*Last updated: 2026-07-08 — After v1.2 milestone close (full evolution review).*

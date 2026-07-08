@@ -5,6 +5,7 @@ import com.anjo.db.HistoryRepository
 import com.anjo.driver.DisplayStatus
 import com.anjo.model.BroadcastResult
 import com.anjo.model.ConflictPolicy
+import com.anjo.model.DisplayEvent
 import com.anjo.model.Effect
 import com.anjo.model.HardwareMetrics
 import com.anjo.model.HistoryRecord
@@ -39,7 +40,8 @@ class ScreenDriverService(
     private val retryConfig: RetryConfig,
     private val metrics: ScreenDriverMetrics,
     private val hardwareMetrics: HardwareMetrics = HardwareMetrics.DISABLED,
-    private val historyRepository: HistoryRepository? = null,
+    private val historyRepository: HistoryRepository,
+    private val displayEventBus: DisplayEventBus,
 ) {
     private val log = LoggerFactory.getLogger(ScreenDriverService::class.java)
 
@@ -54,7 +56,10 @@ class ScreenDriverService(
         text: String,
         effect: Effect = Effect.SCROLL,
         conflictPolicy: ConflictPolicy = ConflictPolicy.INTERRUPT,
-        zoneId: String? = null
+        zoneId: String? = null,
+        speed: Int? = null,
+        blinkPeriod: Int? = null,
+        fadeSteps: Int? = null
     ): DisplayResult {
         if (zoneId != null) {
             if (!zoneRegistry.contains(zoneId)) return DisplayResult.ZoneNotFound
@@ -69,15 +74,15 @@ class ScreenDriverService(
         lastSentMessage.set(text)
         currentDisplayJob?.cancel()
         currentScheduledId = null
-        if (zoneId == null) return broadcastImmediate(text, effect, conflictPolicy, zoneMutex)
+        if (zoneId == null) return broadcastImmediate(text, effect, conflictPolicy, zoneMutex, speed, blinkPeriod, fadeSteps)
         currentDisplayJob = displayScope.launch {
-            renderImmediate(text, effect, zoneMutex, alreadyLocked = conflictPolicy == ConflictPolicy.SKIP_NEW, zoneId = zoneId)
+            renderImmediate(text, effect, zoneMutex, alreadyLocked = conflictPolicy == ConflictPolicy.SKIP_NEW, zoneId = zoneId, speed = speed, blinkPeriod = blinkPeriod, fadeSteps = fadeSteps)
         }
         return DisplayResult.Accepted(true)
     }
 
-    private suspend fun broadcastImmediate(text: String, effect: Effect, conflictPolicy: ConflictPolicy, zoneMutex: Mutex): DisplayResult {
-        val broadcastResult = zoneRegistry.broadcast(text, effect)
+    private suspend fun broadcastImmediate(text: String, effect: Effect, conflictPolicy: ConflictPolicy, zoneMutex: Mutex, speed: Int? = null, blinkPeriod: Int? = null, fadeSteps: Int? = null): DisplayResult {
+        val broadcastResult = zoneRegistry.broadcast(text, effect, speed, blinkPeriod, fadeSteps)
         broadcastResult.successful.forEach { id ->
             tryInsertHistory(text, effect.name, "IMMEDIATE", zoneId = id)
         }
@@ -123,14 +128,14 @@ class ScreenDriverService(
         if (alreadyLocked) block() else mutex.withLock { block() }
     }
 
-    private suspend fun renderImmediate(text: String, effect: Effect, mutex: Mutex, alreadyLocked: Boolean, zoneId: String?) {
+    private suspend fun renderImmediate(text: String, effect: Effect, mutex: Mutex, alreadyLocked: Boolean, zoneId: String?, speed: Int? = null, blinkPeriod: Int? = null, fadeSteps: Int? = null) {
         val timerContext: Timer.Context? = metrics.executionTimer?.time()
         metrics.inFlightCounter?.inc()
         hardwareMetrics.inFlightCounter?.inc()
         try {
             if (zoneId == null) return
             withMutex(mutex, alreadyLocked) {
-                executeWithRecovery(text, effect, zoneId)
+                executeWithRecovery(text, effect, zoneId, speed, blinkPeriod, fadeSteps)
                 tryInsertHistory(text, effect.name, "IMMEDIATE", zoneId = zoneId)
             }
         } catch (e: Exception) {
@@ -182,17 +187,18 @@ class ScreenDriverService(
         zoneId: String? = null,
     ) {
         try {
-            historyRepository?.insert(HistoryRecord(text = text, effect = effect, source = source, scheduleId = scheduleId, webhookStatus = webhookStatus, zoneId = zoneId))
+            val record = historyRepository.insert(HistoryRecord(text = text, effect = effect, source = source, scheduleId = scheduleId, webhookStatus = webhookStatus, zoneId = zoneId))
+            displayEventBus.tryEmit(DisplayEvent(id = record.id, text = record.text, effect = record.effect, zoneId = record.zoneId, displayedAt = record.displayedAt))
         } catch (e: Exception) {
             log.warn("History insert failed (non-fatal): ${e.message}", e)
         }
     }
 
-    private suspend fun executeWithRecovery(input: String, effect: Effect, zoneId: String?) {
+    private suspend fun executeWithRecovery(input: String, effect: Effect, zoneId: String?, speed: Int? = null, blinkPeriod: Int? = null, fadeSteps: Int? = null) {
         withContext(ioDispatcher) {
             retryWithBackoff(retryConfig, hardwareMetrics) {
                 if (zoneId != null) {
-                    zoneRegistry.route(zoneId, input, effect)
+                    zoneRegistry.route(zoneId, input, effect, speed, blinkPeriod, fadeSteps)
                 }
             }
         }

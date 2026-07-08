@@ -10,6 +10,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import org.slf4j.LoggerFactory
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -69,12 +73,10 @@ class NetworkDiscoveryService(
         while (true) {
             try {
                 val recvPacket = DatagramPacket(buf, buf.size)
-                withContext(Dispatchers.IO) {
-                    socket.receive(recvPacket)
-                }
+                socket.receive(recvPacket)
                 val json = String(recvPacket.data, 0, recvPacket.length)
                 val zone = parseDiscoveryReply(json, recvPacket.address.hostAddress)
-                if (zone != null) {
+                if (zone != null && zone.ip != null) {
                     onDeviceDiscovered(ip = zone.ip, method = "UDP", name = zone.name)
                     discovered.add(zone)
                 }
@@ -141,13 +143,16 @@ class NetworkDiscoveryService(
 
     private fun parseDiscoveryReply(json: String, senderIp: String): NetworkZone? {
         return try {
-            val nameMatch = Regex(""""name"\s*:\s*"([^"]+)"""").find(json)
-            val typeMatch = Regex(""""type"\s*:\s*"([^"]+)"""").find(json)
-            val name = nameMatch?.groupValues?.get(1) ?: senderIp
-            val type = typeMatch?.groupValues?.get(1) ?: DisplayType.MAX7219.name
-            buildNetworkZone(ip = senderIp, method = "UDP", name = name, type = type)
+            val parsed = Json.decodeFromString<JsonObject>(json)
+            val name = parsed["name"]?.jsonPrimitive?.contentOrNull ?: senderIp
+            val rawType = parsed["type"]?.jsonPrimitive?.contentOrNull ?: DisplayType.MAX7219.name
+            val safeType = when (DisplayType.fromString(rawType)) {
+                DisplayType.FIRMWARE, DisplayType.UNKNOWN -> DisplayType.MAX7219.name
+                else -> rawType
+            }
+            buildNetworkZone(ip = senderIp, method = "UDP", name = name, type = safeType)
         } catch (e: Exception) {
-            log.warn("Failed to parse discovery reply '$json': ${e.message}")
+            log.warn("Failed to parse discovery reply: ${e.message}")
             null
         }
     }

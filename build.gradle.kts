@@ -32,6 +32,8 @@ dependencies {
     implementation(ktorLibs.ktor.server.di)
     implementation(ktorLibs.ktor.server.host.common)
     implementation(ktorLibs.ktor.server.netty)
+    implementation(ktorLibs.ktor.server.sse)
+    implementation(ktorLibs.ktor.server.websockets)
 
     // Kotlin
     implementation(ktorLibs.kotlinx.coroutines.core)
@@ -67,6 +69,9 @@ dependencies {
     implementation(ktorLibs.pi4j.plugin.gpiod)
     implementation(ktorLibs.pi4j.plugin.linuxfs)
     implementation(ktorLibs.pi4j.plugin.mock)
+
+    // CSV export
+    implementation(ktorLibs.kotlin.csv.jvm)
 
     // Database
     implementation(ktorLibs.exposed.core)

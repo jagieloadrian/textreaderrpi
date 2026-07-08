@@ -39,7 +39,7 @@ class ZoneRoutesTest : FunSpec({
             application { module() }
             val response = client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                setBody("""{"ip":"8.8.8.8"}""")
+                setBody("""{"name":"kitchen","type":"NETWORK","ip":"8.8.8.8"}""")
             }
             response.status shouldBe HttpStatusCode.UnprocessableEntity
         }
@@ -50,7 +50,7 @@ class ZoneRoutesTest : FunSpec({
             application { module() }
             val response = client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                setBody("""{"ip":"192.168.1.50"}""")
+                setBody("""{"name":"kitchen","type":"NETWORK","ip":"192.168.1.50"}""")
             }
             response.status.value shouldBe 201
         }
@@ -59,13 +59,14 @@ class ZoneRoutesTest : FunSpec({
     test("POST /api/v1/zones for a duplicate IP returns 409") {
         testApplication {
             application { module() }
-            client.post("/api/v1/zones") {
+            val firstResponse = client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                setBody("""{"ip":"192.168.1.99"}""")
+                setBody("""{"name":"living-room","type":"NETWORK","ip":"192.168.1.99"}""")
             }
+            firstResponse.status.value shouldBe 201
             val response = client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                setBody("""{"ip":"192.168.1.99"}""")
+                setBody("""{"name":"living-room","type":"NETWORK","ip":"192.168.1.99"}""")
             }
             response.status shouldBe HttpStatusCode.Conflict
         }
@@ -76,7 +77,29 @@ class ZoneRoutesTest : FunSpec({
             application { module() }
             val response = client.post("/api/v1/zones") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                setBody("""{"ip":"not-an-ip"}""")
+                setBody("""{"name":"kitchen","type":"NETWORK","ip":"not-an-ip"}""")
+            }
+            response.status shouldBe HttpStatusCode.UnprocessableEntity
+        }
+    }
+
+    test("POST /api/v1/zones with FIRMWARE type returns 201") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/zones") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"name":"pico-salon","type":"FIRMWARE"}""")
+            }
+            response.status.value shouldBe 201
+        }
+    }
+
+    test("POST /api/v1/zones with MAX7219 type returns 422") {
+        testApplication {
+            application { module() }
+            val response = client.post("/api/v1/zones") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody("""{"name":"local-zone","type":"MAX7219"}""")
             }
             response.status shouldBe HttpStatusCode.UnprocessableEntity
         }

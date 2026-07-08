@@ -1,0 +1,2 @@
+ALTER TABLE network_zones ALTER COLUMN ip VARCHAR(64) NULL;
+ALTER TABLE network_zones ADD COLUMN IF NOT EXISTS display_subtype VARCHAR(64) NULL;

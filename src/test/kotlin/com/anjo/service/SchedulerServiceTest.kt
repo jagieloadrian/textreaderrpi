@@ -1,7 +1,6 @@
 package com.anjo.service
 
 import com.anjo.db.ScheduleRepository
-import com.anjo.service.effect.EffectRenderer
 import com.anjo.model.ConflictPolicy
 import com.anjo.model.Effect
 import com.anjo.model.Schedule
@@ -27,13 +26,10 @@ class SchedulerServiceTest : FunSpec({
 
     val mockRepo = mockk<ScheduleRepository>(relaxed = true)
     val mockScreen = mockk<ScreenDriverService>(relaxed = true)
-    val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
-    val mockRenderer = mockk<EffectRenderer>(relaxed = true)
     val mockWebhook = mockk<WebhookService>(relaxed = true)
 
     beforeEach {
-        clearMocks(mockRepo, mockScreen, mockFactory, mockRenderer, mockWebhook)
-        coEvery { mockFactory.create(any()) } returns mockRenderer
+        clearMocks(mockRepo, mockScreen, mockWebhook)
         coEvery { mockRepo.findAllActive() } returns emptyList()
         coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } returns true
         every { mockWebhook.willSend(any()) } returns false

@@ -19,6 +19,17 @@ import java.time.Instant
 
 private val log = LoggerFactory.getLogger("ZoneRoutes")
 
+private fun buildZone(req: AddZoneRequest, ip: String?) = NetworkZone(
+    id = req.name,
+    name = req.name,
+    ip = ip,
+    type = req.type,
+    discoveryMethod = "MANUAL",
+    createdAt = Instant.now().toString(),
+    lastSeenAt = null,
+    displaySubtype = req.displaySubtype
+)
+
 fun Route.zoneRoutes(
     zoneRegistry: ZoneRegistry,
     discoveryService: NetworkDiscoveryService,
@@ -50,28 +61,28 @@ fun Route.zoneRoutes(
         post {
             val req = call.receive<AddZoneRequest>()
 
-            if (zoneRegistry.containsIp(req.ip)) {
-                return@post call.respond(HttpStatusCode.Conflict, "Zone with IP ${req.ip} is already registered")
+            if (zoneRegistry.contains(req.name) || zoneRepository.findById(req.name) != null) {
+                return@post call.respond(HttpStatusCode.Conflict, "Zone '${req.name}' is already registered")
             }
 
-            val existing = zoneRepository.findById(req.ip)
-            if (existing != null) {
-                return@post call.respond(HttpStatusCode.Conflict, "Zone with IP ${req.ip} is already registered")
+            if (req.type == DisplayType.FIRMWARE.name) {
+                val zone = buildZone(req, null)
+                zoneRepository.upsert(zone)
+                zoneRegistry.registerFirmwareZone(req.name)
+                log.info("Firmware zone registered: name=${req.name}")
+                call.respond(HttpStatusCode.Created, zone)
+            } else {
+                val ip = req.ip
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, "ip is required for this zone type")
+                if (zoneRegistry.containsIp(ip)) {
+                    return@post call.respond(HttpStatusCode.Conflict, "Zone with IP $ip is already registered")
+                }
+                val zone = buildZone(req, ip)
+                zoneRepository.upsert(zone)
+                zoneRegistry.addNetworkZone(zone)
+                log.info("Network zone added: name=${req.name} ip=$ip")
+                call.respond(HttpStatusCode.Created, zone)
             }
-
-            val zone = NetworkZone(
-                id = req.ip,
-                name = req.ip,
-                ip = req.ip,
-                type = DisplayType.MAX7219.name,
-                discoveryMethod = "MANUAL",
-                createdAt = Instant.now().toString(),
-                lastSeenAt = null
-            )
-            zoneRepository.upsert(zone)
-            zoneRegistry.addNetworkZone(zone)
-            log.info("Manual zone added: ip=${req.ip}")
-            call.respond(HttpStatusCode.Created, zone)
         }
     }
 }

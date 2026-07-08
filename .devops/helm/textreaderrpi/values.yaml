@@ -1,0 +1,59 @@
+# Image configuration
+image:
+  repository: textreaderrpi
+  tag: latest
+  pullPolicy: Never  # Assumes image is pre-loaded on node; user overrides for registry deploys
+
+# Hardware access toggle
+hardwareAccess:
+  enabled: false
+
+# JVM heap cap
+JAVA_TOOL_OPTIONS: "-Xmx220m"
+
+# Deployment replicas (hardcoded to 1 — not configurable)
+replicas: 1
+
+# Persistence volumes (always created — the app requires its H2 file DB and log storage)
+persistence:
+  data:
+    storageClass: ""  # Uses default storage class (e.g., "local-path" on K3s)
+    size: 1Gi
+  logs:
+    storageClass: ""
+    size: 500Mi
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+# Ingress configuration (disabled by default)
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: ""
+  path: /
+  pathType: Prefix
+
+# RBAC
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+  name: ""
+
+# Node selection (empty by default; user can set kubernetes.io/arch: arm64 to pin to Pi nodes)
+nodeSelector: {}
+
+# Pod annotations
+podAnnotations: {}
+
+# Database credentials
+database:
+  user: "sa"
+  password: ""  # Auto-generated (randAlphaNum 16) at install when unset; set --set database.password=... to pin an explicit value
+

@@ -1,6 +1,6 @@
 # TextReaderRpi - Development Roadmap
 
-**Last Updated:** 2026-06-21
+**Last Updated:** 2026-07-08
 
 ---
 
@@ -8,7 +8,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-05-28) → [Archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Refactor + Fixes + UI + New Features** — Phases 6–13 (shipped 2026-06-21) → [Archive](milestones/v1.1-ROADMAP.md)
-- 📋 **v1.2** — Phases 14+ (planned)
+- ✅ **v1.2 Firmware + Features + Refactor + Ops** — Phases 14–20 (shipped 2026-07-08) → [Archive](milestones/v1.2-ROADMAP.md)
 
 ---
 
@@ -40,28 +40,25 @@
 
 </details>
 
-### 📋 v1.2 (Planned)
+<details>
+<summary>✅ v1.2 Firmware + Features + Refactor + Ops (Phases 14–20) — SHIPPED 2026-07-08</summary>
 
-- [ ] Phase 14: TBD — defined via `/gsd-new-milestone`
+- [x] Phase 14: History Enhancements — Full-text search and CSV export (3 plans) — completed 2026-06-22
+- [x] Phase 15: SSE Live Feed — Real-time display events on status page (3 plans) — completed 2026-06-22
+- [x] Phase 16: Zone Management — Zone creation form + firmware WebSocket endpoint (4 plans) — completed 2026-06-23
+- [x] Phase 17: Firmware Skeletons — RPi Pico (pico-sdk) + ESP32 (ESP-IDF) firmware (9 plans) — completed 2026-06-24
+- [x] Phase 18: Kubernetes + Helm — Helm chart in `.devops/helm/textreaderrpi/` (10 plans) — completed 2026-07-07
+- [x] Phase 19: DRY/YAGNI Refactoring — Deduplication across main code and tests (2 plans) — completed 2026-07-07
+- [x] Phase 20: Cleanup + Docs — `.planning/` compression, delete `docs/`, rewrite README (4 plans) — completed 2026-07-08
+
+</details>
 
 ---
 
-## Progress
+## Phase Details
 
-| Phase | Name | Milestone | Plans Complete | Status | Completed |
-|-------|------|-----------|----------------|--------|-----------|
-| 1 | MVP — Core Text Display | v1.0 | 1/1 | ✅ Complete | 2026-05-26 |
-| 2 | Enhanced Display Support | v1.0 | 7/7 | ✅ Complete | 2026-05-26 |
-| 3 | Production Ready | v1.0 | 5/5 | ✅ Complete | 2026-05-27 |
-| 4 | Cleanup + Observability | v1.0 | 5/5 | ✅ Complete | 2026-05-27 |
-| 5 | Scheduling + Effects | v1.0 | 11/11 | ✅ Complete | 2026-05-28 |
-| 6 | MAX7219 Hardware Fix | v1.1 | 2/2 | ✅ Complete | 2026-06-12 |
-| 7 | Scheduler Schema Stabilisation | v1.1 | 3/3 | ✅ Complete | 2026-06-14 |
-| 8 | Refactor + Dead Code Analysis | v1.1 | 5/5 | ✅ Complete | 2026-06-15 |
-| 9 | Display History + Audit Log | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
-| 10 | Webhooks | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
-| 11 | Multi-Zone Displays | v1.1 | 5/5 | ✅ Complete | 2026-06-16 |
-| 11.2 | Code Quality Cleanup | v1.1 | 3/3 | ✅ Complete | 2026-06-16 |
-| 12 | Observability Gap Closures | v1.1 | 3/3 | ✅ Complete | 2026-06-18 |
-| 13 | UI/UX Refresh | v1.1 | 4/4 | ✅ Complete | 2026-06-21 |
-| 14+ | TBD | v1.2 | 0/? | Not started | — |
+Full phase goals, success criteria, and per-plan breakdowns for shipped milestones are preserved in their archives:
+
+- **v1.0 (Phases 1–5):** [ROADMAP](milestones/v1.0-ROADMAP.md) | [Requirements](milestones/v1.0-REQUIREMENTS.md)
+- **v1.1 (Phases 6–13):** [ROADMAP](milestones/v1.1-ROADMAP.md) | [Requirements](milestones/v1.1-REQUIREMENTS.md)
+- **v1.2 (Phases 14–20):** [ROADMAP](milestones/v1.2-ROADMAP.md) | [Requirements](milestones/v1.2-REQUIREMENTS.md) | [Audit](milestones/v1.2-MILESTONE-AUDIT.md)

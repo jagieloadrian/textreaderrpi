@@ -4,9 +4,8 @@ import com.anjo.model.NetworkZone
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
-import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.upsert
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
 class ZoneRepository {
@@ -24,27 +23,15 @@ class ZoneRepository {
 
     suspend fun upsert(zone: NetworkZone) {
         suspendTransaction {
-            val existing = NetworkZonesTable.selectAll()
-                .where { NetworkZonesTable.id eq zone.id }
-                .singleOrNull()
-            if (existing != null) {
-                NetworkZonesTable.update({ NetworkZonesTable.id eq zone.id }) {
-                    it[name] = zone.name
-                    it[ip] = zone.ip
-                    it[type] = zone.type
-                    it[discoveryMethod] = zone.discoveryMethod
-                    it[lastSeenAt] = zone.lastSeenAt
-                }
-            } else {
-                NetworkZonesTable.insert {
-                    it[id] = zone.id
-                    it[name] = zone.name
-                    it[ip] = zone.ip
-                    it[type] = zone.type
-                    it[discoveryMethod] = zone.discoveryMethod
-                    it[createdAt] = zone.createdAt
-                    it[lastSeenAt] = zone.lastSeenAt
-                }
+            NetworkZonesTable.upsert(onUpdateExclude = listOf(NetworkZonesTable.createdAt)) {
+                it[id] = zone.id
+                it[name] = zone.name
+                it[ip] = zone.ip
+                it[type] = zone.type
+                it[discoveryMethod] = zone.discoveryMethod
+                it[createdAt] = zone.createdAt
+                it[lastSeenAt] = zone.lastSeenAt
+                it[displaySubtype] = zone.displaySubtype
             }
         }
     }
@@ -63,6 +50,7 @@ class ZoneRepository {
         type = this[NetworkZonesTable.type],
         discoveryMethod = this[NetworkZonesTable.discoveryMethod],
         createdAt = this[NetworkZonesTable.createdAt],
-        lastSeenAt = this[NetworkZonesTable.lastSeenAt]
+        lastSeenAt = this[NetworkZonesTable.lastSeenAt],
+        displaySubtype = this[NetworkZonesTable.displaySubtype]
     )
 }

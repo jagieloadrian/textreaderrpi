@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "textreaderrpi.fullname" . }}
+  labels:
+    {{- include "textreaderrpi.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "textreaderrpi.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "textreaderrpi.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "textreaderrpi.serviceAccountName" . }}
+
+      containers:
+      - name: textreaderrpi
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.hardwareAccess.enabled }}
+        securityContext:
+          privileged: true
+        {{- end }}
+
+        ports:
+        - containerPort: 8080
+          name: http
+
+        envFrom:
+        - configMapRef:
+            name: {{ include "textreaderrpi.fullname" . }}-config
+
+        env:
+        {{- if not .Values.hardwareAccess.enabled }}
+        - name: DISPLAY_TYPE
+          value: "OFFLINE"
+        {{- end }}
+        - name: DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "textreaderrpi.fullname" . }}-secret
+              key: DATABASE_USER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "textreaderrpi.fullname" . }}-secret
+              key: DATABASE_PASSWORD
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: logs
+          mountPath: /app/logs
+        {{- if .Values.hardwareAccess.enabled }}
+        - name: spidev
+          mountPath: /dev/spidev0.0
+        - name: i2c
+          mountPath: /dev/i2c-1
+        {{- end }}
+
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "textreaderrpi.fullname" . }}-data
+      - name: logs
+        persistentVolumeClaim:
+          claimName: {{ include "textreaderrpi.fullname" . }}-logs
+      {{- if .Values.hardwareAccess.enabled }}
+      - name: spidev
+        hostPath:
+          path: /dev/spidev0.0
+          type: CharDevice
+      - name: i2c
+        hostPath:
+          path: /dev/i2c-1
+          type: CharDevice
+      {{- end }}
+
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+

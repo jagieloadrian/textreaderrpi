@@ -1,0 +1,73 @@
+package com.anjo.zone
+
+import com.anjo.model.DisplayType
+import com.anjo.model.Effect
+import com.anjo.model.FirmwareMessage
+import com.anjo.model.ZoneStatus
+import io.ktor.server.websocket.DefaultWebSocketServerSession
+import io.ktor.websocket.Frame
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import java.time.Instant
+import java.util.concurrent.atomic.AtomicReference
+
+class FirmwareZoneDriver(private val id: String) : ZoneDriver {
+
+    private val channel = Channel<String>(capacity = 64)
+    private val sessionRef = AtomicReference<DefaultWebSocketServerSession?>(null)
+    private val drainJob = AtomicReference<Job?>(null)
+
+    fun attach(session: DefaultWebSocketServerSession) {
+        drainJob.getAndSet(null)?.cancel()
+        sessionRef.set(session)
+        val job = session.launch {
+            try {
+                for (msg in channel) {
+                    session.send(Frame.Text(msg))
+                }
+            } catch (_: ClosedReceiveChannelException) {
+            } finally {
+                sessionRef.compareAndSet(session, null)
+            }
+        }
+        drainJob.set(job)
+    }
+
+    fun detach() {
+        drainJob.getAndSet(null)?.cancel()
+        sessionRef.set(null)
+    }
+
+    override suspend fun send(text: String, effect: Effect, speed: Int?, blinkPeriod: Int?, fadeSteps: Int?): Boolean {
+        if (sessionRef.get() == null) return false
+        val json = Json.encodeToString(
+            FirmwareMessage(
+                text = text,
+                effect = effect.name,
+                zoneId = id,
+                ts = Instant.now().toString(),
+                speed = speed,
+                blinkPeriod = blinkPeriod,
+                fadeSteps = fadeSteps
+            )
+        )
+        return channel.trySend(json).isSuccess
+    }
+
+    override fun status(): ZoneStatus {
+        val online = sessionRef.get() != null && drainJob.get() != null && !(drainJob.get()?.isCancelled ?: true)
+        return ZoneStatus(
+            id = id,
+            type = DisplayType.FIRMWARE.name,
+            status = if (online) "ONLINE" else "OFFLINE",
+            error = if (!online) "OFFLINE" else null
+        )
+    }
+
+    override fun stop() {
+        channel.close()
+    }
+}

@@ -1,7 +1,6 @@
 package com.anjo.validation
 
 import com.anjo.config.model.ApiConfig
-import com.anjo.model.AddZoneRequest
 import com.anjo.model.DisplaySelectRequest
 import com.anjo.model.DisplayType
 import com.anjo.model.TextRequest
@@ -19,24 +18,11 @@ object RequestValidators {
             )
         }
 
-        return ValidationResult.Valid
-    }
+        req.speed?.let { if (it <= 0) return ValidationResult.Invalid("speed must be a positive integer") }
+        req.blinkPeriod?.let { if (it <= 0) return ValidationResult.Invalid("blinkPeriod must be a positive integer") }
+        req.fadeSteps?.let { if (it <= 0) return ValidationResult.Invalid("fadeSteps must be a positive integer") }
 
-    fun validateAddZoneRequest(req: AddZoneRequest): ValidationResult {
-        val parts = req.ip.split(".")
-        if (parts.size != 4) return ValidationResult.Invalid("IP must be a valid RFC1918 private address")
-        val octets = try {
-            parts.map { it.toInt() }
-        } catch (_: NumberFormatException) {
-            return ValidationResult.Invalid("IP must be a valid RFC1918 private address")
-        }
-        if (octets.any { it !in 0..255 }) return ValidationResult.Invalid("IP must be a valid RFC1918 private address")
-        return when {
-            octets[0] == 10 -> ValidationResult.Valid
-            octets[0] == 172 && octets[1] in 16..31 -> ValidationResult.Valid
-            octets[0] == 192 && octets[1] == 168 -> ValidationResult.Valid
-            else -> ValidationResult.Invalid("IP must be a valid RFC1918 private address")
-        }
+        return ValidationResult.Valid
     }
 
     fun validateDisplaySelectRequest(req: DisplaySelectRequest): ValidationResult {

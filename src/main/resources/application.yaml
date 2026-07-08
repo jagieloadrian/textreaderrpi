@@ -21,17 +21,10 @@ display:
   max7219:
     numDevices: ${MAX7219_NUM_DEVICES:2}
     brightness: true
-    gpioPins:
-      spi_ce: ${GPIO_SPI_CE:24}
-      spi_mosi: ${GPIO_SPI_MOSI:19}
-      spi_miso: ${GPIO_SPI_MISO:9}
-      spi_sck: ${GPIO_SPI_SCK:23}
 
   lcd:
     i2cAddress: 0x27
     busNumber: ${I2C_BUS:1}
-    rows: 2
-    columns: 16
 
   oled:
     i2cAddress: 0x3C

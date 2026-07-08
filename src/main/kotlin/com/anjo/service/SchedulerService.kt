@@ -67,8 +67,7 @@ class SchedulerService(
     }
 
     fun cancel(id: String) {
-        val removed = activeJobs.remove(id)?.also { it.cancel() }
-        if (removed != null) {
+        activeJobs.remove(id)?.also { it.cancel() }?.let {
             scope.launch {
                 try {
                     repository.updateStatus(id, "DONE")
@@ -178,7 +177,8 @@ class SchedulerService(
             log.info("Firing schedule id=${schedule.id} text='${schedule.text.take(30)}' effect=${schedule.effect}")
             val policy = schedule.conflictPolicy ?: ConflictPolicy.INTERRUPT
             val webhookStatus = if (webhookService.willSend(schedule)) "sent" else "skipped"
-            val displayed = screenService.displayScheduled(schedule.text, schedule.id, schedule.effect, policy, webhookStatus)
+            val displayed =
+                screenService.displayScheduled(schedule.text, schedule.id, schedule.effect, policy, webhookStatus)
             if (displayed) {
                 webhookService.send(schedule, Instant.now())
             }

@@ -1,10 +1,13 @@
 package com.anjo.db
 
+import com.anjo.model.HistoryFilter
 import com.anjo.model.HistoryRecord
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.*
-import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -20,11 +23,14 @@ class HistoryRepository {
         suspendTransaction {
             val count = HistoryTable.selectAll().count()
             if (count >= MAX_ROWS) {
-                val oldest = HistoryTable.selectAll()
+                HistoryTable.selectAll()
                     .orderBy(HistoryTable.displayedAt to SortOrder.ASC)
                     .limit(1)
-                    .singleOrNull()?.get(HistoryTable.id) ?: return@suspendTransaction
-                HistoryTable.deleteWhere { HistoryTable.id eq oldest }
+                    .singleOrNull()
+                    ?.get(HistoryTable.id)
+                    ?.let { oldest ->
+                        HistoryTable.deleteWhere { HistoryTable.id eq oldest }
+                    }
             }
             HistoryTable.insert {
                 it[id] = newId
@@ -40,39 +46,47 @@ class HistoryRepository {
         return record.copy(id = newId, displayedAt = now)
     }
 
-    suspend fun findPaginated(
-        page: Int,
-        size: Int,
-        effect: String? = null,
-        source: String? = null,
-        zone: String? = null
-    ): Pair<List<HistoryRecord>, Long> = suspendTransaction {
-        var query = HistoryTable.selectAll()
-        if (effect != null) {
-            query = query.where { HistoryTable.effect eq effect }
-        }
-        if (source != null) {
-            query = if (effect != null) {
-                query.andWhere { HistoryTable.displaySource eq source }
-            } else {
-                query.where { HistoryTable.displaySource eq source }
+    suspend fun findPaginated(filter: HistoryFilter, page: Int, size: Int): Pair<List<HistoryRecord>, Long> =
+        suspendTransaction {
+            val conditions = buildList {
+                filter.effect?.let { add(HistoryTable.effect eq it) }
+                filter.source?.let { add(HistoryTable.displaySource eq it) }
+                filter.zone?.let { add(HistoryTable.zoneId eq it) }
+                filter.search?.let { term ->
+                    add(HistoryTable.text.lowerCase() like "%${term.lowercase()}%")
+                }
             }
-        }
-        if (zone != null) {
-            query = if (effect != null || source != null) {
-                query.andWhere { HistoryTable.zoneId eq zone }
-            } else {
-                query.where { HistoryTable.zoneId eq zone }
+            var query = HistoryTable.selectAll()
+            if (conditions.isNotEmpty()) {
+                query = query.where { conditions.reduce { acc, op -> acc and op } }
             }
+            val total = query.count()
+            val items = query
+                .orderBy(HistoryTable.displayedAt to SortOrder.DESC)
+                .limit(size)
+                .offset(((page - 1).toLong() * size))
+                .map { it.toHistoryRecord() }
+            Pair(items, total)
         }
-        val total = query.count()
-        val items = query
-            .orderBy(HistoryTable.displayedAt to SortOrder.DESC)
-            .limit(size)
-            .offset(((page - 1).toLong() * size))
-            .map { it.toHistoryRecord() }
-        Pair(items, total)
-    }
+
+    suspend fun findAll(filter: HistoryFilter): List<HistoryRecord> =
+        suspendTransaction {
+            val conditions = buildList {
+                filter.effect?.let { add(HistoryTable.effect eq it) }
+                filter.source?.let { add(HistoryTable.displaySource eq it) }
+                filter.zone?.let { add(HistoryTable.zoneId eq it) }
+                filter.search?.let { term ->
+                    add(HistoryTable.text.lowerCase() like "%${term.lowercase()}%")
+                }
+            }
+            var query = HistoryTable.selectAll()
+            if (conditions.isNotEmpty()) {
+                query = query.where { conditions.reduce { acc, op -> acc and op } }
+            }
+            query
+                .orderBy(HistoryTable.displayedAt to SortOrder.DESC)
+                .map { it.toHistoryRecord() }
+        }
 
     private fun ResultRow.toHistoryRecord(): HistoryRecord = HistoryRecord(
         id = this[HistoryTable.id],

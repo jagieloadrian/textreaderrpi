@@ -1,18 +1,12 @@
-# Technology Stack — TextReaderRpi v1.1 (New Features Only)
+# Technology Stack — TextReaderRpi v1.2 (New Capabilities Only)
 
-**Project:** TextReaderRpi  
-**Researched:** 2026-06-11  
-**Scope:** Stack additions for 5 new v1.1 capabilities. Existing v1.0 stack is locked and not re-evaluated here.
-
----
-
-## Critical Pre-Research Finding
-
-After reading the actual source code, the PROJECT.md description "replacing Flaxoos JDBC scheduler" is misleading. The `SchedulerService` is **already pure coroutines** — it uses `CoroutineScope + delay + ConcurrentHashMap<String, Job>`. No Flaxoos scheduler was ever added. Flaxoos is present **only** for rate limiting (`ktor-server-rate-limiting`). This changes the scope of the scheduler feature significantly.
+**Project:** TextReaderRpi
+**Researched:** 2026-06-21
+**Scope:** Stack additions for 6 new v1.2 capabilities. The v1.1 stack is locked and not re-evaluated here.
 
 ---
 
-## Existing Stack (Locked — Do Not Change)
+## Locked v1.1 Stack (Do Not Change)
 
 | Library | Version | Role |
 |---------|---------|------|
@@ -23,7 +17,9 @@ After reading the actual source code, the PROJECT.md description "replacing Flax
 | H2 / PostgreSQL | 2.4.240 / 42.7.7 | Database |
 | HikariCP | 7.0.2 | Connection pool |
 | kotlinx-coroutines | 1.11.0 | Concurrency |
-| cron-utils | 9.2.1 | CRON expression parsing |
+| Flyway | 9.22.3 | Schema migrations |
+| JmDNS | 3.6.3 | mDNS zone discovery |
+| ktor-client-cio + websockets | 3.5.0 | Outbound HTTP + WebSocket client |
 | Flaxoos rate-limiting | 2.2.1 | Token bucket rate limiter |
 | KHealth | 3.0.2 | Health check plugin |
 | Kotest | 6.1.11 | Test framework |
@@ -32,185 +28,274 @@ After reading the actual source code, the PROJECT.md description "replacing Flax
 
 ---
 
-## New Dependencies Required
+## Feature 1: WebSocket Live Feed — Server Push to Browsers
 
-### Feature 1: Coroutine-Based Scheduler (Clarified Scope)
+**Verdict: Use `ktor-server-sse` (SSE), not WebSockets.**
 
-**Actual finding:** The scheduler (`SchedulerService.kt`) is already coroutine-based. It uses `CoroutineScope(Dispatchers.Default + SupervisorJob())` with `delay`, a `ConcurrentHashMap<String, Job>`, and a `tickLoop()`. No new library is needed.
+SSE is the right choice here. The use case is one-directional: the server pushes "currently displayed text changed" events to browser tabs. SSE requires only HTTP, has native browser `EventSource` reconnection (no JS library), works through all proxies, and is multiplexed under HTTP/2. WebSockets add bidirectional complexity that this feature does not need.
 
-**What v1.1 actually needs for the scheduler:**
-- Add `webhookUrl: String?` field to the `Schedule` model and `SchedulesTable`
-- Add conflict policy enum (`SKIP_NEW`, `PREEMPT`) to `SchedulerService.fire()`
-- These are pure code changes — zero new dependencies
+The `ktor-server-sse` artifact ships as part of the Ktor monorepo at the same version — confirmed from Ktor 3.5.0 release notes. Install pattern:
 
-**Verdict: No new library. Zero additions.**
-
----
-
-### Feature 2: Multi-Zone Display Management
-
-**Actual finding:** `DisplaySelectionService` is single-driver (one active driver at a time with a `driverCache`). Multi-zone requires running multiple `ScreenDriverService` instances concurrently, one per named zone.
-
-**What is needed:** A `ZoneRegistry` that holds a `Map<String, ScreenDriverService>` and routes `POST /api/v1/zones/{zone}/text` to the correct service instance. Each zone gets its own Pi4J pin configuration.
-
-**Verdict: No new library.** Multi-zone is a structural refactor of `DisplaySelectionService` and `ScreenDriverService`. The existing `kotlinx-coroutines` Mutex and `ConcurrentHashMap` are sufficient. Pi4J 4.0.0 already supports multiple simultaneous I/O registrations.
-
----
-
-### Feature 3: Display Text History / Audit Log
-
-**What is needed:** A new `DisplayHistoryTable` in Exposed, recording each `fire()` event with timestamp, text, zone, schedule ID. Exposed 1.3.0 already provides `exposed-java-time` for `java.time.Instant` column mapping.
-
-**New Exposed module required:**
-
-The project already has `exposed-core`, `exposed-jdbc`, `exposed-java-time` in the TOML. No new Exposed artifact is needed — the audit log is a new table defined with `object DisplayHistoryTable : Table("display_history")`.
-
-**Verdict: No new library.** One new `Table` object + one new `Repository` class using existing Exposed.
-
----
-
-### Feature 4: Webhook / Push Notifications on Schedule Fire
-
-**What is needed:** Outbound HTTP POST from `SchedulerService.fire()` when `schedule.webhookUrl != null`. This requires a Ktor HTTP client.
-
-**Recommended addition: `ktor-client-core` + `ktor-client-cio`**
-
-| Artifact | Version | Purpose |
-|----------|---------|---------|
-| `io.ktor:ktor-client-core` | 3.5.0 | Ktor client API (same version as server — no transitive conflicts) |
-| `io.ktor:ktor-client-cio` | 3.5.0 | CIO engine — pure Kotlin/coroutine, no additional thread pool, minimal memory overhead |
-| `io.ktor:ktor-client-content-negotiation` | 3.5.0 | JSON serialization for webhook body (reuses existing kotlinx.serialization setup) |
-
-**Why CIO engine, not OkHttp or Apache:**
-- CIO (Coroutine I/O) is the Ktor-native engine. It runs on the existing coroutine dispatcher — no extra thread pool or native library.
-- OkHttp adds ~600 KB jar + Java thread pool overhead; unnecessary for home Pi.
-- Apache HttpClient adds ~2 MB + blocking thread model; contradicts coroutine-first design.
-- CIO jar is ~150 KB and shares the JVM event loop already in use.
-
-**Why same 3.5.0 version:**
-- Ktor client and server must share the same version to avoid classpath conflicts on shared modules (`ktor-io`, `ktor-http`). Version 3.5.0 is already locked by the server.
-
-**TOML additions:**
-```toml
-[versions]
-# (no new version entry needed — reuse ktor = "3.5.0")
-
-[libraries]
-ktor-client-core              = { module = "io.ktor:ktor-client-core",                version.ref = "ktor" }
-ktor-client-cio               = { module = "io.ktor:ktor-client-cio",                 version.ref = "ktor" }
-ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-```
-
-**`build.gradle.kts` additions:**
 ```kotlin
-implementation(ktorLibs.ktor.client.core)
-implementation(ktorLibs.ktor.client.cio)
-implementation(ktorLibs.ktor.client.content.negotiation)
-```
-
-**Integration pattern:**
-```kotlin
-// In SchedulerService — inject as dependency, close on stop()
-private val httpClient = HttpClient(CIO) {
-    install(ContentNegotiation) { json() }
-    install(HttpTimeout) { requestTimeoutMillis = 5_000 }
-}
-
-private suspend fun fireWebhook(url: String, schedule: Schedule) {
-    try {
-        httpClient.post(url) {
-            contentType(ContentType.Application.Json)
-            setBody(WebhookPayload(scheduleId = schedule.id, text = schedule.text, firedAt = Instant.now().toString()))
+install(SSE)
+routing {
+    sse("/api/v1/live") {
+        val sharedFlow: SharedFlow<String> = /* injected singleton */
+        sharedFlow.collect { text ->
+            send(ServerSentEvent(text, event = "display"))
         }
-    } catch (e: Exception) {
-        log.warn("Webhook delivery failed for schedule ${schedule.id}: ${e.message}")
-        // Non-fatal — display still fires
     }
 }
 ```
 
-**Verdict: Add 3 Ktor client artifacts at version 3.5.0.**
+The feed state is a `MutableSharedFlow<String>(replay = 1)` singleton injected via Ktor DI. Every `ScreenDriverService.displayImmediate()` and `displayScheduled()` call emits to it. The `replay = 1` ensures a newly connected browser immediately receives the last displayed text.
 
----
+**New dependency:**
 
-### Feature 5: UI/UX Refresh
+| Artifact | Version | Purpose | Why |
+|----------|---------|---------|-----|
+| `io.ktor:ktor-server-sse` | 3.5.0 | SSE plugin for live feed endpoint | Same-version Ktor artifact; zero transitive conflicts; simpler than WebSocket for unidirectional push |
 
-**What is needed:** Improvements to Ktor HTML DSL templates in `src/main/kotlin/com/anjo/web/templates/`. Currently uses PicoCSS 2 via CDN link. The history page needs a new template; the schedule page needs zone selector controls.
-
-**Verdict: No new library.** Changes are in the existing Kotlin HTML DSL templates. PicoCSS 2 (already in `BaseLayout.kt` via CDN) is sufficient for the new pages. No JS framework.
-
----
-
-## Full Delta: What Changes in `ktor-libs.versions.toml`
-
+**TOML addition:**
 ```toml
-# ADD under [libraries] — these are the only new entries needed for all 5 features:
-ktor-client-core                 = { module = "io.ktor:ktor-client-core",                 version.ref = "ktor" }
-ktor-client-cio                  = { module = "io.ktor:ktor-client-cio",                  version.ref = "ktor" }
-ktor-client-content-negotiation  = { module = "io.ktor:ktor-client-content-negotiation",  version.ref = "ktor" }
+ktor-server-sse = { module = "io.ktor:ktor-server-sse", version.ref = "ktor" }
 ```
 
-No new `[versions]` entries. No new plugins. Everything else is code-only changes against the existing stack.
+**What NOT to use:** `ktor-server-websockets` for this feature — already present in TOML for the WebSocket client, but adding a server-side WS route forces you to manage connection lifecycle, heartbeats, and frame encoding that SSE handles automatically. Keep WS for the existing `NetworkZoneDriver` client use only.
 
 ---
 
-## What NOT to Add (Keep Pi Memory Footprint Small)
+## Feature 2: Dynamic Zone Creation (No Restart)
 
-| What | Why Not |
-|------|---------|
-| OkHttp | Adds ~600 KB + Java thread pool; redundant with CIO |
-| Apache HttpClient 5 | ~2 MB jar, blocking model, contradicts coroutines |
-| Quartz Scheduler | 2+ MB, JDBC locking tables, overkill — scheduler already works |
-| JobRunr | JVM reflection-heavy, designed for multi-node clusters; Pi is single-node |
-| Flaxoos task-scheduler module | Different Flaxoos module from rate-limiting — adds JDBC task_locks table, designed for cluster-safe distributed jobs. Unnecessary for single-Pi |
-| Spring Batch / Spring Data | Full Spring context — ~50 MB heap overhead, incompatible with Ktor DI |
-| React / Vue / HTMX | Adds build tooling; Ktor HTML DSL + minimal JS is sufficient for home UI |
-| Redis / Kafka | Event bus overkill; webhook HTTP POST is sufficient for notifications |
-| Flyway / Liquibase | DB migration framework; Exposed's `SchemaUtils.createMissingTablesAndColumns()` is sufficient for this scale |
-| kotlinx-datetime | Not needed — `java.time.Instant` + `exposed-java-time` already handle all timestamp needs |
-| Koin / Kodein | Ktor 3.x `ktor-server-di` already in use; second DI framework creates conflicts |
+**Verdict: No new library. `ZoneRegistry` already supports this.**
+
+The existing `ZoneRegistry` (`ConcurrentHashMap<String, ZoneEntry>`) has `addNetworkZone()`, `register()`, and `removeZone()` methods that operate at runtime without any lock or restart. The `ConcurrentHashMap` is thread-safe for concurrent reads and writes, providing atomic bucket-level locking (Java 8+ CAS semantics).
+
+What is missing is only the API route to expose zone creation. Add `POST /api/v1/zones` that accepts a `ZoneConfig`-shaped body and calls `ZoneRegistry.initLocalZone()` (currently `private` — promote to `internal`). For network zones, the existing `addNetworkZone(zone, client)` path already works.
+
+**Pi4J constraint:** Local hardware zones (MAX7219/LCD/OLED) require a `Pi4J.newAutoContext()` binding at startup. Dynamically adding a *new hardware-wired* local zone at runtime will fail if its GPIO pins weren't initialized. Network zones have no such constraint. Document this clearly: dynamic creation is fully supported for network zones; local hardware zones require the zone to be declared in config at startup (or a Pi4J context extension path — out of scope for v1.2).
+
+**New dependencies: none.**
 
 ---
 
-## Integration Notes
+## Feature 3: Full-Text Search in Display History
 
-### Scheduler + Webhook Integration
-`SchedulerService.fire()` is the single integration point. After calling `screenService.displayScheduled()`, call `fireWebhook()` if `schedule.webhookUrl != null`. The `HttpClient` should be a singleton injected into `SchedulerService` and closed in `stop()` via `httpClient.close()`.
+**Verdict: Use `LIKE`/`ILIKE` with Exposed DSL. No external FTS library.**
 
-### History + Scheduler Integration
-Add `DisplayHistoryRepository.insert()` call inside `SchedulerService.fire()` after successful display. Also call it from `ScreenDriverService.displayImmediate()` for ad-hoc text submissions. The `displayedAt` timestamp uses `java.time.Instant.now()` — already available via `exposed-java-time`.
+**Rationale:** The history table is bounded at 1,000 rows (enforced in v1.1). PostgreSQL `tsvector`/`tsquery` FTS and H2's `FullText` extension both require additional schema objects (indexes, triggers, virtual tables) and produce different SQL dialects — making a single Exposed query target both H2 (dev/default) and PostgreSQL (production) unnecessarily complex.
 
-### Multi-Zone + DI Integration
-`DependencyInjection.kt` currently creates one `ScreenDriverService`. For multi-zone, replace with a `ZoneRegistry` class wrapping `Map<String, ScreenDriverService>`. The Ktor DI (`ktor-server-di`) `provide { }` block provides the registry. Route parameter `{zone}` looks up the correct service instance.
+For 1,000 rows, a case-insensitive `LIKE '%term%'` scan is O(n) over at most 1,000 rows and completes in microseconds. This is not a performance problem.
 
-### Test additions needed
-- `ktor-client-mock` (`io.ktor:ktor-client-mock`, version `3.5.0`) for unit-testing webhook calls without a live HTTP server. Add as `testImplementation`.
+**Exposed DSL approach (H2 + PostgreSQL compatible):**
 
+```kotlin
+HistoryTable.text.lowerCase() like "%${term.lowercase()}%"
+```
+
+`lowerCase()` is an Exposed built-in that emits `LOWER(column)` in SQL — valid in both H2 and PostgreSQL. This avoids `ILIKE` (PostgreSQL-only) and `LIKE` case sensitivity differences.
+
+If the project ever switches to a larger dataset (>100K rows), add a GIN index on PostgreSQL and a raw SQL `@@` tsvector query via Exposed's `CustomFunction`. That is a future migration, not a v1.2 concern.
+
+**New dependencies: none.**
+
+---
+
+## Feature 4: Export History to CSV (Streaming Response)
+
+**Verdict: Use `com.jsoizo:kotlin-csv-jvm` version `2.0.0`.**
+
+The export is a `GET /api/v1/history/export` route that streams the history table (up to 1,000 rows) as `text/csv` with `Content-Disposition: attachment; filename="history.csv"`. Ktor's `respondOutputStream` or `respondBytesWriter` enables streaming without loading all rows into a string first.
+
+**Why kotlin-csv-jvm:**
+- Pure Kotlin, zero native dependencies, fits the Pi memory budget (<50 KB jar)
+- Handles quoting, commas inside values, and newlines in text fields automatically
+- Apache Commons CSV and OpenCSV both pull in additional transitive dependencies (lang3, etc.)
+- 2.0.0 is the current release on Maven Central (confirmed latest; project transferred from `com.github.doyaaaaaken` to `com.jsoizo` groupId)
+
+**Integration pattern:**
+```kotlin
+get("/api/v1/history/export") {
+    val rows = historyService.findAll()
+    call.response.header(
+        HttpHeaders.ContentDisposition,
+        ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, "history.csv").toString()
+    )
+    call.respondOutputStream(ContentType("text", "csv")) {
+        val writer = csvWriter()
+        writer.open(this) {
+            writeRow(listOf("id", "text", "zone", "effect", "displayedAt", "webhookStatus"))
+            rows.forEach { r -> writeRow(listOf(r.id, r.text, r.zone, r.effect, r.displayedAt, r.webhookStatus)) }
+        }
+    }
+}
+```
+
+**New dependency:**
+
+| Artifact | Version | Purpose | Why |
+|----------|---------|---------|-----|
+| `com.jsoizo:kotlin-csv-jvm` | `2.0.0` | CSV serialization for export | Pure Kotlin, minimal footprint, handles edge cases (quoted commas, newlines in text) |
+
+**TOML addition:**
 ```toml
-ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+[versions]
+kotlin-csv = "2.0.0"
+
+[libraries]
+kotlin-csv-jvm = { module = "com.jsoizo:kotlin-csv-jvm", version.ref = "kotlin-csv" }
 ```
 
 ---
 
-## Final Dependency Summary
+## Feature 5: Firmware for RPi Pico and ESP32 — Kotlin Native Feasibility
 
-| Artifact | Version | Scope | Purpose |
-|----------|---------|-------|---------|
-| `ktor-client-core` | 3.5.0 | `implementation` | Ktor HTTP client API |
-| `ktor-client-cio` | 3.5.0 | `implementation` | CIO engine (coroutine-native, Pi-friendly) |
-| `ktor-client-content-negotiation` | 3.5.0 | `implementation` | JSON body for webhook POST |
-| `ktor-client-mock` | 3.5.0 | `testImplementation` | Mock engine for webhook unit tests |
+### VERDICT: Kotlin Native bare-metal is NOT FEASIBLE for Pico or ESP32. Use C/MicroPython firmware skeleton.
 
-**Total new jars: 4.** All reuse the existing `ktor = "3.5.0"` version reference. No version conflicts possible.
+This is the most significant finding of this research. The verdict is definitive.
+
+**RPi Pico (RP2040 — ARM Cortex-M0+ / RP2350 — ARM Cortex-M33):**
+
+Kotlin/Native's official supported target list (as of Kotlin 2.3.21, confirmed at `kotlinlang.org/docs/native-target-support.html`) contains **zero bare-metal or microcontroller targets**. All ARM targets are OS-backed (macOS Apple Silicon, iOS, watchOS, tvOS, Android NDK, `linuxArm64`). There is no `armv6m`, `thumbv6m`, `cortex-m0+`, or `cortex-m33` target.
+
+A JetBrains YouTrack issue (KT-44498) requested RP2040 as a Kotlin/Native target; it remains unresolved. A community post from 2021 noted the blocker: "the Pi SDK is based on gcc, while Kotlin is based on LLVM, and there are subtle differences in their ABI." For RP2350 (ARM Cortex-M33), bare metal in C/assembly is well-established, but no Kotlin toolchain exists or is in progress.
+
+`linuxArm64` (Kotlin/Native Tier 2) targets 64-bit ARM Linux — i.e., Raspberry Pi 4 running RPi OS, not a microcontroller. It cannot target a bare-metal microcontroller.
+
+**ESP32 (Xtensa LX6/LX7 / RISC-V C3/C6):**
+
+ESP32 classic uses the Tensilica Xtensa architecture. LLVM upstream has a partial Xtensa backend (Espressif contributed an RFC), but it is not merged into mainline LLVM, and Kotlin/Native does not carry it. This is a hard blocker.
+
+ESP32-C3/C6 use RISC-V (RV32IMC). There is community proof-of-concept work (master thesis tracked in KT-43854) compiling Kotlin/Native for `linux_riscv` and running it under QEMU. This is experimental, not production-ready, not an official Ktor target, and not shipping in Kotlin 2.x. There is no path to bare-metal ESP32-C3 via Kotlin/Native in v1.2.
+
+**Kotlin Multiplatform (KMP) shared-logic approach:**
+
+KMP with platform wrappers would mean: shared Kotlin business logic compiled to JVM/JS, and the "firmware" platform layer written in C (for Pico SDK) or ESP-IDF (for ESP32). The Kotlin code cannot run on the microcontroller itself — it would have to run on the Pi 4 side. This architecture is not firmware; it is just the existing server with a different name. It adds no value for the stated goal of "Kotlin Native WebSocket receiver + local display rendering on Pico/ESP32."
+
+**Confirmed approach (decision 1a):** Build a C/MicroPython firmware skeleton — not deferred.
+
+| Platform | Language | Framework | Why |
+|----------|----------|-----------|-----|
+| RPi Pico W / Pico 2 W | C (Pico SDK 2.x) | lwIP WebSocket + Pico SDK | Mature, official, community-tested WebSocket client examples exist |
+| ESP32 (all variants) | C++ / Arduino (ESP-IDF) | ArduinoWebsockets or esp-idf native WS | ArduinoWebsockets lib supports all ESP32 variants, active maintenance |
+| RPi Pico W (alt) | MicroPython | uasyncio + websocket | Simpler, faster to prototype, adequate for this display use case |
+
+The firmware submodule lives at `.devops/firmware/pico/` and `.devops/firmware/esp32/` using their native toolchains. The integration boundary is the WebSocket protocol: the Ktor server's `NetworkZoneDriver` already defines the message contract the firmware client must speak. The v1.2 firmware phase delivers a protocol spec + working skeleton (connect, receive text, render on local display). Full effects pipeline is a stretch goal.
+
+**Implication for roadmap:** Sequence firmware as a late phase (after server features are stable). No JVM dependency changes. The firmware toolchain is entirely separate from the Gradle build.
+
+---
+
+## Feature 6: Kubernetes Manifests + Helm Chart
+
+**Verdict: Standard Helm 3 chart in `.devops/helm/`. No new JVM dependencies.**
+
+The Ktor application is already Docker-ready (Docker image via Gradle). The K8s/Helm work is infrastructure-only — no changes to the application code or JVM dependencies.
+
+**Recommended tooling:**
+
+| Tool | Version | Purpose | Why |
+|------|---------|---------|-----|
+| Helm | 3.x (latest) | Chart templating and packaging | Industry standard; GitOps-compatible; supports ArgoCD/Flux |
+| Kubernetes manifests | API v1 / apps/v1 | Deployment, Service, ConfigMap, PVC | Standard object types for a stateful single-node JVM app |
+
+**Chart structure for `.devops/helm/textrpirpi/`:**
+```
+Chart.yaml            # name, version, appVersion
+values.yaml           # image, replicas, resources, env, probes
+templates/
+  deployment.yaml     # Deployment with env from ConfigMap
+  service.yaml        # ClusterIP on port 8080
+  configmap.yaml      # APP_DB_URL, DISPLAY_TYPE, ZONES_CONFIG etc.
+  pvc.yaml            # H2 data directory persistence (if not PostgreSQL)
+  hpa.yaml            # HorizontalPodAutoscaler (optional, single replica likely)
+```
+
+**Health probe mapping** (existing endpoints → K8s probes):
+
+| Probe | Endpoint | Config |
+|-------|----------|--------|
+| `livenessProbe` | `GET /health` (200 = alive) | `initialDelaySeconds: 30`, `periodSeconds: 10` |
+| `readinessProbe` | `GET /health/ready` (200 = ready) | `initialDelaySeconds: 5`, `periodSeconds: 5` |
+| `startupProbe` | `GET /health` | `failureThreshold: 12`, `periodSeconds: 5` (60s window for JVM startup) |
+
+**Pi 4 / single-node note:** The chart should set `replicas: 1` as default. Pi4J hardware access is exclusive — running two pods on the same node would conflict on SPI/I2C. If deploying to a proper K8s cluster (non-Pi), set `DISPLAY_TYPE=OFFLINE` in the values override.
+
+**Resource requests (values.yaml defaults):**
+```yaml
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "250m"
+  limits:
+    memory: "256Mi"
+    cpu: "1000m"
+```
+
+**What NOT to add:** Helm dependency on a PostgreSQL subchart (use an external DB in production; H2 mode is fine for home use). Do not add Ingress by default (home network, no TLS). Do not add cert-manager (out of scope per project constraints).
+
+---
+
+## Full Delta: New Entries in `ktor-libs.versions.toml`
+
+```toml
+# ADD under [versions]:
+kotlin-csv = "2.0.0"
+
+# ADD under [libraries]:
+ktor-server-sse   = { module = "io.ktor:ktor-server-sse",        version.ref = "ktor" }
+kotlin-csv-jvm    = { module = "com.jsoizo:kotlin-csv-jvm",      version.ref = "kotlin-csv" }
+```
+
+No new `[plugins]` entries. No version changes to existing entries.
+
+**`build.gradle.kts` additions:**
+```kotlin
+implementation(ktorLibs.ktor.server.sse)
+implementation(ktorLibs.kotlin.csv.jvm)
+```
+
+---
+
+## Complete New Dependency Summary
+
+| Artifact | Version | Scope | Feature | Why |
+|----------|---------|-------|---------|-----|
+| `io.ktor:ktor-server-sse` | 3.5.0 | `implementation` | Live feed | SSE simpler than WS for server→browser push; same-version Ktor, zero conflicts |
+| `com.jsoizo:kotlin-csv-jvm` | 2.0.0 | `implementation` | CSV export | Pure Kotlin, minimal footprint, handles quoting edge cases |
+
+**Features 2 (dynamic zones), 3 (full-text search), 6 (Helm/K8s): zero new JVM dependencies.**
+
+**Feature 5 (firmware): Kotlin Native is infeasible for Pico and ESP32. C/MicroPython skeleton confirmed for v1.2.**
+
+---
+
+## What NOT to Add
+
+| What | Reason |
+|------|--------|
+| `ktor-server-websockets` (server-side) | SSE is sufficient for browser push; WS already present as client |
+| PostgreSQL `tsvector` / H2 `FullText` extension | Overkill for ≤1,000-row table; breaks H2/PG dual-DB compatibility |
+| Apache Commons CSV / OpenCSV | Pull in Apache Commons Lang or other transitive deps; kotlin-csv is self-contained |
+| Elasticsearch / Meilisearch | No search engine warranted for 1,000-row bounded table |
+| Redis PubSub | SharedFlow is sufficient for in-process SSE fan-out on single Pi node |
+| Kotlin Multiplatform `commonMain` firmware layer | Cannot compile to bare-metal microcontrollers; adds build complexity with no runtime benefit |
+| Helm postgresql subchart dependency | External DB preferred; H2 sufficient for home use |
+| cert-manager / Ingress | Out of scope per home-network-only constraint |
 
 ---
 
 ## Sources
 
-- Codebase analysis: `src/main/kotlin/com/anjo/service/SchedulerService.kt` (scheduler already coroutine-based)
-- Codebase analysis: `src/main/kotlin/com/anjo/di/RateLimiting.kt` (Flaxoos used only for rate limiting)
-- Codebase analysis: `gradle/ktor-libs.versions.toml` (locked versions)
-- Ktor documentation: https://ktor.io/docs/client-create-new-application.html (CIO engine choice rationale)
-- Ktor versioning policy: client and server must share the same version to avoid `ktor-io` classpath conflicts
-- Pi4J 4.0.0 documentation: supports concurrent I/O registrations for multi-zone
-- Exposed 1.3.0 (`org.jetbrains.exposed.v1.*`): `SchemaUtils.createMissingTablesAndColumns()` handles new table creation without migration framework
+- Kotlin/Native supported targets: https://kotlinlang.org/docs/native-target-support.html
+- KT-44498 (RP2040 as Kotlin/Native target, unresolved): https://youtrack.jetbrains.com/issue/KT-44498
+- KT-43854 (Linux RISC-V target, experimental): https://youtrack.jetbrains.com/issue/KT-43854
+- Raspberry Pi Forums — Kotlin/Native Pico discussion: https://forums.raspberrypi.com/viewtopic.php?t=299856
+- Ktor SSE server docs: https://ktor.io/docs/server-server-sent-events.html
+- Ktor 3.5.0 release notes (SSE enhancements confirmed): https://ktor.io/docs/whats-new-350.html
+- Ktor WebSockets SharedFlow example: https://github.com/ktorio/ktor-documentation/tree/3.3.2/codeSnippets/snippets/server-websockets-sharedflow
+- kotlin-csv 2.0.0 on Maven Central: https://mvnrepository.com/artifact/com.jsoizo/kotlin-csv-jvm
+- Helm best practices: https://techstackguide.com/helm-charts-best-practices/
+- Kubernetes health probes: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+- ESP32 Xtensa LLVM RFC: https://discourse.llvm.org/t/rfc-tensilica-xtensa-esp32-backend/57835
+- Codebase analysis: `src/main/kotlin/com/anjo/service/ZoneRegistry.kt` (ConcurrentHashMap, addNetworkZone at runtime)

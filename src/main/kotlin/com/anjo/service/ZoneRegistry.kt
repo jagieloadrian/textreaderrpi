@@ -13,6 +13,7 @@ import com.anjo.model.Effect
 import com.anjo.model.FailedZone
 import com.anjo.model.NetworkZone
 import com.anjo.model.ZoneStatus
+import com.anjo.zone.FirmwareZoneDriver
 import com.anjo.zone.LocalZoneDriver
 import com.anjo.zone.NetworkZoneDriver
 import com.anjo.zone.ZoneDriver
@@ -37,16 +38,22 @@ class ZoneRegistry() {
         zonesConfig: ZonesConfig,
         pi4jContext: Context,
         zoneRepository: ZoneRepository,
-        wsClient: HttpClient? = null
+        wsClient: HttpClient
     ) : this() {
         this.wsClient = wsClient
         zonesConfig.zones.forEach { zoneConfig ->
             initLocalZone(zoneConfig, pi4jContext)
         }
-        wsClient?.let { client ->
+        wsClient.let { client ->
             try {
                 val persisted = runBlocking { zoneRepository.findAll() }
-                persisted.forEach { zone -> addNetworkZone(zone, client) }
+                persisted.forEach { zone ->
+                    if (zone.type == DisplayType.FIRMWARE.name) {
+                        registerFirmwareZone(zone.id)
+                    } else {
+                        addNetworkZone(zone, client)
+                    }
+                }
             } catch (e: Exception) {
                 log.warn("Failed to load persisted network zones on startup: ${e.message}")
             }
@@ -59,7 +66,7 @@ class ZoneRegistry() {
                 DisplayType.MAX7219 -> Max7219Matrix(ctx, zoneConfig.numDevices, zoneId = zoneConfig.chipSelect)
                 DisplayType.LCD -> LcdDisplay(ctx)
                 DisplayType.OLED -> OledDisplay(ctx)
-                DisplayType.UNKNOWN -> {
+                DisplayType.FIRMWARE, DisplayType.UNKNOWN -> {
                     log.warn("Unknown display type '${zoneConfig.type}' for zone '${zoneConfig.id}'; registering OFFLINE")
                     OfflineDisplayDriver
                 }
@@ -79,14 +86,26 @@ class ZoneRegistry() {
         zones[id] = ZoneEntry(driver, isLocal = false, ip = null)
     }
 
-    suspend fun route(zoneId: String, text: String, effect: Effect): Boolean {
-        return zones[zoneId]?.driver?.send(text, effect) ?: false
+    fun registerFirmwareZone(id: String) {
+        zones.compute(id) { _, existing ->
+            if (existing?.isLocal == true) existing
+            else ZoneEntry(FirmwareZoneDriver(id), isLocal = false, ip = null)
+        }
     }
 
-    suspend fun broadcast(text: String, effect: Effect): BroadcastResult {
+    fun firmwareDriver(id: String): FirmwareZoneDriver? {
+        val entry = zones[id] ?: return null
+        return entry.driver as? FirmwareZoneDriver
+    }
+
+    suspend fun route(zoneId: String, text: String, effect: Effect, speed: Int? = null, blinkPeriod: Int? = null, fadeSteps: Int? = null): Boolean {
+        return zones[zoneId]?.driver?.send(text, effect, speed, blinkPeriod, fadeSteps) ?: false
+    }
+
+    suspend fun broadcast(text: String, effect: Effect, speed: Int? = null, blinkPeriod: Int? = null, fadeSteps: Int? = null): BroadcastResult {
         val results = coroutineScope {
             zones.map { (id, entry) ->
-                id to async { runCatching { entry.driver.send(text, effect) }.getOrDefault(false) }
+                id to async { runCatching { entry.driver.send(text, effect, speed, blinkPeriod, fadeSteps) }.getOrDefault(false) }
             }.map { (id, deferred) ->
                 id to deferred.await()
             }
@@ -104,12 +123,14 @@ class ZoneRegistry() {
     fun statusOf(zoneId: String): String? = zones[zoneId]?.driver?.status()?.status
 
     fun addNetworkZone(zone: NetworkZone) {
-        val client = wsClient ?: return
+        val client = wsClient ?: error("ZoneRegistry: wsClient not initialized")
         addNetworkZone(zone, client)
     }
 
     fun removeZone(id: String): Boolean {
-        val entry = zones.remove(id) ?: return false
+        val entry = zones[id] ?: return false
+        if (entry.isLocal) return false
+        zones.remove(id)
         entry.driver.stop()
         return true
     }
@@ -121,18 +142,23 @@ class ZoneRegistry() {
     }
 
     fun addNetworkZone(zone: NetworkZone, client: HttpClient) {
-        if (zones[zone.id]?.isLocal == true) {
-            log.warn("Ignoring network zone '${zone.id}': conflicts with a local hardware zone")
-            return
+        val ip = zone.ip ?: return
+        zones.compute(zone.id) { _, existing ->
+            if (existing?.isLocal == true) {
+                log.warn("Ignoring network zone '${zone.id}': conflicts with a local hardware zone")
+                existing
+            } else {
+                existing?.driver?.stop()
+                val driver = NetworkZoneDriver(
+                    id = zone.id,
+                    ip = ip,
+                    port = 80,
+                    client = client,
+                    type = zone.type
+                )
+                driver.startConnect()
+                ZoneEntry(driver, isLocal = false, ip = ip)
+            }
         }
-        val driver = NetworkZoneDriver(
-            id = zone.id,
-            ip = zone.ip,
-            port = 80,
-            client = client,
-            type = zone.type
-        )
-        driver.startConnect()
-        zones.put(zone.id, ZoneEntry(driver, isLocal = false, ip = zone.ip))?.driver?.stop()
     }
 }
