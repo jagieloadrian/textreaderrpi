@@ -27,6 +27,11 @@ git log --oneline -- .planning/milestones/v1.0-phases/ .planning/milestones/v1.1
 
 # Show specific phase PLAN
 git show HEAD~N:.planning/milestones/v1.1-phases/06-max7219-hardware-fix/06-01-PLAN.md
+
+# Phase 20 (v1.2's own doc-cleanup phase) and the detailed pre-v1.2 research
+# docs (ARCHITECTURE/FEATURES/PITFALLS/STACK.md) were removed the same way;
+# find them via:
+git log --oneline -- .planning/phases/20-cleanup-docs/ .planning/research/
 ```
 
 Archived per Phase 20 compression principle: decisions and essentials remain in `.planning/` and milestone files; working notes and session logs move to git-only archive. See `.planning/RETROSPECTIVE.md` for forward-looking lessons from all milestones.
