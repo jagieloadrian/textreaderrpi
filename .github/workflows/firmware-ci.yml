@@ -27,10 +27,8 @@ jobs:
         board: [pico_w, pico2_w]
 
     steps:
-      - name: Checkout (with submodules)
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Install ARM toolchain and build tools
         run: |
@@ -82,10 +80,8 @@ jobs:
       IDF_PATH: ${{ github.workspace }}/esp-idf
 
     steps:
-      - name: Checkout (with submodules)
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Set up Python 3.x
         uses: actions/setup-python@v5

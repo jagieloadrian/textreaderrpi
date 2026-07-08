@@ -36,11 +36,9 @@ jobs:
 
       - name: Set up Gradle cache
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: 9.4.0
 
       - name: Build, test, and verify coverage gate
-        run: gradle --no-daemon clean test jacocoTestReport jacocoTestCoverageVerification
+        run: ./gradlew --no-daemon clean test jacocoTestReport jacocoTestCoverageVerification
 
       - name: Upload test report
         if: always()
