@@ -15,6 +15,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -86,6 +87,7 @@ class HistoryRecordingTest : FunSpec({
         val throwingRepo = mockk<HistoryRepository>()
         coEvery { throwingRepo.insert(any()) } throws RuntimeException("DB down")
         val mockZoneDriver = mockk<ZoneDriver>(relaxed = true)
+        coEvery { mockZoneDriver.send(any(), any(), any(), any(), any()) } returns true
         val registry = ZoneRegistry()
         registry.register("main", mockZoneDriver)
         val svc = ScreenDriverService(
@@ -98,5 +100,6 @@ class HistoryRecordingTest : FunSpec({
         )
         val result = svc.displayImmediate("fail-insert", Effect.SCROLL, ConflictPolicy.INTERRUPT)
         result.shouldBeInstanceOf<DisplayResult.Broadcast>()
+        coVerify(exactly = 1) { throwingRepo.insert(any()) }
     }
 })
