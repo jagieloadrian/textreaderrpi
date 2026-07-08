@@ -78,7 +78,7 @@ curl -X POST http://localhost:8080/api/v1/schedule \
 # Manually register a remote display by IP
 curl -X POST http://localhost:8080/api/v1/zones \
   -H 'Content-Type: application/json' \
-  -d '{"ip":"192.168.1.42"}'
+  -d '{"name":"living-room","type":"NETWORK","ip":"192.168.1.42"}'
 
 # Register a firmware zone (no IP required — firmware connects inbound)
 curl -X POST http://localhost:8080/api/v1/zones \
