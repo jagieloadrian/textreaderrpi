@@ -58,9 +58,14 @@ class ZonesUIRoutesTest : FunSpec({
             )
             zoneRepository.upsert(zone)
             zoneRegistry.addNetworkZone(zone)
-            val body = client.get("/zones").bodyAsText()
-            body shouldContain "test-zone-ui"
-            body shouldContain "<span"
+            try {
+                val body = client.get("/zones").bodyAsText()
+                body shouldContain "test-zone-ui"
+                body shouldContain "<span"
+            } finally {
+                zoneRegistry.removeZone("test-zone-ui")
+                zoneRepository.delete("test-zone-ui")
+            }
         }
     }
 })
