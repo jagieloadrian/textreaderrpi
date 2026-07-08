@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
-current_phase: 20
+current_phase: 2
 status: completed
-last_updated: "2026-07-08T12:01:07.739Z"
+last_updated: "2026-07-08T13:00:00.739Z"
 last_activity: 2026-07-08
-last_activity_desc: Phase 20 complete
+last_activity_desc: Milestone v1.2 completed and archived
 progress:
   total_phases: 7
   completed_phases: 1
@@ -20,16 +20,14 @@ current_phase_name: cleanup-docs
 # Project State & Memory
 
 **Last Updated:** 2026-06-24  
-**Status:** Milestone complete
+**Status:** v1.2 milestone complete
 
 ## Current Position
 
-Phase: 20
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-07-08 — Phase 20 complete
-
-**Next steps:** After Phase 20 verification passes and `20-VERIFICATION.md` is written, a final milestone-closing commit will delete `.planning/phases/20-cleanup-docs/` (git history preserves it) — D-07.
+Phase: Milestone v1.2 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-08 — Milestone v1.2 completed and archived
 
 ## Project Context
 
@@ -188,3 +186,7 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - Roadmap archive v1.0: `.planning/milestones/v1.0-ROADMAP.md`
 - Roadmap archive v1.1: `.planning/milestones/v1.1-ROADMAP.md`
 - Git tags: `v1.0`, `v1.1`
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

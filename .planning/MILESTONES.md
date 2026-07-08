@@ -1,5 +1,41 @@
 # TextReaderRpi — Milestones
 
+## v1.2 Firmware + Features + Refactor + Ops — 2026-07-08
+
+**Phases:** 7 (14–20) | **Plans:** 35
+**Codebase:** ~8,943 LOC Kotlin (4,775 main + 4,168 test) | **Files changed:** 199 (+46,084 / −2,490)
+**Timeline:** 2026-06-22 → 2026-07-08 (16 days)
+**Audit:** tech_debt (no blockers) — 14/14 requirements, 7/7 phases, 14/14 integration chains, 6/6 flows
+
+### Delivered
+
+Extended the display ecosystem with a real-time SSE live feed, dynamic zone creation via API, and full-text history search/CSV export. Shipped microcontroller firmware skeletons for both RPi Pico (pico-sdk) and ESP32 (ESP-IDF) as WebSocket display clients, and a Kubernetes Helm chart for production deployment. Closed the milestone with a DRY/YAGNI refactoring pass and a full documentation/repository cleanup — `docs/` deleted, `.planning/` compressed, README rewritten and accuracy-swept against source for every claim.
+
+### Key Accomplishments
+
+1. **Full-text search + CSV export** — `GET /api/v1/history?search=` with `<mark>`-highlighted matches; RFC 4180 CSV export of filtered results (Phase 14)
+2. **SSE live feed** — `GET /api/v1/live` real-time event stream of displayed text, status-page widget via EventSource, isolated from the 60 req/min API rate limit (Phase 15)
+3. **Dynamic zone management** — `POST /api/v1/zones` creates zones without restart; Zones UI page with type toggle and toast feedback; regex-validated zone names close an XSS/DB-bound gap (Phase 16)
+4. **Firmware skeletons** — RPi Pico (pico-sdk/CMake) and ESP32 (ESP-IDF/CMake) WebSocket display clients with reconnect/heartbeat, verified in CI; 7 physical-hardware UAT checks remain pending (deferred, tracked below) (Phase 17)
+5. **Kubernetes + Helm** — Production Helm chart in `.devops/helm/textreaderrpi/` with hardware-access and resource controls (Phase 18)
+6. **DRY/YAGNI refactoring** — deduplication pass across main code and tests; code-review cycle found and fixed 4 warnings (a live-zone-deletion bug, two tests that couldn't fail, and shared-DB test pollution) (Phase 19)
+7. **Repository cleanup** — `docs/` deleted (8 files, history preserved), `.planning/` compressed (phase dirs 14–19 removed), README rewritten for v1.2 with a new Firmware flash-walkthrough section and a systematic accuracy sweep against source; own code-review cycle found and fixed 3 warnings (Phase 20)
+
+### Known Gaps & Deferred Items at Close (2026-07-08)
+
+- **Phase 17 hardware UAT** — 7/7 physical-hardware verification tests (real Pico/ESP32 boards) still pending; FW-01/FW-02 satisfied at code+CI level only. Requires physical devices, not agent-closeable.
+- **Nyquist bookkeeping** — inconsistent/incomplete VALIDATION.md across phases 15, 16, 17 (frontmatter/table disagree), 18 (never created), 19 (unfilled template). Cosmetic — each phase's VERIFICATION.md independently confirms correctness by other means.
+- **Note on this audit:** phase directories 14–19 were deleted by Phase 20's own cleanup before this milestone closed; their verification data was reconstructed from git history (see `.planning/milestones/v1.2-MILESTONE-AUDIT.md`) rather than read from disk.
+
+### Archive
+
+- Roadmap: `.planning/milestones/v1.2-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.2-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.2-MILESTONE-AUDIT.md`
+- Tag: `v1.2`
+
+---
+
 ---
 
 ## v1.1 Refactor + Fixes + UI + New Features — 2026-06-21
@@ -63,4 +99,3 @@ Full gap list (4 items: `/health/detail`, HTML error pages, `/metrics` hardware 
 - Phases: `.planning/milestones/v1.0-phases/`
 - Audit: `.planning/milestones/v1.0-v1.0-MILESTONE-AUDIT.md`
 - Tag: `v1.0`
-
