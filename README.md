@@ -437,8 +437,12 @@ No built-in alerting — pick one: a cron job hitting `/health` and paging on no
 
 ```bash
 ./gradlew buildFatJar
+cp build/libs/textreaderrpi.jar build/libs/TextReaderRpi-all.jar
 sudo ./.devops/host/install-systemd.sh
 ```
+
+`buildFatJar` produces `build/libs/textreaderrpi.jar`, but `install-systemd.sh` looks
+for `build/libs/TextReaderRpi-all.jar` — the `cp` step above bridges the two.
 
 ---
 
