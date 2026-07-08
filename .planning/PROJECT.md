@@ -83,6 +83,9 @@ Simple, reliable one-way display control from any browser on the home network.
 
 - ✓ SSE live feed (`GET /api/v1/live`) — real-time event stream of displayed text; status page widget via EventSource — Phase 15
 - ✓ Dynamic zone creation via API (without restart) — `POST /api/v1/zones` + Zones UI page with Add Zone form, type toggle, toast feedback — Phase 16
+- ✓ Compress .planning/ files — STATE.md/MILESTONES.md trimmed to decisions only, phase dirs 14-19 deleted (history preserved in git) — Phase 20
+- ✓ Delete docs/ folder — 8 files removed, zero salvageable content beyond what README already covers — Phase 20
+- ✓ Update README.md — v1.2 reference sections (API/Configuration/Deployment), new Firmware flash-walkthrough section, repo-wide accuracy sweep — Phase 20
 
 ### Active (v1.2)
 - [ ] Full-text search in display history
@@ -91,9 +94,6 @@ Simple, reliable one-way display control from any browser on the home network.
 - [ ] Firmware submodule: ESP32 series — Kotlin Native WebSocket receiver + local display rendering
 - [ ] DRY/YAGNI refactoring — main code and tests (simplification, deduplication)
 - [ ] Kubernetes manifests + Helm chart in .devops/
-- [ ] Compress .planning/ files — remove noise, retain decisions/summaries/conventions
-- [ ] Delete docs/ folder
-- [ ] Update README.md
 
 ### Out of Scope
 
@@ -113,7 +113,7 @@ Simple, reliable one-way display control from any browser on the home network.
 **Network:** JmDNS + ktor-client-cio/websockets for zone discovery
 **Test suite:** 4,325 LOC main + 3,379 LOC test | JaCoCo LINE ≥ 70% (actual: 80.7%)
 **Deferred:** 4 on-device hardware verification checkpoints (human_needed)
-**v1.2 progress:** Phase 18 complete (2026-07-07) — Helm chart for Kubernetes deployment with hardware-access and resource controls (`.devops/helm/textreaderrpi/`). Validated in Phase 18: OPS-01.
+**v1.2 progress:** Phase 20 complete (2026-07-08) — final phase of v1.2. Repository cleanup: `docs/` deleted, `.planning/` compressed, README rewritten for v1.2 (API/Configuration/Deployment/Firmware sections, accuracy-swept against source). Validated in Phase 20: CLEAN-01, DOCS-01. All 20 phases of v1.2 now complete — ready for `/gsd-complete-milestone`.
 
 **New in v1.1:**
 - `GET /health/detail` — HealthDetailResponse (uptime, memory, display status, error counts)
@@ -202,4 +202,4 @@ This document evolves at phase transitions and milestone boundaries.
 - Kompresja .planning/, usunięcie docs/, update README
 
 ---
-*Last updated: 2026-07-07 — After Phase 19 (DRY/YAGNI Refactoring).*
+*Last updated: 2026-07-08 — After Phase 20 (Cleanup + Docs), final phase of v1.2.*
