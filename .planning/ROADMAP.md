@@ -232,12 +232,12 @@ Plans:
   3. `README.md` lists all v1.2 endpoints (including `/api/v1/live`, `/api/v1/history/export`, `/ws/zone/{id}`), includes a firmware flash quick-start section for Pico and ESP32, and has a Kubernetes/Helm deployment section
   4. `README.md` accurately reflects the current project state with no references to features that were deferred or removed
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 20-01-PLAN.md — README TOC + API tables (live/history-export/ws-zone), Config + Helm accuracy, remove dead docs/ links (DOCS-01)
+- [x] 20-01-PLAN.md — README TOC + API tables (live/history-export/ws-zone), Config + Helm accuracy, remove dead docs/ links (DOCS-01)
 - [ ] 20-04-PLAN.md — .planning/ compression: rewrite STATE.md + MILESTONES.md to essentials, delete phase dirs 14-19 (CLEAN-01)
 
 **Wave 2** *(blocked on 20-01)*

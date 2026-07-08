@@ -39,7 +39,7 @@
 ## Cleanup + Docs
 
 - [ ] **CLEAN-01**: `.planning/` files compressed (STATE.md, MILESTONES.md reduced to decisions/summaries/conventions; no informational noise); `docs/` folder deleted from repo
-- [ ] **DOCS-01**: README.md updated to reflect v1.2 system state (new endpoints, firmware flash instructions, K8s/Helm section)
+- [x] **DOCS-01**: README.md updated to reflect v1.2 system state (new endpoints, firmware flash instructions, K8s/Helm section)
 
 ---
 
@@ -80,4 +80,4 @@
 | OPS-01 | Phase 18 | Complete | — |
 | REF-05 | Phase 19 | Complete | — |
 | CLEAN-01 | Phase 20 | Pending | — |
-| DOCS-01 | Phase 20 | Pending | — |
+| DOCS-01 | Phase 20 | Complete | — |
