@@ -102,6 +102,7 @@ target_include_directories(textreader PRIVATE
 target_link_libraries(textreader
     pico_stdlib
     pico_cyw43_arch_none
+    pico_rand
     cjson
     hardware_watchdog
     $<$<TARGET_EXISTS:picowota_reboot>:picowota_reboot>
