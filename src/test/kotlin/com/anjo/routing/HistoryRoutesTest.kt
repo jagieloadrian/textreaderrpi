@@ -4,15 +4,18 @@ import com.anjo.appTest
 import com.anjo.db.HistoryRepository
 import com.anjo.dep
 import com.anjo.historyRecord
+import com.anjo.model.HistoryPageResponse
 import com.anjo.model.HistoryRecord
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.kotest.matchers.string.shouldStartWith
+import kotlinx.serialization.json.Json
 
 class HistoryRoutesTest : FunSpec({
 
@@ -42,7 +45,9 @@ class HistoryRoutesTest : FunSpec({
             }
             val page1Body = client.get("/api/v1/history?page=1&size=10").bodyAsText()
             val page2Body = client.get("/api/v1/history?page=2&size=10").bodyAsText()
-            (page1Body == page2Body) shouldBe false
+            val page1 = Json.decodeFromString<HistoryPageResponse>(page1Body)
+            val page2 = Json.decodeFromString<HistoryPageResponse>(page2Body)
+            page1.items.map { it.id } shouldNotBe page2.items.map { it.id }
         }
     }
 
