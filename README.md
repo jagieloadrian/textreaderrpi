@@ -217,6 +217,79 @@ Manual alternative: hold BOOTSEL while plugging in USB, then drag `textreader_co
 
 picowota OTA bootloader scaffolding is present in the build, but OTA push is not a shipped v1.2 feature — it's deferred to a future phase.
 
+### ESP32
+
+Built on ESP-IDF 5.2.1 native CMake.
+
+**Toolchain:**
+
+| Tool | Version | Install |
+|---|---|---|
+| ESP-IDF | 5.2.1 | `git clone --branch v5.2.1 https://github.com/espressif/esp-idf`, then `./install.sh esp32`, then `. ./export.sh` per shell session |
+| CMake | 3.16+ | bundled with ESP-IDF |
+| Python | 3.8+ | required by ESP-IDF tooling |
+
+Supported chips: ESP32, S2, S3, C2, C3, C6, H2 (H2 has no WiFi — provisioning will not work on H2).
+
+**Wiring (MAX7219 default, classic ESP32):**
+
+| ESP32 GPIO | MAX7219 Pin |
+|---|---|
+| GPIO23 | DIN |
+| GPIO18 | CLK |
+| GPIO5 | LOAD/CS |
+| 3.3V | VCC |
+| GND | GND |
+
+Some MAX7219 modules need 5V VCC and a level shifter if the module does not tolerate 3.3V logic.
+
+**Configuration** (`firmware/esp32/main/config.h`):
+
+```c
+#define WIFI_SSID              ""   // fallback only — captive portal is primary provisioning path
+#define WIFI_PASS              ""
+#define SERVER_HOST            ""
+#define SERVER_PORT            8080
+#define ZONE_ID                "esp32"
+#define NUM_DEVICES            4
+#define RECONNECT_INTERVAL_MS  5000
+```
+
+SPI/I2C pins vary per chip family; classic ESP32 defaults: `SPI_MOSI_PIN=23`, `SPI_CLK_PIN=18`, `SPI_CS_PIN=5`, `I2C_SDA_PIN=21`, `I2C_SCL_PIN=22`.
+
+Captive-portal provisioning is the primary path (the `config.h` WiFi fields are fallback only): `TextReader-Setup` AP → `http://192.168.4.1` → saved to NVS → reboot into STA mode.
+
+**Build:**
+
+```bash
+. $IDF_PATH/export.sh
+idf.py set-target esp32        # once per build dir; or esp32s3, esp32c3, etc.
+idf.py build                   # default driver MAX7219
+# or an explicit driver:
+cmake -S firmware/esp32 -B firmware/esp32/build -DDISPLAY_DRIVER=SSD1306
+cmake --build firmware/esp32/build
+```
+
+**Flash:**
+
+```bash
+idf.py flash                   # or: idf.py -p /dev/ttyUSB0 flash
+idf.py monitor                 # serial monitor
+```
+
+ESP-IDF OTA partition scaffolding exists, but full OTA push is planned for a future phase — not a shipped v1.2 feature.
+
+### Firmware Troubleshooting
+
+| Symptom | Cause / check |
+|---|---|
+| Board not detected over USB | Pico: check BOOTSEL mode entry; ESP32: check `idf.py -p /dev/ttyUSB0` port permission (`dialout` group on Linux) |
+| WiFi provisioning fails / no captive portal | Confirm no stored credentials are blocking AP mode; erase flash to force re-provision (`idf.py erase-flash` for ESP32) |
+| Zone doesn't appear on server | Confirm `SERVER_HOST`/`SERVER_PORT` in `config.h` match the running server; confirm the zone was registered as type `FIRMWARE` via `POST /api/v1/zones` before connecting (the server closes with `1003 CANNOT_ACCEPT` otherwise) |
+| Display shows nothing after connecting | Confirm `-DDISPLAY_DRIVER=<NAME>` matches the physically wired display; confirm wiring against the platform's wiring table above |
+
+Building on macOS or Windows: follow the official [pico-sdk](https://www.raspberrypi.com/documentation/pico-sdk/getting-started.html) or [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/) installation guides for your platform — the build/flash commands above are otherwise identical.
+
 ---
 
 ## Configuration
