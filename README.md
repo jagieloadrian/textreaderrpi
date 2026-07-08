@@ -5,6 +5,16 @@
 
 Ktor service for rendering scrolling text and scheduled messages on Raspberry Pi displays (MAX7219, LCD, OLED) via Pi4J. Supports multi-zone output across local hardware and networked remote displays discovered via mDNS or UDP broadcast.
 
+## Table of Contents
+
+- [API](#api)
+- [Firmware](#firmware)
+- [Configuration](#configuration)
+- [Build and Run](#build-and-run)
+- [Deployment](#deployment)
+- [Code Layout](#code-layout)
+- [Notes](#notes)
+
 ---
 
 ## API
@@ -59,18 +69,28 @@ curl -X POST http://localhost:8080/api/v1/schedule \
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/api/v1/zones` | List all zones with status |
-| `POST` | `/api/v1/zones` | Register a remote zone by IP |
+| `POST` | `/api/v1/zones` | Register a remote zone by IP, or a firmware zone by type |
 | `DELETE` | `/api/v1/zones/{id}` | Remove a remote zone |
 | `POST` | `/api/v1/zones/discover` | Trigger UDP broadcast scan for remote displays |
+| `WS` | `/ws/zone/{id}` | Inbound WebSocket for firmware nodes; `id` must already be registered as a `FIRMWARE` zone, or the server closes with `1003 CANNOT_ACCEPT` |
 
 ```bash
-# Manually register a remote display
+# Manually register a remote display by IP
 curl -X POST http://localhost:8080/api/v1/zones \
   -H 'Content-Type: application/json' \
   -d '{"ip":"192.168.1.42"}'
 
+# Register a firmware zone (no IP required — firmware connects inbound)
+curl -X POST http://localhost:8080/api/v1/zones \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"pico-01","type":"FIRMWARE"}'
+# -> 201 Created
+
 # Scan the local network for displays
 curl -X POST http://localhost:8080/api/v1/zones/discover
+
+# Firmware node connects here (not a browser live feed — see Live Feed below)
+wscat -c ws://localhost:8080/ws/zone/pico-01
 ```
 
 Remote zones connect over WebSocket and auto-reconnect on disconnect. mDNS (`_textreaderrpi._tcp.local.`) and UDP broadcast (port 54321) discovery run automatically at startup.
@@ -80,15 +100,32 @@ Remote zones connect over WebSocket and auto-reconnect on disconnect. mDNS (`_te
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/api/v1/history` | Paginated message history |
+| `GET` | `/api/v1/history/export` | CSV export of message history (same filters as above) |
 
-Query parameters: `page` (default 1), `size` (1–200, default 20), `effect`, `source`.
+Query parameters: `page` (default 1), `size` (1–200, default 20), `effect`, `source`, `search`.
+
+```bash
+curl -o history.csv "http://localhost:8080/api/v1/history/export?effect=SCROLL&search=hello"
+```
+
+### Live Feed
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/live` | SSE stream of display events (`event: display`, 30s heartbeat, no auth) |
+
+```bash
+curl -N http://localhost:8080/api/v1/live
+```
+
+This SSE endpoint is a one-way browser live feed — distinct from the `/ws/zone/{id}` firmware-inbound WebSocket documented under Zones above.
 
 ### Display
 
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/api/v1/display/status` | Driver status JSON |
-| `POST` | `/api/v1/display/select` | Switch driver (`MAX7219`, `LCD`, `OLED`) |
+| `POST` | `/api/v1/display/select` | Reserved — always returns `501 Not Implemented` |
 
 ### System
 
