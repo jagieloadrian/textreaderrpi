@@ -2,24 +2,24 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
-current_phase: 2
-status: completed
-last_updated: "2026-07-08T13:00:00.739Z"
+current_phase: null
+status: milestone_complete
+last_updated: "2026-07-08T14:30:00.000Z"
 last_activity: 2026-07-08
 last_activity_desc: Milestone v1.2 completed and archived
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 14
-stopped_at: Phase 20 UI-SPEC approved
-current_phase_name: cleanup-docs
+  completed_phases: 7
+  total_plans: 35
+  completed_plans: 35
+  percent: 100
+stopped_at: v1.2 milestone closed
+current_phase_name: null
 ---
 
 # Project State & Memory
 
-**Last Updated:** 2026-06-24  
+**Last Updated:** 2026-07-08  
 **Status:** v1.2 milestone complete
 
 ## Current Position
@@ -28,6 +28,13 @@ Phase: Milestone v1.2 complete
 Plan: —
 Status: Awaiting next milestone
 Last activity: 2026-07-08 — Milestone v1.2 completed and archived
+
+## Project Reference
+
+See: `.planning/PROJECT.md` (updated 2026-07-08, full v1.2 evolution review)
+
+**Core value:** Simple, reliable one-way display control from any browser on the home network
+**Current focus:** Planning next milestone — run `/gsd-new-milestone`
 
 ## Project Context
 
@@ -47,11 +54,11 @@ Last activity: 2026-07-08 — Milestone v1.2 completed and archived
 - **Hardware:** Pi4J 4.0.0 + MAX7219 via SPI, LCD/OLED via I2C
 - **Database:** H2 (embedded default) or PostgreSQL (via env vars)
 - **Current package root:** `src/main/kotlin/com/anjo/...`
-- **Test suite:** 27 test classes, Kotest `should` convention, JaCoCo ≥70% gate (actual 80.7% at v1.1)
+- **Test suite:** Kotest `should` convention, JaCoCo ≥70% gate held through v1.2 (4,775 LOC main + 4,168 LOC test)
 
 ---
 
-## Existing Features (v1.1 complete)
+## Existing Features (v1.2 complete)
 
 - ✅ Typed YAML config with env var overrides (`${VAR:default}` for all 25 settings)
 - ✅ Request validation via Ktor `RequestValidation`
@@ -64,70 +71,21 @@ Last activity: 2026-07-08 — Milestone v1.2 completed and archived
 - ✅ Schedule CRUD API: `POST/GET/PATCH/DELETE /api/v1/schedule`
 - ✅ Schedule types: ONESHOT, RECURRING, CRON; ConflictPolicy: INTERRUPT/SKIP_NEW
 - ✅ Effect renderer strategy pattern (ScrollEffect/BlinkEffect/ReverseEffect/FadeEffect)
-- ✅ Flyway 9.22.3 migrations (V1–V5, baselineOnMigrate=true)
-- ✅ Display history: `GET /api/v1/history` (paginated, zone/effect filter) + HTML page
+- ✅ Flyway 9.22.3 migrations (V1–V6, baselineOnMigrate=true)
+- ✅ Display history: `GET /api/v1/history` (paginated, zone/effect filter, full-text search) + CSV export + HTML page
 - ✅ Webhooks: fire-and-forget HTTP POST on schedule fire (5s timeout, fallback env var)
-- ✅ Multi-zone: ZoneRegistry + local SPI zones + UDP/mDNS network zone autodiscovery
+- ✅ Multi-zone: ZoneRegistry + local SPI zones + UDP/mDNS network zone autodiscovery + dynamic creation via `POST /api/v1/zones`
 - ✅ NetworkZoneDriver: WebSocket client with reconnect + heartbeat
-- ✅ Material 3 UI: side nav, dark mode, zone selector, effect preview, status/history/schedule pages
-
----
-
-## Key Pitfalls for v1.2
-
-1. **WS frame send from display coroutine** — `DefaultWebSocketSession.send()` not thread-safe across contexts. Use `Channel<String>` per session; display path calls `trySend()` only.
-2. **Non-atomic check-then-insert in ZoneRegistry** — concurrent POSTs can both pass `isLocal` guard. Replace with `ConcurrentHashMap.compute()`.
-3. **LIKE wildcard injection** — strip `%` and `_` from search term in `SearchValidators` (never in route handler per project rule).
-4. **CSV Content-Disposition omitted** — browsers render inline without `Content-Disposition: attachment`. Set before `respondText`.
-5. **Pi4J device mounts missing in K8s** — Pod crashes without `hostPath` for `/dev/gpiochip0` + `/dev/spidev0.0`. Helm `hardwareAccess.enabled` toggle with OFFLINE fallback.
-6. **IDE Extract Method generates KDoc stubs** — violates no-comments rule; delete generated stubs manually.
-7. **.planning compression losing decisions** — 4 decisions must survive: `displaySource` rename, `parseDiscoveryReply` SSRF guard, Material 3 dark-default CSS, `testApplication` first-HTTP-call guard.
+- ✅ Firmware zones: RPi Pico (pico-sdk) + ESP32 (ESP-IDF) WebSocket display clients via `GET /ws/zone/{id}`
+- ✅ SSE live feed: `GET /api/v1/live` real-time event stream, status page EventSource widget
+- ✅ Material 3 UI: side nav, dark mode, zone selector, effect preview, status/history/schedule/zones pages
+- ✅ Kubernetes Helm chart: `.devops/helm/textreaderrpi/` with hardware-access and resource controls
 
 ---
 
 ## Accumulated Context
 
-### Key Decisions (v1.1 planning)
-
-| Decision | Rationale |
-|----------|-----------|
-| buildPacket placed in companion object (not instance method) | Tests call Max7219Matrix.buildPacket(...) without Pi4J construction — pure JVM testable |
-| Per-row buildPacket(bitmap, offset, numDevices, row) signature | Called 8 times from render(); enables 2-byte per-row assertions in Kotest |
-| Size guards removed from write() and displayStatic() | buildPacket handles short bitmaps safely via else false bounds check |
-| isHardwareAvailable() as protected abstract hook in AbstractDisplayDriver | status() delegates to it polymorphically; drivers supply their own availability predicate |
-| Max7219Matrix.isHardwareAvailable() = lastError == null | SPI always creates handle; failure stored as lastError |
-| LcdDisplay/OledDisplay.isHardwareAvailable() = i2c != null && lastError == null | I2C handle is null when ctx.create() throws during init |
-| Phase 6 first: fix MAX7219 before adding zones | Hardware bug amplifies across all multi-zone testing |
-| Phase 7: targeted schema fixes, NOT a scheduler rewrite | SchedulerService is already coroutine-based; Flaxoos stays for HTTP rate limiting |
-| Phase 8: DI smoke test is the first task | Silent DI failures block all refactor work safely |
-| Phase 9: history cap MAX_ROWS=1000 in HistoryRepository.insert() | Prevents SD card fill on long-running Pi |
-| Phase 10: webhooks fire in separate IOScope, withTimeout(5_000) | Does not block Dispatchers.Default (only 4 threads on Pi 4) |
-| Phase 11: single shared Pi4J context, unique string IDs per zone | Avoids Pi4J SPI registration collision crash on startup |
-| Phase 12: add headExtra to BaseLayout before any page-specific CSS | Prevents CSS cascade breaks in Ktor HTML DSL |
-| Flyway 9.22.3 added as migration layer | baselineOnMigrate=true handles existing Pi installs; 9.x chosen for simpler community licensing |
-| ONESHOT firedAt filter scoped to triggerType=ONESHOT | Avoids accidentally excluding RECURRING/CRON rows if firedAt ever set for those types |
-| updateFiredAtAndDone() uses single suspendTransaction{} | Crash-safe atomic firedAt+status=DONE update prevents ONESHOT re-fire after Pi restart |
-| displayMutex.isLocked (not tryLock) for SKIP_NEW | Snapshot read avoids deadlock; false negatives acceptable for drop-if-busy policy |
-| fire() returns Boolean propagated from displayScheduled | launchRecurring conditionally increments runs only when display occurred |
-| CRON validation moved to ScheduleRoutes POST handler | Allows persist-with-ERROR before 422 response; ScheduleValidators returns Valid for CRON |
-| HTTP 202 with accepted=false for SKIP_NEW TextRoutes response | Consistent with existing 202 Accepted; client reads accepted boolean to detect skip |
-| DI smoke test requires client.get() trigger before getBlocking() | testApplication defers module execution until first HTTP interaction |
-| getBlocking() import explicit: io.ktor.server.plugins.di.getBlocking | Top-level extension function — not auto-imported by package membership |
-| CoroutineDispatcher (not CloseableCoroutineDispatcher) for Dispatchers.IO key | Ktor DI infers declared type; key must match declared type |
-| HistoryTable.displaySource (not .source) for Kotlin property name | Exposed Table inherits ColumnSet.source; naming collision causes compile error |
-| Exposed 1.3.0 uses .limit(n).offset(start: Long) not .limit(n, offset) | API changed in 1.3.0; separate chained calls required for pagination offset |
-| MAX_ROWS = 1000L as Long constant in HistoryRepository | selectAll().count() returns Long in Exposed 1.3.0; Long constant avoids widening comparison |
-| parseDiscoveryReply ignores JSON "ip" field — always uses kernel-verified senderIp | Prevents SSRF via rogue device advertisement |
-| localZoneIds set in ZoneRegistry blocks network zones from overwriting hardware zones | Prevents network re-registration from replacing local zones |
-| ipIndex (ConcurrentHashMap ip→id) added to ZoneRegistry | Duplicate check in POST /zones/{ip} uses containsIp() not contains() |
-| HistoryService concrete class introduced; routes typed to service not repository | HistoryRepository binding retained for test seeding |
-| Material 3 CSS: dark palette in :root (default), light overrides under @media (prefers-color-scheme: light) | No data-theme attribute; fully CSS-driven; no JS toggle needed |
-| SSR zone selectors (not client-fetched) | Zones available on page load without extra round-trip |
-| fetchStatusData uses Promise.all([/health/detail, /metrics]) on DOMContentLoaded + setInterval(10000) | spans use .textContent (not innerHTML) — XSS-safe |
-| applyEffectPreview removes all four effect classes then adds matching class | Clean class toggle without leftover state |
-| FirmwareMessage uses @EncodeDefault(Mode.NEVER) per-field for null omission | Scoped to FirmwareMessage only; does not affect other kotlinx.serialization paths in the project — Phase 17 |
-| Helm replicas hardcoded to 1 (not configurable via values.yaml) | Pi SPI/I2C + H2 DB cannot be shared across replicas — Phase 18 |
-| K8s `privileged: true` set under containers[0].securityContext, never pod-level spec.securityContext | Kubernetes silently ignores privileged at pod level — Phase 18 |
+v1.2's pitfall list and full per-phase decision log were resolved/shipped and are archived — see `.planning/PROJECT.md` Key Decisions table (curated, cross-milestone) and `.planning/RETROSPECTIVE.md` (v1.2 section: what worked, what was inefficient, patterns established, key lessons).
 
 ---
 
@@ -164,18 +122,13 @@ Last activity: 2026-07-08 — Milestone v1.2 completed and archived
 
 ## Deferred Items
 
-Items acknowledged and deferred at milestone close on 2026-06-21:
+Items acknowledged and deferred at v1.2 milestone close on 2026-07-08 (supersedes the v1.1-era list — phases 08/09/11/12/15/16 human-verify items were resolved during v1.1/v1.2 execution):
 
 | Category | Item | Status |
 |----------|------|--------|
-| verification | Phase 08 — 08-VERIFICATION.md | human_needed |
-| verification | Phase 09 — 09-VERIFICATION.md | human_needed |
-| verification | Phase 11 — 11-VERIFICATION.md | human_needed |
-| verification | Phase 12 — 12-VERIFICATION.md | human_needed |
-| verification | Phase 15 — 15-VERIFICATION.md | human_needed |
-| verification | Phase 16 — 16-VERIFICATION.md | human_needed |
+| verification | Phase 17 (Firmware Skeletons) — 7 physical-hardware UAT checks (Pico/ESP32 flash, scroll, reconnect, OTA, captive portal) | human_needed |
 
-*Note: All 6 are human-verify checkpoints (on-device Pi hardware testing / firmware WebSocket validation) that could not be run in CI.*
+*Note: FW-01/FW-02 are satisfied at the code+CI level (build-check + flashable-artifact CI job passes). Physical-device verification requires hardware and cannot run in CI. See `.planning/milestones/v1.2-MILESTONE-AUDIT.md` for the full audit.*
 
 ---
 
@@ -183,9 +136,13 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 
 - **v1.0 archived:** 2026-05-28
 - **v1.1 archived:** 2026-06-21
+- **v1.2 archived:** 2026-07-08
 - Roadmap archive v1.0: `.planning/milestones/v1.0-ROADMAP.md`
 - Roadmap archive v1.1: `.planning/milestones/v1.1-ROADMAP.md`
-- Git tags: `v1.0`, `v1.1`
+- Roadmap archive v1.2: `.planning/milestones/v1.2-ROADMAP.md`
+- Requirements archive v1.2: `.planning/milestones/v1.2-REQUIREMENTS.md`
+- Audit archive v1.2: `.planning/milestones/v1.2-MILESTONE-AUDIT.md`
+- Git tags: `v1.0`, `v1.1`, `v1.2`
 
 ## Operator Next Steps
 
