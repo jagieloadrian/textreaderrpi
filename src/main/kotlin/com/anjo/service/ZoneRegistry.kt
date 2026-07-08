@@ -128,7 +128,9 @@ class ZoneRegistry() {
     }
 
     fun removeZone(id: String): Boolean {
-        val entry = zones.remove(id) ?: return false
+        val entry = zones[id] ?: return false
+        if (entry.isLocal) return false
+        zones.remove(id)
         entry.driver.stop()
         return true
     }
