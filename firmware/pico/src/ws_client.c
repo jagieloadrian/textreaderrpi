@@ -4,7 +4,6 @@
 #include "config.h"
 #include "mongoose.h"
 #include "pico/stdlib.h"
-#include "pico/cyw43_arch.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -30,6 +29,7 @@ static void ws_handler(struct mg_connection *c, int ev, void *ev_data) {
 void ws_client_start(void) {
     struct mg_mgr mgr;
     mg_mgr_init(&mgr);
+    MG_TCPIP_DRIVER_INIT(&mgr);
 
     for (;;) {
         if (!s_connected) {
@@ -41,7 +41,6 @@ void ws_client_start(void) {
             sleep_ms(RECONNECT_INTERVAL_MS);
         }
         mg_mgr_poll(&mgr, 10);
-        cyw43_arch_poll();
         sleep_ms(1);
     }
 }

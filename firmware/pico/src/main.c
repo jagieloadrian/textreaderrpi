@@ -1,5 +1,4 @@
 #include "pico/stdlib.h"
-#include "pico/cyw43_arch.h"
 #include "hardware/flash.h"
 #include "ws_client.h"
 #include "captive_portal.h"
@@ -7,6 +6,13 @@
 #include "config.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
+
+// Set by main()/captive_portal.c before MG_TCPIP_DRIVER_INIT(); read via
+// MG_SET_WIFI_CONFIG in mongoose_config.h.
+bool g_wifi_apmode = false;
+char g_wifi_ssid[33];
+char g_wifi_pass[65];
 
 typedef struct {
     char ssid[33];
@@ -26,8 +32,6 @@ static bool load_creds(stored_cred_t *out) {
 int main(void) {
     stdio_init_all();
 
-    if (cyw43_arch_init()) return 1;
-
     stored_cred_t cred;
     bool has_creds = load_creds(&cred);
 
@@ -36,16 +40,11 @@ int main(void) {
         return 0;
     }
 
-    cyw43_arch_enable_sta_mode();
-    if (cyw43_arch_wifi_connect_timeout_ms(cred.ssid, cred.pass,
-                                           CYW43_AUTH_WPA2_AES_PSK, 10000) != 0) {
-        cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASS,
-                                           CYW43_AUTH_WPA2_AES_PSK, 10000);
-    }
+    strncpy(g_wifi_ssid, cred.ssid, sizeof(g_wifi_ssid) - 1);
+    strncpy(g_wifi_pass, cred.pass, sizeof(g_wifi_pass) - 1);
 
     display_init();
     ws_client_start();
 
-    cyw43_arch_deinit();
     return 0;
 }

@@ -2,7 +2,6 @@
 #include "config.h"
 #include "mongoose.h"
 #include "pico/stdlib.h"
-#include "pico/cyw43_arch.h"
 #include "hardware/flash.h"
 #include "hardware/sync.h"
 #include <string.h>
@@ -117,16 +116,17 @@ static void write_creds_to_flash(const cred_t *cred) {
 }
 
 void wifi_start(void) {
-    cyw43_arch_enable_ap_mode("TextReader-Setup", NULL, CYW43_AUTH_OPEN);
+    g_wifi_apmode = true;
+    strncpy(g_wifi_ssid, "TextReader-Setup", sizeof(g_wifi_ssid) - 1);
 
     struct mg_mgr mgr;
     mg_mgr_init(&mgr);
+    MG_TCPIP_DRIVER_INIT(&mgr);
     mg_http_listen(&mgr, "http://0.0.0.0:80", portal_handler, NULL);
 
     s_save_done = false;
     while (!s_save_done) {
         mg_mgr_poll(&mgr, 10);
-        cyw43_arch_poll();
         sleep_ms(1);
     }
 
