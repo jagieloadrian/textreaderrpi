@@ -152,6 +152,73 @@ A built-in HTML UI is served at the root. Key pages:
 
 ---
 
+## Firmware
+
+Complete Linux flash path for both supported firmware targets: install the toolchain, wire the display, configure `config.h`, build, and flash — the zone then appears on the server once it connects.
+
+### Pico (RP2040/RP2350)
+
+Built on pico-sdk 2.1.1 + CMake.
+
+**Toolchain:**
+
+| Tool | Version | Install |
+|---|---|---|
+| CMake | 3.13+ | `apt install cmake` |
+| arm-none-eabi-gcc | 10.3+ | `apt install gcc-arm-none-eabi` |
+| pico-sdk | 2.1.1 | `git clone --branch 2.1.1 https://github.com/raspberrypi/pico-sdk`, then set `PICO_SDK_PATH` |
+| picotool | latest | required for `cmake --build --target flash` |
+| picowota | git submodule | OTA bootloader — `git submodule update --init --recursive` |
+| ninja-build | any | used alongside cmake |
+
+**Wiring (MAX7219 default, Pico W):**
+
+| Pico W GPIO | MAX7219 Pin |
+|---|---|
+| GP18 (SPI0 SCK) | CLK |
+| GP19 (SPI0 TX) | DIN |
+| GP17 (SPI0 CSn) | LOAD/CS |
+| 3V3 (pin 36) | VCC |
+| GND (pin 38) | GND |
+
+**Configuration** (`firmware/pico/config.h`):
+
+```c
+#define WIFI_SSID              "YourSSID"
+#define WIFI_PASS              "YourPassword"
+#define SERVER_HOST            "192.168.1.100"
+#define SERVER_PORT            8080
+#define ZONE_ID                "pico-01"
+#define RECONNECT_INTERVAL_MS  5000
+#define NUM_DEVICES            1
+```
+
+Display driver is chosen at configure time via `-DDISPLAY_DRIVER=<NAME>` (default `MAX7219`; also `SSD1306`, `SSD1309`, `SSD1327`, `SH1106`, `HT16K33`, `ST7735`, `ST7789`, `ILI9225`, `PCD8544`, `SSD1680`).
+
+First-boot WiFi provisioning: the board opens the `TextReader-Setup` AP → `http://192.168.4.1` captive portal → credentials saved to flash → reboots into STA mode.
+
+**Build:**
+
+```bash
+export PICO_SDK_PATH=/path/to/pico-sdk
+cmake -S firmware/pico -B firmware/pico/build -DPICO_BOARD=pico_w   # or pico2_w for Pico 2W
+cmake --build firmware/pico/build -j$(nproc)
+```
+
+Outputs: `textreader.uf2` (OTA payload) and `textreader_combined.uf2` (bootloader+app, first flash).
+
+**Flash:**
+
+```bash
+cmake --build firmware/pico/build --target flash   # requires picotool + BOOTSEL mode
+```
+
+Manual alternative: hold BOOTSEL while plugging in USB, then drag `textreader_combined.uf2` onto the mounted drive.
+
+picowota OTA bootloader scaffolding is present in the build, but OTA push is not a shipped v1.2 feature — it's deferred to a future phase.
+
+---
+
 ## Configuration
 
 All settings have defaults. Override via environment variables or `.env.local`:
