@@ -168,10 +168,12 @@ Key variables:
 | `PORT` | `8080` | HTTP port |
 | `DISPLAY_TYPE` | `MAX7219` | `MAX7219`, `LCD`, `OLED` |
 | `MAX7219_NUM_DEVICES` | `2` | Number of chained MAX7219 modules |
-| `GPIO_SPI_CE` | `8` | SPI chip-enable GPIO pin |
-| `GPIO_SPI_MOSI` | `10` | SPI MOSI GPIO pin |
+| `GPIO_SPI_CE` | `24` | SPI chip-enable GPIO pin |
+| `GPIO_SPI_MOSI` | `19` | SPI MOSI GPIO pin |
 | `GPIO_SPI_MISO` | `9` | SPI MISO GPIO pin |
-| `GPIO_SPI_SCK` | `11` | SPI clock GPIO pin |
+| `GPIO_SPI_SCK` | `23` | SPI clock GPIO pin |
+| `SPI_TIMEOUT_MS` | `1000` | SPI transaction timeout (ms) |
+| `GPIO_TIMEOUT_MS` | `500` | GPIO operation timeout (ms) |
 | `I2C_BUS` | `1` | I2C bus number (LCD/OLED) |
 | `DATABASE_URL` | H2 file | Switch to PostgreSQL by changing this + driver |
 | `DATABASE_DRIVER` | `org.h2.Driver` | `org.postgresql.Driver` for Postgres |
@@ -186,13 +188,13 @@ Key variables:
 | `LOG_LEVEL` | `INFO` | `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR` |
 | `LOG_FORMAT` | `json` | `json` or `text` |
 | `METRICS_ENABLED` | `true` | Enable metrics endpoint |
+| `METRICS_PREFIX` | `textreaderrpi` | Metric name prefix |
+| `API_METRICS_RATE_LIMIT` | `120` | `/metrics` requests per minute |
 | `WEBHOOK_DEFAULT_URL` | _(empty)_ | Default webhook URL for events |
 | `RETRY_MAX_ATTEMPTS` | `5` | Hardware retry attempts |
 | `RETRY_INITIAL_DELAY_MS` | `1000` | Initial retry delay (ms) |
 | `RETRY_MAX_DELAY_MS` | `30000` | Maximum retry delay (ms) |
 | `RETRY_FACTOR` | `2.0` | Retry backoff multiplier |
-
-→ Full variable reference in [`docs/deployment/production-guide.md`](docs/deployment/production-guide.md).
 
 ---
 
@@ -286,7 +288,11 @@ helm install textreaderrpi .devops/helm/textreaderrpi \
   --set hardwareAccess.enabled=true
 ```
 
-Key chart defaults (`values.yaml`): `service.type: ClusterIP`, `persistence.data.size: 1Gi`, `replicas: 1` (fixed — not horizontally scalable due to hardware access).
+Key chart defaults (`values.yaml`): `service.type: ClusterIP`, `persistence.data.size: 1Gi`, `replicas: 1` (fixed — not horizontally scalable due to hardware access). Liveness probe `GET /health` and readiness probe `GET /health/ready`, both `initialDelaySeconds: 20` / `periodSeconds: 30`. `database.password` is auto-generated as a 16-char random string at install time when left unset.
+
+### Monitoring
+
+No built-in alerting — pick one: a cron job hitting `/health` and paging on non-200, a systemd watchdog restarting the service on failed health checks, or an external monitor (e.g. Uptime Kuma, Prometheus blackbox exporter) polling `/health/ready`.
 
 ### Systemd (host install)
 
@@ -294,9 +300,6 @@ Key chart defaults (`values.yaml`): `service.type: ClusterIP`, `persistence.data
 ./gradlew buildFatJar
 sudo ./.devops/host/install-systemd.sh
 ```
-
-→ Full deployment guide: [`docs/deployment/production-guide.md`](docs/deployment/production-guide.md)
-→ Monitoring & alerting: [`docs/operations/monitoring-alerting.md`](docs/operations/monitoring-alerting.md)
 
 ---
 
