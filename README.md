@@ -102,7 +102,7 @@ Remote zones connect over WebSocket and auto-reconnect on disconnect. mDNS (`_te
 | `GET` | `/api/v1/history` | Paginated message history |
 | `GET` | `/api/v1/history/export` | CSV export of message history (same filters as above) |
 
-Query parameters: `page` (default 1), `size` (1–200, default 20), `effect`, `source`, `search`.
+Query parameters: `page` (default 1), `size` (1–200, default 20), `effect`, `source`, `zone`, `search`.
 
 ```bash
 curl -o history.csv "http://localhost:8080/api/v1/history/export?effect=SCROLL&search=hello"
@@ -145,8 +145,7 @@ A built-in HTML UI is served at the root. Key pages:
 |---|---|
 | `/` | Dashboard / index |
 | `/status` | Live display status |
-| `/settings/display` | Driver selection UI |
-| `/schedules` | Schedule management UI |
+| `/schedule` | Schedule management UI |
 | `/history` | Message history UI |
 | `/zones` | Zone management UI |
 
