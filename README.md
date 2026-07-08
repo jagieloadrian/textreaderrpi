@@ -167,7 +167,7 @@ Built on pico-sdk 2.1.1 + CMake.
 | arm-none-eabi-gcc | 10.3+ | `apt install gcc-arm-none-eabi` |
 | pico-sdk | 2.1.1 | `git clone --branch 2.1.1 https://github.com/raspberrypi/pico-sdk`, then set `PICO_SDK_PATH` |
 | picotool | latest | required for `cmake --build --target flash` |
-| picowota | git submodule | OTA bootloader — `git submodule update --init --recursive` |
+| picowota | manual clone, optional | OTA bootloader — clone into `firmware/pico/picowota`; without it, `textreader_combined.uf2` (needed for first-flash) is not built and OTA is disabled |
 | ninja-build | any | used alongside cmake |
 
 **Wiring (MAX7219 default, Pico W):**
