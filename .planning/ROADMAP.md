@@ -232,7 +232,7 @@ Plans:
   3. `README.md` lists all v1.2 endpoints (including `/api/v1/live`, `/api/v1/history/export`, `/ws/zone/{id}`), includes a firmware flash quick-start section for Pico and ESP32, and has a Kubernetes/Helm deployment section
   4. `README.md` accurately reflects the current project state with no references to features that were deferred or removed
 
-**Plans**: 1/4 plans executed
+**Plans**: 2/4 plans executed
 
 Plans:
 **Wave 1**
@@ -242,7 +242,7 @@ Plans:
 
 **Wave 2** *(blocked on 20-01)*
 
-- [ ] 20-02-PLAN.md — README Firmware flash walkthrough: Pico (pico-sdk) + ESP32 (ESP-IDF), troubleshooting, non-Linux pointer (DOCS-01)
+- [x] 20-02-PLAN.md — README Firmware flash walkthrough: Pico (pico-sdk) + ESP32 (ESP-IDF), troubleshooting, non-Linux pointer (DOCS-01)
 
 **Wave 3** *(blocked on 20-02)*
 

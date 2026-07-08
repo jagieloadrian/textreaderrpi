@@ -6,14 +6,14 @@ current_phase: 20
 current_phase_name: cleanup-docs
 status: executing
 stopped_at: Phase 20 UI-SPEC approved
-last_updated: "2026-07-08T06:11:51.481Z"
+last_updated: "2026-07-08T06:16:54.128Z"
 last_activity: 2026-07-08
 last_activity_desc: Phase 20 execution started
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 35
-  completed_plans: 32
+  completed_plans: 33
   percent: 86
 ---
 
@@ -25,7 +25,7 @@ progress:
 ## Current Position
 
 Phase: 20 (cleanup-docs) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-08 — Phase 20 execution started
 
@@ -250,10 +250,11 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 19-dry-yagni-refactoring P01 | 15min | 2 tasks | 4 files |
 | Phase 19-dry-yagni-refactoring P02 | 8min | 3 tasks | 7 files |
 | Phase 20 P01 | 10min | 2 tasks | 1 files |
+| Phase 20 P02 | 9min | 2 tasks | 1 files |
 
 ## Session
 
-**Last session:** 2026-07-08T06:11:23.793Z
+**Last session:** 2026-07-08T06:16:12.171Z
 **Stopped at:** Phase 20 UI-SPEC approved
 **Resume file:** .planning/phases/20-cleanup-docs/20-UI-SPEC.md
 
@@ -285,3 +286,5 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - [Phase 19-02]: Mechanical test migration scoped to literal testApplication{application{module()};client.get(/health)} pattern only — Blocks without that exact warm-up were left on raw testApplication rather than force-fit into appTest{}, which would silently add an extra HTTP call and change observable request counts
 - [Phase 20-01]: Included optional Monitoring subsection under Deployment (D-03) - 3 condensed alerting options fit in 2 lines, well under the 10-line budget
 - [Phase 20-01]: SSE live feed and firmware WebSocket explicitly cross-referenced in prose to prevent readers conflating /api/v1/live with /ws/zone/{id}
+- [Phase 20-02]: ESP32 firmware README section written strictly from ESP-IDF 5.2.1 facts (idf.py/CMake) — obsolete PlatformIO wording never reproduced, per 20-RESEARCH.md Pitfall 1
+- [Phase 20-02]: Pico config.h NUM_DEVICES documented as 1 (actual file value), not the generic 4 shown in firmware/pico/README.md's constant table
