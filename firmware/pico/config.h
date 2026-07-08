@@ -18,6 +18,8 @@
 #define NUM_DEVICES     1
 
 #define FLASH_CRED_OFFSET  (256 * 1024)
+#ifndef FLASH_SECTOR_SIZE
 #define FLASH_SECTOR_SIZE  4096
+#endif
 
 #endif

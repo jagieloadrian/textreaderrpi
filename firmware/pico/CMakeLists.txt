@@ -23,6 +23,7 @@ FetchContent_MakeAvailable(cjson)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/picowota/CMakeLists.txt)
     add_subdirectory(picowota)
+    set(PICOWOTA_AVAILABLE TRUE)
 else()
     message(WARNING "picowota subdirectory not found; OTA features will be disabled for this build")
 endif()
@@ -35,6 +36,10 @@ add_executable(textreader
     src/ota.c
     lib/mongoose/mongoose.c
 )
+
+if(PICOWOTA_AVAILABLE)
+    target_compile_definitions(textreader PRIVATE PICOWOTA_AVAILABLE=1)
+endif()
 
 if(NOT DEFINED DISPLAY_DRIVER)
     set(DISPLAY_DRIVER "MAX7219")
@@ -96,8 +101,9 @@ target_include_directories(textreader PRIVATE
 
 target_link_libraries(textreader
     pico_stdlib
-    pico_cyw43_arch_lwip_threadsafe_background
+    pico_cyw43_arch_none
     cjson
+    hardware_watchdog
     $<$<TARGET_EXISTS:picowota_reboot>:picowota_reboot>
 )
 

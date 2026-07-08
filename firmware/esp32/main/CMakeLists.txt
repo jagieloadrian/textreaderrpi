@@ -44,7 +44,7 @@ idf_component_register(
     REQUIRES
         esp_wifi nvs_flash esp_event esp_netif lwip
         esp_http_server esp_websocket_client
-        driver esp_timer app_update
+        driver esp_timer app_update json
 )
 
 target_compile_definitions(${COMPONENT_LIB} PRIVATE ${DRIVER_DEF})
