@@ -1,4 +1,4 @@
-﻿package com.anjo.di
+package com.anjo.di
 
 import io.github.flaxoos.ktor.server.plugins.ratelimiter.RateLimiting
 import io.github.flaxoos.ktor.server.plugins.ratelimiter.implementations.TokenBucket
@@ -9,10 +9,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import kotlin.time.Duration.Companion.minutes
 
-private const val RETRY_AFTER_SECONDS = "60"
-private const val METRICS_RETRY_AFTER_SECONDS = "30"
-
-fun Route.installApiRateLimiting(requestsPerMinute: Int) {
+fun Route.installRateLimiting(requestsPerMinute: Int, retryAfterSeconds: String, exceededMessage: String) {
     install(RateLimiting) {
         rateLimiter {
             type = TokenBucket::class
@@ -21,30 +18,17 @@ fun Route.installApiRateLimiting(requestsPerMinute: Int) {
         }
 
         rateLimitExceededHandler = {
-            this.response.header(HttpHeaders.RetryAfter, RETRY_AFTER_SECONDS)
+            this.response.header(HttpHeaders.RetryAfter, retryAfterSeconds)
             this.respond(
                 HttpStatusCode.TooManyRequests,
-                mapOf("error" to "Rate limit exceeded. Retry-After: ${RETRY_AFTER_SECONDS}s")
+                mapOf("error" to "$exceededMessage. Retry-After: ${retryAfterSeconds}s")
             )
         }
     }
 }
 
-fun Route.installMetricsRateLimiting(requestsPerMinute: Int) {
-    install(RateLimiting) {
-        rateLimiter {
-            type = TokenBucket::class
-            rate = 1.minutes
-            capacity = requestsPerMinute.coerceAtLeast(1)
-        }
+fun Route.installApiRateLimiting(requestsPerMinute: Int) =
+    installRateLimiting(requestsPerMinute, "60", "Rate limit exceeded")
 
-        rateLimitExceededHandler = {
-            this.response.header(HttpHeaders.RetryAfter, METRICS_RETRY_AFTER_SECONDS)
-            this.respond(
-                HttpStatusCode.TooManyRequests,
-                mapOf("error" to "Metrics rate limit exceeded. Retry-After: ${METRICS_RETRY_AFTER_SECONDS}s")
-            )
-        }
-    }
-}
-
+fun Route.installMetricsRateLimiting(requestsPerMinute: Int) =
+    installRateLimiting(requestsPerMinute, "30", "Metrics rate limit exceeded")

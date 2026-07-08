@@ -1,4 +1,4 @@
-#include "max7219.h"
+#include "display.h"
 #include "font/font5x8.h"
 #include "config.h"
 #include "pico/stdlib.h"

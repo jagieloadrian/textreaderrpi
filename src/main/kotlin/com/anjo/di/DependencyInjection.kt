@@ -7,7 +7,6 @@ import com.anjo.db.ScheduleRepository
 import com.anjo.db.ZoneRepository
 import com.anjo.model.HardwareMetrics
 import com.anjo.service.DisplayEventBus
-import com.anjo.service.EffectRendererFactory
 import com.anjo.service.HistoryService
 import com.anjo.service.MetricsCollector
 import com.anjo.model.ScreenDriverMetrics
@@ -58,7 +57,6 @@ fun Application.configureDI() {
 
     val metricsCollector = MetricsCollector(metricRegistry, hardwareMetrics)
     val scheduleRepository = ScheduleRepository()
-    val effectRendererFactory = EffectRendererFactory()
     val webhookService = WebhookService.create(appConfig.webhooks)
     val schedulerService = SchedulerService(scheduleRepository, screenDriverService, webhookService = webhookService)
     val networkDiscoveryService = NetworkDiscoveryService(zoneRegistry, zoneRepository, wsClient)
@@ -92,7 +90,6 @@ fun Application.configureDI() {
         provide { scheduleRepository }
         provide { historyRepository }
         provide { historyService }
-        provide { effectRendererFactory }
         provide { webhookService }
         provide { schedulerService }
         provide { displayEventBus }

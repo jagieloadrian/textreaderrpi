@@ -6,11 +6,9 @@ import com.anjo.service.effect.FadeEffect
 import com.anjo.service.effect.ReverseEffect
 import com.anjo.service.effect.ScrollEffect
 
-class EffectRendererFactory {
-    fun create(effect: Effect): EffectRenderer = when (effect) {
-        Effect.SCROLL -> ScrollEffect()
-        Effect.BLINK -> BlinkEffect()
-        Effect.REVERSE -> ReverseEffect()
-        Effect.FADE -> FadeEffect()
-    }
+fun createEffectRenderer(effect: Effect): EffectRenderer = when (effect) {
+    Effect.SCROLL -> ScrollEffect()
+    Effect.BLINK -> BlinkEffect()
+    Effect.REVERSE -> ReverseEffect()
+    Effect.FADE -> FadeEffect()
 }

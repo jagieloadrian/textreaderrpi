@@ -11,20 +11,12 @@ data class DisplayConfig(
 
 data class Max7219Config(
     val numDevices: Int = 2,
-    val brightness: Boolean = true,
-    val gpioPins: Map<String, Int> = mapOf(
-        "spi_ce" to 8,
-        "spi_mosi" to 10,
-        "spi_miso" to 9,
-        "spi_sck" to 11
-    )
+    val brightness: Boolean = true
 )
 
 data class LcdConfig(
     val i2cAddress: Int = 0x27,
-    val busNumber: Int = 1,
-    val rows: Int = 2,
-    val columns: Int = 16
+    val busNumber: Int = 1
 )
 
 data class OledConfig(

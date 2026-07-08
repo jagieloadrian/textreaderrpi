@@ -1,6 +1,5 @@
 #ifdef DISPLAY_DRIVER_SH1106
 
-#include "sh1106.h"
 #include "display.h"
 #include "font/font5x8.h"
 #include "pico/stdlib.h"

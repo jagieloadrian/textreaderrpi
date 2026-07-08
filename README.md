@@ -307,10 +307,6 @@ Key variables:
 | `PORT` | `8080` | HTTP port |
 | `DISPLAY_TYPE` | `MAX7219` | `MAX7219`, `LCD`, `OLED` |
 | `MAX7219_NUM_DEVICES` | `2` | Number of chained MAX7219 modules |
-| `GPIO_SPI_CE` | `24` | SPI chip-enable GPIO pin |
-| `GPIO_SPI_MOSI` | `19` | SPI MOSI GPIO pin |
-| `GPIO_SPI_MISO` | `9` | SPI MISO GPIO pin |
-| `GPIO_SPI_SCK` | `23` | SPI clock GPIO pin |
 | `SPI_TIMEOUT_MS` | `1000` | SPI transaction timeout (ms) |
 | `GPIO_TIMEOUT_MS` | `500` | GPIO operation timeout (ms) |
 | `I2C_BUS` | `1` | I2C bus number (LCD/OLED) |

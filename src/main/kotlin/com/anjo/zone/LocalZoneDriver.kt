@@ -3,7 +3,7 @@ package com.anjo.zone
 import com.anjo.driver.DisplayDriver
 import com.anjo.model.Effect
 import com.anjo.model.ZoneStatus
-import com.anjo.service.EffectRendererFactory
+import com.anjo.service.createEffectRenderer
 import org.slf4j.LoggerFactory
 
 class LocalZoneDriver(
@@ -16,10 +16,7 @@ class LocalZoneDriver(
 
     override suspend fun send(text: String, effect: Effect, speed: Int?, blinkPeriod: Int?, fadeSteps: Int?): Boolean {
         return try {
-            EffectRendererFactory()
-                .create(effect)
-                .render(text, driver)
-//            driver.write(text)
+            createEffectRenderer(effect).render(text, driver)
             true
         } catch (e: Exception) {
             log.warn("LocalZoneDriver send failed: zoneId=$id error=${e.message}")

@@ -1,6 +1,5 @@
 #ifdef DISPLAY_DRIVER_PCD8544
 
-#include "pcd8544.h"
 #include "display.h"
 #include "font/font5x8.h"
 #include "pico/stdlib.h"

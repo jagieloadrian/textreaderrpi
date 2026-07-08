@@ -19,63 +19,67 @@ import org.slf4j.LoggerFactory
 object ConfigLoader {
     private val log = LoggerFactory.getLogger(ConfigLoader::class.java)
 
+    private fun io.ktor.server.config.ApplicationConfig.int(path: String, default: Int): Int =
+        propertyOrNull(path)?.getString()?.toIntOrNull() ?: default
+
+    private fun io.ktor.server.config.ApplicationConfig.long(path: String, default: Long): Long =
+        propertyOrNull(path)?.getString()?.toLongOrNull() ?: default
+
+    private fun io.ktor.server.config.ApplicationConfig.double(path: String, default: Double): Double =
+        propertyOrNull(path)?.getString()?.toDoubleOrNull() ?: default
+
+    private fun io.ktor.server.config.ApplicationConfig.str(path: String, default: String): String =
+        propertyOrNull(path)?.getString() ?: default
+
     fun loadConfig(application: Application): ApplicationConfig {
         val config = application.environment.config
 
         val displayConfig = DisplayConfig(
-            type = parseDisplayType(config.propertyOrNull("display.type")?.getString() ?: "MAX7219"),
+            type = parseDisplayType(config.str("display.type", "MAX7219")),
             max7219 = Max7219Config(
-                numDevices = config.propertyOrNull("display.max7219.numDevices")?.getString()?.toIntOrNull() ?: 2,
+                numDevices = config.int("display.max7219.numDevices", 2),
                 brightness = config.propertyOrNull("display.max7219.brightness")
                     ?.getString()
                     ?.toBooleanStrictOrNull()
                     .also { if (it == null) log.warn("display.max7219.brightness value is not a strict boolean; defaulting to true") }
-                    ?: true,
-                gpioPins = mapOf(
-                    "spi_ce" to (config.propertyOrNull("display.max7219.gpioPins.spi_ce")?.getString()?.toIntOrNull() ?: 8),
-                    "spi_mosi" to (config.propertyOrNull("display.max7219.gpioPins.spi_mosi")?.getString()?.toIntOrNull() ?: 10),
-                    "spi_miso" to (config.propertyOrNull("display.max7219.gpioPins.spi_miso")?.getString()?.toIntOrNull() ?: 9),
-                    "spi_sck" to (config.propertyOrNull("display.max7219.gpioPins.spi_sck")?.getString()?.toIntOrNull() ?: 11)
-                )
+                    ?: true
             ),
             lcd = LcdConfig(
                 i2cAddress = config.propertyOrNull("display.lcd.i2cAddress")?.getString()?.toIntAuto() ?: 0x27,
-                busNumber = config.propertyOrNull("display.lcd.busNumber")?.getString()?.toIntOrNull() ?: 1,
-                rows = config.propertyOrNull("display.lcd.rows")?.getString()?.toIntOrNull() ?: 2,
-                columns = config.propertyOrNull("display.lcd.columns")?.getString()?.toIntOrNull() ?: 16
+                busNumber = config.int("display.lcd.busNumber", 1)
             ),
             oled = OledConfig(
                 i2cAddress = config.propertyOrNull("display.oled.i2cAddress")?.getString()?.toIntAuto() ?: 0x3C,
-                busNumber = config.propertyOrNull("display.oled.busNumber")?.getString()?.toIntOrNull() ?: 1,
-                width = config.propertyOrNull("display.oled.width")?.getString()?.toIntOrNull() ?: 128,
-                height = config.propertyOrNull("display.oled.height")?.getString()?.toIntOrNull() ?: 64
+                busNumber = config.int("display.oled.busNumber", 1),
+                width = config.int("display.oled.width", 128),
+                height = config.int("display.oled.height", 64)
             )
         )
 
         val apiConfig = ApiConfig(
-            maxTextLength = config.propertyOrNull("api.maxTextLength")?.getString()?.toIntOrNull() ?: 128,
-            rateLimitPerMinute = config.propertyOrNull("api.rateLimitPerMinute")?.getString()?.toIntOrNull() ?: 60,
-            metricsRateLimitPerMinute = config.propertyOrNull("api.metricsRateLimitPerMinute")?.getString()?.toIntOrNull() ?: 120
+            maxTextLength = config.int("api.maxTextLength", 128),
+            rateLimitPerMinute = config.int("api.rateLimitPerMinute", 60),
+            metricsRateLimitPerMinute = config.int("api.metricsRateLimitPerMinute", 120)
         )
 
         val metricsConfig = MetricsConfig(
             enabled = config.propertyOrNull("metrics.enabled")?.getString()?.toBooleanStrictOrNull() ?: true,
-            prefix = config.propertyOrNull("metrics.prefix")?.getString() ?: "textreaderrpi",
+            prefix = config.str("metrics.prefix", "textreaderrpi"),
         )
 
         val retryConfig = RetryConfig(
-            maxAttempts = config.propertyOrNull("retry.maxAttempts")?.getString()?.toIntOrNull() ?: 5,
-            initialDelayMs = config.propertyOrNull("retry.initialDelayMs")?.getString()?.toLongOrNull() ?: 1000L,
-            maxDelayMs = config.propertyOrNull("retry.maxDelayMs")?.getString()?.toLongOrNull() ?: 30000L,
-            factor = config.propertyOrNull("retry.factor")?.getString()?.toDoubleOrNull() ?: 2.0,
+            maxAttempts = config.int("retry.maxAttempts", 5),
+            initialDelayMs = config.long("retry.initialDelayMs", 1000L),
+            maxDelayMs = config.long("retry.maxDelayMs", 30000L),
+            factor = config.double("retry.factor", 2.0),
         )
 
         val databaseConfig = DatabaseConfig(
-            url = config.propertyOrNull("database.url")?.getString() ?: "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",
-            driver = config.propertyOrNull("database.driver")?.getString() ?: "org.h2.Driver",
-            user = config.propertyOrNull("database.user")?.getString() ?: "",
-            password = config.propertyOrNull("database.password")?.getString() ?: "",
-            poolSize = config.propertyOrNull("database.poolSize")?.getString()?.toIntOrNull() ?: 5
+            url = config.str("database.url", "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1"),
+            driver = config.str("database.driver", "org.h2.Driver"),
+            user = config.str("database.user", ""),
+            password = config.str("database.password", ""),
+            poolSize = config.int("database.poolSize", 5)
         )
 
         val webhooksConfig = WebhooksConfig(
@@ -105,16 +109,16 @@ object ConfigLoader {
         var index = 0
         while (true) {
             val id = config.propertyOrNull("display.zones.$index.id")?.getString() ?: break
-            val type = parseDisplayType(config.propertyOrNull("display.zones.$index.type")?.getString() ?: "MAX7219")
-            val numDevices = config.propertyOrNull("display.zones.$index.numDevices")?.getString()?.toIntOrNull() ?: 2
-            val bus = config.propertyOrNull("display.zones.$index.bus")?.getString()?.toIntOrNull() ?: 0
-            val chipSelect = config.propertyOrNull("display.zones.$index.chipSelect")?.getString()?.toIntOrNull() ?: 0
+            val type = parseDisplayType(config.str("display.zones.$index.type", "MAX7219"))
+            val numDevices = config.int("display.zones.$index.numDevices", 2)
+            val bus = config.int("display.zones.$index.bus", 0)
+            val chipSelect = config.int("display.zones.$index.chipSelect", 0)
             zones.add(ZoneConfig(id = id, type = type, numDevices = numDevices, bus = bus, chipSelect = chipSelect))
             index++
         }
         if (zones.isEmpty()) {
-            val fallbackType = parseDisplayType(config.propertyOrNull("display.type")?.getString() ?: "MAX7219")
-            val fallbackNumDevices = config.propertyOrNull("display.max7219.numDevices")?.getString()?.toIntOrNull() ?: 2
+            val fallbackType = parseDisplayType(config.str("display.type", "MAX7219"))
+            val fallbackNumDevices = config.int("display.max7219.numDevices", 2)
             zones.add(ZoneConfig(id = "main", type = fallbackType, numDevices = fallbackNumDevices, bus = 0, chipSelect = 0))
         }
         return ZonesConfig(zones)

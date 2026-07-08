@@ -14,10 +14,6 @@ data:
   # Display configuration
   DISPLAY_TYPE: "MAX7219"
   MAX7219_NUM_DEVICES: "2"
-  GPIO_SPI_CE: "8"
-  GPIO_SPI_MOSI: "10"
-  GPIO_SPI_MISO: "9"
-  GPIO_SPI_SCK: "11"
   I2C_BUS: "1"
 
   # Hardware timeouts

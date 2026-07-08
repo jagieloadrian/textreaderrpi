@@ -1,6 +1,5 @@
 #ifdef DISPLAY_DRIVER_HT16K33
 
-#include "ht16k33.h"
 #include "display.h"
 #include "font/font5x8.h"
 #include "pico/stdlib.h"

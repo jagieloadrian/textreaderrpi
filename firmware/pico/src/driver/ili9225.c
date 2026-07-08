@@ -1,6 +1,5 @@
 #ifdef DISPLAY_DRIVER_ILI9225
 
-#include "ili9225.h"
 #include "display.h"
 #include "font/font5x8.h"
 #include "pico/stdlib.h"

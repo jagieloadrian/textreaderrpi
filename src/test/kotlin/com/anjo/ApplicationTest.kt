@@ -7,7 +7,6 @@ import com.anjo.db.ScheduleRepository
 import com.anjo.model.HardwareMetrics
 import com.anjo.service.HistoryService
 import com.anjo.db.ZoneRepository
-import com.anjo.service.EffectRendererFactory
 import com.anjo.service.MetricsCollector
 import com.anjo.service.NetworkDiscoveryService
 import com.anjo.service.SchedulerService
@@ -109,7 +108,6 @@ class ApplicationTest : FunSpec({
             dep<ScheduleRepository>() shouldNotBeNull {}
             dep<HistoryRepository>() shouldNotBeNull {}
             dep<HistoryService>() shouldNotBeNull {}
-            dep<EffectRendererFactory>() shouldNotBeNull {}
             dep<SchedulerService>() shouldNotBeNull {}
             dep<WebhookService>() shouldNotBeNull {}
         }

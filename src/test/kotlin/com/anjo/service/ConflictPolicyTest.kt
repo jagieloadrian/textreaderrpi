@@ -4,7 +4,6 @@ import com.anjo.config.model.RetryConfig
 import com.anjo.model.ConflictPolicy
 import com.anjo.model.Effect
 import com.anjo.model.ScreenDriverMetrics
-import com.anjo.service.effect.EffectRenderer
 import com.anjo.zone.ZoneDriver
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -71,11 +70,8 @@ class ConflictPolicyTest : FunSpec({
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
             val mockRepo = mockk<com.anjo.db.ScheduleRepository>(relaxed = true)
             val mockScreen = mockk<ScreenDriverService>(relaxed = true)
-            val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
-            val mockRenderer = mockk<EffectRenderer>(relaxed = true)
             val mockWebHook = mockk<WebhookService>(relaxed = true)
 
-            coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
             coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())
@@ -111,11 +107,8 @@ class ConflictPolicyTest : FunSpec({
             val testScope = TestScope(StandardTestDispatcher(testScheduler) + Job())
             val mockRepo = mockk<com.anjo.db.ScheduleRepository>(relaxed = true)
             val mockScreen = mockk<ScreenDriverService>(relaxed = true)
-            val mockFactory = mockk<EffectRendererFactory>(relaxed = true)
-            val mockRenderer = mockk<EffectRenderer>(relaxed = true)
             val mockWebHook = mockk<WebhookService>(relaxed = true)
 
-            coEvery { mockFactory.create(any()) } returns mockRenderer
             val firedOrder = mutableListOf<String>()
             coEvery { mockScreen.displayScheduled(any(), any(), any(), any(), any(), any()) } answers {
                 firedOrder.add(firstArg())

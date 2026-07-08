@@ -1,6 +1,5 @@
 #ifdef DISPLAY_DRIVER_ST7789
 
-#include "st7789.h"
 #include "display.h"
 #include "font/font5x8.h"
 #include "pico/stdlib.h"
