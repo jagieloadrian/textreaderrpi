@@ -1,76 +1,21 @@
 ---
 phase: 20
 slug: cleanup-docs
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: not_required_docs_only
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-07-07
+note: "No test framework required — this phase changes only documentation and planning artifacts (README.md, .planning/, docs/ deletion). All verification is grep/shell/manual-read per the <verify> blocks in 20-01 through 20-04 PLAN.md; feedback latency <1s per command."
 ---
 
 # Phase 20 — Validation Strategy
 
-> Per-phase validation contract for feedback sampling during execution.
+This phase contains no application code changes. Verification lives entirely in the
+`<automated>` (grep/shell) and `<human-check>` blocks of the four plan files:
 
----
+- `20-01-PLAN.md` — README TOC/API/config/Helm: grep assertions on README.md
+- `20-02-PLAN.md` — Firmware walkthrough: grep assertions incl. negative `platformio` guard
+- `20-03-PLAN.md` — docs/ deletion + accuracy sweep: `test ! -d docs`, repo-wide D-04 grep
+- `20-04-PLAN.md` — .planning compression: grep for must-survive markers, phase-dir checks
 
-## Test Infrastructure
-
-| Property | Value |
-|----------|-------|
-| **Framework** | {pytest 7.x / jest 29.x / vitest / go test / other} |
-| **Config file** | {path or "none — Wave 0 installs"} |
-| **Quick run command** | `{quick command}` |
-| **Full suite command** | `{full command}` |
-| **Estimated runtime** | ~{N} seconds |
-
----
-
-## Sampling Rate
-
-- **After every task commit:** Run `{quick run command}`
-- **After every plan wave:** Run `{full suite command}`
-- **Before `/gsd-verify-work`:** Full suite must be green
-- **Max feedback latency:** {N} seconds
-
----
-
-## Per-Task Verification Map
-
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 20-01-01 | 01 | 1 | REQ-{XX} | T-{N}-01 / — | {expected secure behavior or "N/A"} | unit | `{command}` | ✅ / ❌ W0 | ⬜ pending |
-
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
-
----
-
-## Wave 0 Requirements
-
-- [ ] `{tests/test_file.py}` — stubs for REQ-{XX}
-- [ ] `{tests/conftest.py}` — shared fixtures
-- [ ] `{framework install}` — if no framework detected
-
-*If none: "Existing infrastructure covers all phase requirements."*
-
----
-
-## Manual-Only Verifications
-
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| {behavior} | REQ-{XX} | {reason} | {steps} |
-
-*If none: "All phase behaviors have automated verification."*
-
----
-
-## Validation Sign-Off
-
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < {N}s
-- [ ] `nyquist_compliant: true` set in frontmatter
-
-**Approval:** {pending / approved YYYY-MM-DD}
+No Wave 0 test infrastructure, no test framework involvement.

@@ -232,7 +232,21 @@ Plans:
   3. `README.md` lists all v1.2 endpoints (including `/api/v1/live`, `/api/v1/history/export`, `/ws/zone/{id}`), includes a firmware flash quick-start section for Pico and ESP32, and has a Kubernetes/Helm deployment section
   4. `README.md` accurately reflects the current project state with no references to features that were deferred or removed
 
-**Plans**: TBD (estimated 2 plans)
+**Plans**: 4 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 20-01-PLAN.md — README TOC + API tables (live/history-export/ws-zone), Config + Helm accuracy, remove dead docs/ links (DOCS-01)
+- [ ] 20-04-PLAN.md — .planning/ compression: rewrite STATE.md + MILESTONES.md to essentials, delete phase dirs 14-19 (CLEAN-01)
+
+**Wave 2** *(blocked on 20-01)*
+
+- [ ] 20-02-PLAN.md — README Firmware flash walkthrough: Pico (pico-sdk) + ESP32 (ESP-IDF), troubleshooting, non-Linux pointer (DOCS-01)
+
+**Wave 3** *(blocked on 20-02)*
+
+- [ ] 20-03-PLAN.md — docs/ salvage-skim + deletion, D-13 accuracy sweep, D-04 repo-wide grep, deferred-v1.3 check (CLEAN-01, DOCS-01)
 
 ---
 
@@ -260,4 +274,4 @@ Plans:
 | 17 | Firmware Skeletons | v1.2 | 0/6 | Not started | — |
 | 18 | Kubernetes + Helm | v1.2 | 0/2 | Not started | — |
 | 19 | DRY/YAGNI Refactoring | v1.2 | 0/2 | Not started | — |
-| 20 | Cleanup + Docs | v1.2 | 0/2 | Not started | — |
+| 20 | Cleanup + Docs | v1.2 | 0/4 | Planned | — |

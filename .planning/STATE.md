@@ -4,9 +4,9 @@ milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 20
 current_phase_name: Cleanup + Docs
-status: planning
-stopped_at: Phase 20 context gathered
-last_updated: "2026-07-07T19:16:35.258Z"
+status: executing
+stopped_at: Phase 20 UI-SPEC approved
+last_updated: "2026-07-08T06:01:49.578Z"
 last_activity: 2026-07-07
 last_activity_desc: Phase 19 complete, transitioned to Phase 20
 progress:
@@ -20,13 +20,13 @@ progress:
 # Project State & Memory
 
 **Last Updated:** 2026-06-24  
-**Status:** Ready to plan
+**Status:** Ready to execute
 
 ## Current Position
 
 Phase: 20 — Cleanup + Docs
 Plan: Not started
-Status: Phase complete — ready for verification
+Status: Ready to execute
 Last activity: 2026-07-07 — Phase 19 complete, transitioned to Phase 20
 
 ## Project Context
@@ -252,9 +252,9 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 
 ## Session
 
-**Last session:** 2026-07-07T19:16:35.240Z
-**Stopped at:** Phase 20 context gathered
-**Resume file:** .planning/phases/20-cleanup-docs/20-CONTEXT.md
+**Last session:** 2026-07-07T19:35:13.640Z
+**Stopped at:** Phase 20 UI-SPEC approved
+**Resume file:** .planning/phases/20-cleanup-docs/20-UI-SPEC.md
 
 ## Decisions
 
