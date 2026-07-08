@@ -6,14 +6,14 @@ current_phase: 20
 current_phase_name: cleanup-docs
 status: executing
 stopped_at: Phase 20 UI-SPEC approved
-last_updated: "2026-07-08T06:16:54.128Z"
+last_updated: "2026-07-08T11:35:39.949Z"
 last_activity: 2026-07-08
 last_activity_desc: Phase 20 execution started
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 35
-  completed_plans: 33
+  completed_plans: 34
   percent: 86
 ---
 
@@ -25,7 +25,7 @@ progress:
 ## Current Position
 
 Phase: 20 (cleanup-docs) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-07-08 — Phase 20 execution started
 
@@ -251,10 +251,11 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 | Phase 19-dry-yagni-refactoring P02 | 8min | 3 tasks | 7 files |
 | Phase 20 P01 | 10min | 2 tasks | 1 files |
 | Phase 20 P02 | 9min | 2 tasks | 1 files |
+| Phase 20 P03 | 20min | 2 tasks | 9 files |
 
 ## Session
 
-**Last session:** 2026-07-08T06:16:12.171Z
+**Last session:** 2026-07-08T11:34:57.339Z
 **Stopped at:** Phase 20 UI-SPEC approved
 **Resume file:** .planning/phases/20-cleanup-docs/20-UI-SPEC.md
 
@@ -288,3 +289,5 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - [Phase 20-01]: SSE live feed and firmware WebSocket explicitly cross-referenced in prose to prevent readers conflating /api/v1/live with /ws/zone/{id}
 - [Phase 20-02]: ESP32 firmware README section written strictly from ESP-IDF 5.2.1 facts (idf.py/CMake) — obsolete PlatformIO wording never reproduced, per 20-RESEARCH.md Pitfall 1
 - [Phase 20-02]: Pico config.h NUM_DEVICES documented as 1 (actual file value), not the generic 4 shown in firmware/pico/README.md's constant table
+- [Phase 20-03]: No net salvage from 3 unread docs/ files (architecture/configuration/testing overview.md) — README already covers equivalent content from Plans 01-02
+- [Phase 20-03]: docs/guides/development.md dropped entirely without salvage per D-03 — internal build/convention notes, not end-user docs
