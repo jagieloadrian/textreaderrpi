@@ -57,32 +57,8 @@
 
 ## Phase Details
 
-Full phase goals, success criteria, and per-plan breakdowns for shipped milestones are preserved in their archives: [v1.0](milestones/v1.0-ROADMAP.md), [v1.1](milestones/v1.1-ROADMAP.md), [v1.2](milestones/v1.2-ROADMAP.md).
+Full phase goals, success criteria, and per-plan breakdowns for shipped milestones are preserved in their archives:
 
----
-
-## Progress
-
-| Phase | Name | Milestone | Plans Complete | Status | Completed |
-|-------|------|-----------|----------------|--------|-----------|
-| 1 | MVP — Core Text Display | v1.0 | 1/1 | ✅ Complete | 2026-05-26 |
-| 2 | Enhanced Display Support | v1.0 | 7/7 | ✅ Complete | 2026-05-26 |
-| 3 | Production Ready | v1.0 | 5/5 | ✅ Complete | 2026-05-27 |
-| 4 | Cleanup + Observability | v1.0 | 5/5 | ✅ Complete | 2026-05-27 |
-| 5 | Scheduling + Effects | v1.0 | 11/11 | ✅ Complete | 2026-05-28 |
-| 6 | MAX7219 Hardware Fix | v1.1 | 2/2 | ✅ Complete | 2026-06-12 |
-| 7 | Scheduler Schema Stabilisation | v1.1 | 3/3 | ✅ Complete | 2026-06-14 |
-| 8 | Refactor + Dead Code Analysis | v1.1 | 5/5 | ✅ Complete | 2026-06-15 |
-| 9 | Display History + Audit Log | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
-| 10 | Webhooks | v1.1 | 3/3 | ✅ Complete | 2026-06-15 |
-| 11 | Multi-Zone Displays | v1.1 | 5/5 | ✅ Complete | 2026-06-16 |
-| 11.2 | Code Quality Cleanup | v1.1 | 3/3 | ✅ Complete | 2026-06-16 |
-| 12 | Observability Gap Closures | v1.1 | 3/3 | ✅ Complete | 2026-06-18 |
-| 13 | UI/UX Refresh | v1.1 | 4/4 | ✅ Complete | 2026-06-21 |
-| 14 | History Enhancements | v1.2 | 3/3 | ✅ Complete | 2026-06-22 |
-| 15 | SSE Live Feed | v1.2 | 3/3 | ✅ Complete | 2026-06-22 |
-| 16 | Zone Management | v1.2 | 4/4 | ✅ Complete | 2026-06-23 |
-| 17 | Firmware Skeletons | v1.2 | 9/9 | ✅ Complete | 2026-06-24 |
-| 18 | Kubernetes + Helm | v1.2 | 10/10 | ✅ Complete | 2026-07-07 |
-| 19 | DRY/YAGNI Refactoring | v1.2 | 2/2 | ✅ Complete | 2026-07-07 |
-| 20 | Cleanup + Docs | v1.2 | 4/4 | ✅ Complete | 2026-07-08 |
+- **v1.0 (Phases 1–5):** [ROADMAP](milestones/v1.0-ROADMAP.md) | [Requirements](milestones/v1.0-REQUIREMENTS.md)
+- **v1.1 (Phases 6–13):** [ROADMAP](milestones/v1.1-ROADMAP.md) | [Requirements](milestones/v1.1-REQUIREMENTS.md)
+- **v1.2 (Phases 14–20):** [ROADMAP](milestones/v1.2-ROADMAP.md) | [Requirements](milestones/v1.2-REQUIREMENTS.md) | [Audit](milestones/v1.2-MILESTONE-AUDIT.md)

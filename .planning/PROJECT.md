@@ -29,55 +29,9 @@ Simple, reliable one-way display control from any browser on the home network.
 
 ## Requirements
 
-### Validated (v1.0)
+### Validated (v1.0 + v1.1)
 
-- ✓ HTTP API for text submission (`POST /api/v1/text`) — v1.0
-- ✓ MAX7219 LED rendering with scrolling — v1.0
-- ✓ Request validation (length, charset) — v1.0
-- ✓ Centralized error handling (400/422/500) — v1.0
-- ✓ DisplayDriver abstraction (MAX7219, LCD, OLED, Offline) — v1.0
-- ✓ Configuration-driven display selection — v1.0
-- ✓ Responsive HTML UI (Ktor HTML DSL) — v1.0
-- ✓ Health endpoints `/health` + `/health/ready` — v1.0
-- ✓ Rate limiting 60 req/min — v1.0
-- ✓ Hardware error recovery (RecoveryPolicy + retry) — v1.0
-- ✓ `/metrics` JSON endpoint (runtime/API/hardware) — v1.0
-- ✓ Scheduling engine (ONESHOT/RECURRING/CRON) — v1.0
-- ✓ Effect pipeline (SCROLL/BLINK/REVERSE/FADE) — v1.0
-- ✓ Cancel endpoint for running schedules — v1.0
-- ✓ Full env var config (25 settings) — v1.0
-- ✓ Docker image build via Gradle — v1.0
-
-### Validated (v1.1)
-
-- ✓ MAX7219 chain order fix (SPI packet direction corrected) — Phase 6
-- ✓ AbstractDisplayDriver base class (DRY driver hierarchy) — Phase 6
-- ✓ SKIP_NEW ConflictPolicy enum — Phase 7
-- ✓ ONESHOT firedAt atomic update (crash-safe restart) — Phase 7
-- ✓ CRON ERROR persistence (invalid expression → stored, not looped) — Phase 7
-- ✓ Flyway 9.22.3 migration layer (baselineOnMigrate) — Phase 7
-- ✓ DI smoke test (all 11 configureDI() bindings verified) — Phase 8
-- ✓ Dead code removed (HardwareConfig/TimingConfig/LoggingConfig, readInput) — Phase 8
-- ✓ Display history persisted (1000-row cap, all paths instrumented) — Phase 9
-- ✓ GET /api/v1/history — paginated + filterable API — Phase 9
-- ✓ GET /history — filterable HTML page (zone + effect) — Phase 9
-- ✓ Webhooks — fire-and-forget HTTP POST on schedule fire (5s timeout) — Phase 10
-- ✓ Webhook fallback via WEBHOOK_DEFAULT_URL env var — Phase 10
-- ✓ webhookStatus in history records (sent/skipped) — Phase 10
-- ✓ Multi-zone local displays (ZoneRegistry, SPI named zones) — Phase 11
-- ✓ Network zone autodiscovery (UDP broadcast + mDNS/JmDNS) — Phase 11
-- ✓ NetworkZoneDriver (WebSocket client + reconnect + heartbeat) — Phase 11
-- ✓ POST /api/v1/text?zone=X routing — Phase 11
-- ✓ DELETE /api/v1/zones/{id} — network zone removal — Phase 11
-- ✓ DisplayType enum enforcement + HistoryService layer — Phase 11.2
-- ✓ GET /health/detail — uptime, memory, display status, error counts — Phase 12
-- ✓ /metrics hardware group (4 Dropwizard counters) — Phase 12
-- ✓ HTML 404/500 pages (SwaggerUI ordering fixed) — Phase 12
-- ✓ Material 3 CSS + side navigation + dark mode (prefers-color-scheme) — Phase 13
-- ✓ Zone selector + effect preview on send-text form — Phase 13
-- ✓ Schedule page with zone + webhookUrl columns — Phase 13
-- ✓ History page with zone/effect filter + pagination — Phase 13
-- ✓ Status page polling /health/detail + /metrics — Phase 13
+See `.planning/milestones/v1.0-REQUIREMENTS.md` and `v1.1-REQUIREMENTS.md` for full requirement lists and traceability. Summary: 25 v1.0 requirements + 8 v1.1 requirements delivered across 14 phases with 80.7% test coverage.
 
 ### Validated (v1.2)
 
@@ -186,22 +140,9 @@ Simple, reliable one-way display control from any browser on the home network.
 - **Network:** Home network only (no auth, no TLS required)
 - **Memory:** <256MB JVM heap target
 
-## Evolution
+## Document Evolution
 
-This document evolves at phase transitions and milestone boundaries.
-
-**After each phase transition** (via `/gsd-transition`):
-1. Requirements invalidated? → Move to Out of Scope with reason
-2. Requirements validated? → Move to Validated with phase reference
-3. New requirements emerged? → Add to Active
-4. Decisions to log? → Add to Key Decisions
-5. "What This Is" still accurate? → Update if drifted
-
-**After each milestone** (via `/gsd-complete-milestone`):
-1. Full review of all sections
-2. Core Value check — still the right priority?
-3. Audit Out of Scope — reasons still valid?
-4. Update Context with current state
+This document is updated after each milestone (v1.2 last updated 2026-07-08). Sections are maintained in priority order: Vision/Core Value rarely change; Current State and Key Decisions evolve with each phase; Requirements are archived per milestone to keep this document bounded.
 
 ## Milestone History
 
