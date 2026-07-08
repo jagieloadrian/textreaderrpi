@@ -48,7 +48,7 @@
 - [x] **Phase 17: Firmware Skeletons** - RPi Pico (C/pico-sdk) and ESP32 (C++/Arduino) firmware (completed 2026-06-24)
 - [x] **Phase 18: Kubernetes + Helm** - Helm chart in `.devops/helm/textreaderrpi/` for K8s deployment (10/10 plans complete) (completed 2026-07-07)
 - [x] **Phase 19: DRY/YAGNI Refactoring** - Deduplication pass across main code and tests (completed 2026-07-07)
-- [ ] **Phase 20: Cleanup + Docs** - .planning/ compression, delete docs/, update README
+- [x] **Phase 20: Cleanup + Docs** - .planning/ compression, delete docs/, update README (completed 2026-07-08)
 
 ---
 
@@ -232,13 +232,13 @@ Plans:
   3. `README.md` lists all v1.2 endpoints (including `/api/v1/live`, `/api/v1/history/export`, `/ws/zone/{id}`), includes a firmware flash quick-start section for Pico and ESP32, and has a Kubernetes/Helm deployment section
   4. `README.md` accurately reflects the current project state with no references to features that were deferred or removed
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans complete
 
 Plans:
 **Wave 1**
 
 - [x] 20-01-PLAN.md — README TOC + API tables (live/history-export/ws-zone), Config + Helm accuracy, remove dead docs/ links (DOCS-01)
-- [ ] 20-04-PLAN.md — .planning/ compression: rewrite STATE.md + MILESTONES.md to essentials, delete phase dirs 14-19 (CLEAN-01)
+- [x] 20-04-PLAN.md — .planning/ compression: rewrite STATE.md + MILESTONES.md to essentials, delete phase dirs 14-19 (CLEAN-01)
 
 **Wave 2** *(blocked on 20-01)*
 

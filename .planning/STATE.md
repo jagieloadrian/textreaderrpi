@@ -4,29 +4,29 @@ milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 20
 current_phase_name: cleanup-docs
-status: executing
-stopped_at: Phase 20 UI-SPEC approved
-last_updated: "2026-07-08T11:35:39.949Z"
+status: verifying
+last_updated: "2026-07-08T11:46:44.726Z"
 last_activity: 2026-07-08
 last_activity_desc: Phase 20 execution started
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 35
-  completed_plans: 34
-  percent: 86
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 4
+  percent: 14
+stopped_at: Phase 20 UI-SPEC approved
 ---
 
 # Project State & Memory
 
 **Last Updated:** 2026-06-24  
-**Status:** Ready to execute
+**Status:** Phase complete — ready for verification
 
 ## Current Position
 
 Phase: 20 (cleanup-docs) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-08 — Phase 20 execution started
 
 **Next steps:** After Phase 20 verification passes and `20-VERIFICATION.md` is written, a final milestone-closing commit will delete `.planning/phases/20-cleanup-docs/` (git history preserves it) — D-07.
@@ -188,4 +188,3 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - Roadmap archive v1.0: `.planning/milestones/v1.0-ROADMAP.md`
 - Roadmap archive v1.1: `.planning/milestones/v1.1-ROADMAP.md`
 - Git tags: `v1.0`, `v1.1`
-</content>
