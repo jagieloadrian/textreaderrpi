@@ -3,11 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Firmware + Features + Refactor + Ops
 current_phase: 20
-current_phase_name: cleanup-docs
-status: verifying
-last_updated: "2026-07-08T11:46:44.726Z"
+status: completed
+last_updated: "2026-07-08T12:01:07.739Z"
 last_activity: 2026-07-08
-last_activity_desc: Phase 20 execution started
+last_activity_desc: Phase 20 complete
 progress:
   total_phases: 7
   completed_phases: 1
@@ -15,19 +14,20 @@ progress:
   completed_plans: 4
   percent: 14
 stopped_at: Phase 20 UI-SPEC approved
+current_phase_name: cleanup-docs
 ---
 
 # Project State & Memory
 
 **Last Updated:** 2026-06-24  
-**Status:** Phase complete — ready for verification
+**Status:** Milestone complete
 
 ## Current Position
 
-Phase: 20 (cleanup-docs) — EXECUTING
-Plan: 4 of 4
+Phase: 20
+Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-07-08 — Phase 20 execution started
+Last activity: 2026-07-08 — Phase 20 complete
 
 **Next steps:** After Phase 20 verification passes and `20-VERIFICATION.md` is written, a final milestone-closing commit will delete `.planning/phases/20-cleanup-docs/` (git history preserves it) — D-07.
 
