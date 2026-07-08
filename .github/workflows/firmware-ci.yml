@@ -91,32 +91,25 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/esp-idf
+            ~/.espressif
             ~/.cache/pip
           key: esp-idf-${{ runner.os }}-v5.2.1
           restore-keys: |
             esp-idf-${{ runner.os }}-
 
-      - name: Install ESP-IDF v5.2.1
+      - name: Install build tools
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y git wget flex bison gperf cmake ninja-build \
             libssl-dev libusb-1.0-0 libffi-dev dfu-util python3-venv python3-pip
+
+      - name: Clone and install ESP-IDF v5.2.1 (if cache miss)
+        if: steps.cache-esp.outputs.cache-hit != 'true'
+        run: |
           # Clone into workspace to avoid permission issues writing to /opt
           git clone --depth 1 --branch v5.2.1 \
             https://github.com/espressif/esp-idf.git $GITHUB_WORKSPACE/esp-idf
           cd $GITHUB_WORKSPACE/esp-idf && git submodule update --init --recursive && ./install.sh esp32
-          echo "IDF_PATH=$GITHUB_WORKSPACE/esp-idf" >> "$GITHUB_ENV"
-
-      - name: Install ESP-IDF Python requirements
-        run: |
-          # Install requirements from the most likely locations in esp-idf
-          if [ -f "${{ github.workspace }}/esp-idf/requirements.txt" ]; then
-            python3 -m pip install --user -r "${{ github.workspace }}/esp-idf/requirements.txt"
-          elif [ -f "${{ github.workspace }}/esp-idf/tools/requirements/requirements.core.txt" ]; then
-            python3 -m pip install --user -r "${{ github.workspace }}/esp-idf/tools/requirements/requirements.core.txt"
-          else
-            echo "No requirements file found in esp-idf; skipping pip install"
-          fi
 
       - name: CMake configure (esp32)
         run: |
