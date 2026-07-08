@@ -29,6 +29,8 @@ Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-07-08 — Phase 20 execution started
 
+**Next steps:** After Phase 20 verification passes and `20-VERIFICATION.md` is written, a final milestone-closing commit will delete `.planning/phases/20-cleanup-docs/` (git history preserves it) — D-07.
+
 ## Project Context
 
 - **Name:** TextReaderRpi
@@ -70,32 +72,6 @@ Last activity: 2026-07-08 — Phase 20 execution started
 - ✅ Multi-zone: ZoneRegistry + local SPI zones + UDP/mDNS network zone autodiscovery
 - ✅ NetworkZoneDriver: WebSocket client with reconnect + heartbeat
 - ✅ Material 3 UI: side nav, dark mode, zone selector, effect preview, status/history/schedule pages
-
----
-
-## v1.2 Roadmap Summary
-
-| Phase | Name | Requirements | Plan estimate | Status |
-|-------|------|--------------|---------------|--------|
-| 14 | History Enhancements | HIST-04, HIST-05, HIST-06 | 3 plans | Not started |
-| 15 | SSE Live Feed | LIVE-01, LIVE-02, LIVE-03 | 3 plans | Complete ✓ |
-| 16 | Zone Management | ZONE-09, ZONE-10 | 4 plans | Complete ✓ |
-| 17 | Firmware Skeletons | FW-01, FW-02 | 9 plans | Complete ✓ (human HW tests pending) |
-| 18 | Kubernetes + Helm | OPS-01 | 2 plans | Not started |
-| 19 | DRY/YAGNI Refactoring | REF-05 | 2 plans | Not started |
-| 20 | Cleanup + Docs | CLEAN-01, DOCS-01 | 2 plans | Not started |
-
-**Coverage:** 13/13 requirements mapped ✓
-
----
-
-## New Dependencies (v1.2)
-
-| Artifact | Version | Phase | Rationale |
-|----------|---------|-------|-----------|
-| `io.ktor:ktor-server-sse` | 3.5.0 | 15 | One-way SSE push; browser native reconnect |
-| `io.ktor:ktor-server-websockets` | 3.5.0 | 16 | Server-side WS for FirmwareZoneDriver inbound sessions |
-| `com.jsoizo:kotlin-csv-jvm` | 1.10.0 | 14 | RFC 4180 CSV; pure Kotlin; no transitive deps |
 
 ---
 
@@ -151,6 +127,9 @@ Last activity: 2026-07-08 — Phase 20 execution started
 | SSR zone selectors (not client-fetched) | Zones available on page load without extra round-trip |
 | fetchStatusData uses Promise.all([/health/detail, /metrics]) on DOMContentLoaded + setInterval(10000) | spans use .textContent (not innerHTML) — XSS-safe |
 | applyEffectPreview removes all four effect classes then adds matching class | Clean class toggle without leftover state |
+| FirmwareMessage uses @EncodeDefault(Mode.NEVER) per-field for null omission | Scoped to FirmwareMessage only; does not affect other kotlinx.serialization paths in the project — Phase 17 |
+| Helm replicas hardcoded to 1 (not configurable via values.yaml) | Pi SPI/I2C + H2 DB cannot be shared across replicas — Phase 18 |
+| K8s `privileged: true` set under containers[0].securityContext, never pod-level spec.securityContext | Kubernetes silently ignores privileged at pod level — Phase 18 |
 
 ---
 
@@ -209,85 +188,4 @@ Items acknowledged and deferred at milestone close on 2026-06-21:
 - Roadmap archive v1.0: `.planning/milestones/v1.0-ROADMAP.md`
 - Roadmap archive v1.1: `.planning/milestones/v1.1-ROADMAP.md`
 - Git tags: `v1.0`, `v1.1`
-
-## Performance Metrics
-
-| Phase | Plan | Duration | Notes |
-|-------|------|----------|-------|
-| Phase 08 P03 | 12 minutes | 2 tasks | 3 files |
-| Phase 08 P04 | 7 minutes | 2 tasks | 6 files |
-| Phase 08 P05 | 5 minutes | 2 tasks | 0 files (sweep only) |
-| Phase 09 P01 | 5 minutes | 2 tasks | 6 files |
-| Phase 09 P02 | 11 minutes | 2 tasks | 8 files |
-| Phase 09 P03 | 5 minutes | 2 tasks | 7 files |
-| Phase 10 P01 | 22 minutes | 2 tasks | 10 files |
-| Phase 10-webhooks P02 | 4 minutes | 2 tasks | 4 files |
-| Phase 11 P01 | 12 minutes | 2 tasks | 8 files |
-| Phase 11 P02 | 15 minutes | 2 tasks | 5 files |
-| Phase 11-multi-zone-displays P03 | 18 minutes | 2 tasks | 16 files |
-| Phase 11-multi-zone-displays P04 | 10 minutes | 3 tasks | 11 files |
-| Phase 11-multi-zone-displays P05 | 6 minutes | 2 tasks | 6 files |
-| Phase 11.2 P01 | 20 minutes | 2 tasks | 13 files |
-| Phase 11.2 P02 | 12 minutes | 2 tasks | 6 files |
-| Phase 11.2 P03 | 4 minutes | 2 tasks | 4 files |
-| Phase 12 P02 | 4 minutes | — tasks | — files |
-| Phase 12 P03 | 30 minutes | 2 tasks | 2 files |
-| Phase 13 P01 | 2 minutes | 2 tasks | 2 files |
-| Phase 13 P02 | 3 minutes | 2 tasks | 7 files |
-| Phase 13 P03 | 6 minutes | 2 tasks | 6 files |
-| Phase 16 P01 | 6min | 2 tasks | 13 files |
-| Phase 16 P02 | 7min | 2 tasks | 7 files |
-| Phase 16 P03 | 18min | 2 tasks | 8 files |
-| Phase 16 P04 | 3min | 1 tasks | 1 files |
-| Phase 18 P01 | 5min | 3 tasks | 2 files |
-| Phase 18 P02 | 3min | 3 tasks | 2 files |
-| Phase 18 P04 | 2 minutes | 4 tasks | 2 files |
-| Phase 18 P06 | 2min | 3 tasks | 1 files |
-| Phase 18 P07 | 2 | 3 tasks | 2 files |
-| Phase 18 P08 | 3min | 7 tasks | 0 files |
-| Phase 18 P09 | 5min | 3 tasks | 3 files |
-| Phase 18 P10 | 3min | 2 tasks | 3 files |
-| Phase 19-dry-yagni-refactoring P01 | 15min | 2 tasks | 4 files |
-| Phase 19-dry-yagni-refactoring P02 | 8min | 3 tasks | 7 files |
-| Phase 20 P01 | 10min | 2 tasks | 1 files |
-| Phase 20 P02 | 9min | 2 tasks | 1 files |
-| Phase 20 P03 | 20min | 2 tasks | 9 files |
-
-## Session
-
-**Last session:** 2026-07-08T11:34:57.339Z
-**Stopped at:** Phase 20 UI-SPEC approved
-**Resume file:** .planning/phases/20-cleanup-docs/20-UI-SPEC.md
-
-## Decisions
-
-- [Phase 16-01]: Null ip guard in addNetworkZone skips FIRMWARE zones until Plan 02 adds registerFirmwareZone
-- [Phase 16-02]: FirmwareZoneDriver.send() uses channel.trySend() only; session.send() only in drain coroutine in attach()
-- [Phase 16-02]: ZoneRegistry.addNetworkZone() migrated to compute() closing non-atomic race (D-06)
-- [Phase 16-03]: ValidationResult.Invalid has no equals override — use .reasons.first() for assertions
-- [Phase 16-03]: req.ip null guard via early 400 return (no !! operator) — post code review fix
-- [Phase 16-03]: Zone name validated with `[a-zA-Z0-9._-]{1,64}` regex in ZoneValidators — prevents XSS via data-zone-id attribute
-- [Phase 16-03]: FirmwareZoneDriver drain job tracked via AtomicReference<Job?>, cancelled on re-attach — prevents double-drain race
-- [Phase 16-03]: UDP discovery reply parsed with kotlinx.json JsonObject; FIRMWARE type from UDP rejected — prevents type confusion from rogue LAN devices
-- [Phase 16-04]: addZone() form.reset() on 201 + showToast() for all non-201 paths (422, 409, else) — eliminates resultDiv writes
-- [Phase 17]: Use @EncodeDefault(Mode.NEVER) per-field for null omission in FirmwareMessage — Scoped to FirmwareMessage only; does not affect other kotlinx.serialization paths in the project
-- [Phase ?]: test summary
-- [Phase ?]: [Phase 18-02]: replicas:1 hardcoded in Deployment template — Pi SPI/I2C + H2 DB cannot be shared across replicas
-- [Phase ?]: [Phase 18-02]: DISPLAY_TYPE=OFFLINE injected as direct env (not envFrom) so it supersedes ConfigMap when hardwareAccess disabled
-- [Phase ?]: [Phase 18-04]: storageClassName conditionally rendered — empty string uses cluster default
-- [Phase ?]: [Phase 18-06]: ingress.yaml pre-implemented in chart skeleton (1506f48) — verified disabled by default, renders correctly when enabled
-- [Phase ?]: [Phase 18-07]: JAVA_TOOL_OPTIONS templated in configmap via values.yaml — --set override now works as README documents
-- [Phase ?]: [Phase 18-08]: helm lint + all conditional template paths verified; phase-18-complete tag applied
-- [Phase 18-09]: privileged: true belongs under containers[0].securityContext, not pod-level spec.securityContext (Kubernetes silently ignores privileged at pod level)
-- [Phase 18-09]: ServiceAccount and RoleBinding subject converge on pre-existing textreaderrpi.serviceAccountName helper (matches Deployment); _helpers.tpl untouched
-- [Phase ?]: [Phase 18-10]: Nested if guards (not 'and') for helm lookup fallback avoid Go-template short-circuit version dependency
-- [Phase ?]: [Phase 19-01]: HistoryPage.kt's 3x-repeated query-string builder listed, not fixed (would need ~7 params for 3 call sites) — Over the D-07 borderline threshold; avoids churning a working v1.2 codebase for a marginal win
-- [Phase ?]: [Phase 19-01]: parseFilter uppercases effect/source consistently across HistoryRoutes and HistoryUIRoutes — No-op for real dropdown values (already uppercase enum names); HistoryUIRoutesTest confirms no regression
-- [Phase 19-02]: HistoryRoutesTest's second repeat(25) loop uses historyRecord()'s text = "text $i" default (was pagination-text-$i) per explicit acceptance criteria — Test only asserts page1Body != page2Body, never literal text content, so behavior is unaffected
-- [Phase 19-02]: Mechanical test migration scoped to literal testApplication{application{module()};client.get(/health)} pattern only — Blocks without that exact warm-up were left on raw testApplication rather than force-fit into appTest{}, which would silently add an extra HTTP call and change observable request counts
-- [Phase 20-01]: Included optional Monitoring subsection under Deployment (D-03) - 3 condensed alerting options fit in 2 lines, well under the 10-line budget
-- [Phase 20-01]: SSE live feed and firmware WebSocket explicitly cross-referenced in prose to prevent readers conflating /api/v1/live with /ws/zone/{id}
-- [Phase 20-02]: ESP32 firmware README section written strictly from ESP-IDF 5.2.1 facts (idf.py/CMake) — obsolete PlatformIO wording never reproduced, per 20-RESEARCH.md Pitfall 1
-- [Phase 20-02]: Pico config.h NUM_DEVICES documented as 1 (actual file value), not the generic 4 shown in firmware/pico/README.md's constant table
-- [Phase 20-03]: No net salvage from 3 unread docs/ files (architecture/configuration/testing overview.md) — README already covers equivalent content from Plans 01-02
-- [Phase 20-03]: docs/guides/development.md dropped entirely without salvage per D-03 — internal build/convention notes, not end-user docs
+</content>
