@@ -1,9 +1,10 @@
 # Project Status
 
-**Updated:** 2026-07-08 · **Milestone:** v1.2 (closed) · **Branch:** feat/18-helm-chart
+**Updated:** 2026-07-11 · **Milestone:** v1.2 (closed) · **Branch:** feature-19/test-quality-improve
 
 ## Completed work
 
+- Documentation pass: fixed `v1.2-REQUIREMENTS.md` traceability table (10 rows stuck at "Planned" despite being shipped; FW-01/FW-02 now note scoped code+CI-only verification pending physical hardware UAT). Added `renovate.json` (`config:recommended`). Deleted stale docs: empty `.planning/ui-reviews/`, fully-superseded `.planning/research/SUMMARY.md` (pre-v1.2 research, all shipped in code).
 - v1.2 milestone closed (7/7 phases, 35/35 plans); `.planning/` compressed to essentials — detailed phase docs and pre-v1.2 research live in git history only (see `.planning/milestones/ARCHIVE.md`).
 - Ponytail cleanup: removed dead `EffectRendererFactory` class, unused `Max7219Config.gpioPins`/`LcdConfig.rows`/`columns` config (+ matching env vars across `.env.example`, `docker-compose.yml`, Helm `configmap.yaml`, README), merged duplicate rate-limit installers, shrank `ConfigLoader` boilerplate.
 - CI/firmware fixes (untested on real hardware — needs a green CI run + on-device check before trusting):
@@ -17,7 +18,7 @@
 
 - Pico OTA fallback (no `picowota` vendored) does a plain `watchdog_reboot`, not a bootloader-mode reboot — fine until `picowota` is actually added.
 - Dropped the "stored WiFi creds fail → retry with `config.h` defaults" behavior on Pico; mongoose's connection is now async, so a synchronous retry isn't a fit. Revisit if the fallback is actually needed.
-- `.planning/codebase/` (live architecture map) and `ui-reviews/` are a different category from phase working notes — left untouched, not compressed.
+- `.planning/codebase/` (live architecture map) is a different category from phase working notes — left untouched, not compressed. `ui-reviews/` (empty) and `research/SUMMARY.md` (superseded) were deleted 2026-07-11.
 
 ## Next steps
 
